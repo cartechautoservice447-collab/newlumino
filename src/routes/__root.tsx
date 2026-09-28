@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -39,10 +39,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -79,18 +75,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
+      { title: "NewLumino — Glass Notes" },
       { name: "description", content: "Lumina Notes is a premium note-taking app with a glassmorphism UI and GitHub dark theme syntax highlighting." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
+      { name: "author", content: "NewLumino" },
+      { property: "og:title", content: "NewLumino — Glass Notes" },
       { property: "og:description", content: "Lumina Notes is a premium note-taking app with a glassmorphism UI and GitHub dark theme syntax highlighting." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
+            { name: "twitter:title", content: "NewLumino — Glass Notes" },
       { name: "twitter:description", content: "Lumina Notes is a premium note-taking app with a glassmorphism UI and GitHub dark theme syntax highlighting." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/15967a387dd07c9fec29601fc989ed20/id-preview-f89be03f--15df9f70-4eeb-439c-9e95-de3e44bde46a.lovable.app-1786631909403.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/15967a387dd07c9fec29601fc989ed20/id-preview-f89be03f--15df9f70-4eeb-439c-9e95-de3e44bde46a.lovable.app-1786631909403.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -107,7 +100,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,

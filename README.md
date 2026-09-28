@@ -1,4 +1,4 @@
-# Lumina Notes
+# NewLumino — Glass Notes
 
 Build a completely new, standalone, ultra-premium note-taking application from scratch. This application must embody a profound 'Glassmorphism' aesthetic and use the specific syntax highlighting colors found in GitHub's dark themes.
 
@@ -125,18 +125,6 @@ Implement a polished, sophisticated three-column layout (rather than a widget da
 
 
 - Ensure no default light gray falls back onto keywords or function names.
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://amithnotesaver.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/15df9f70-4eeb-439c-9e95-de3e44bde46a).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 

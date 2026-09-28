@@ -12,7 +12,7 @@ import { NoteEditor } from "@/components/notes/note-editor";
 import { CourseDashboard } from "@/components/courses/course-dashboard";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
-const title = "Glass Notes — Markdown notes with GitHub Dark code";
+const title = "NewLumino — Glass Notes";
 const description =
   "An ultra-premium glassmorphism note-taking workspace: collections, favorites, instant search and Markdown notes with exact GitHub Dark syntax highlighting.";
 

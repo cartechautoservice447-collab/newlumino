@@ -2,7 +2,6 @@ import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 
 type Tab = "login" | "signup";
 
@@ -50,9 +49,11 @@ export function AuthModal() {
   const google = async () => {
     setError(null);
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
     });
+    const result = { error, redirected: Boolean(data?.url) };
     if (result.error) {
       setError(result.error.message ?? "Google sign-in failed.");
       setBusy(false);

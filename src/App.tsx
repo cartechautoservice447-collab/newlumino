@@ -2,11 +2,12 @@ import { useEffect, useState, useRef } from "react";
 import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { AuthModal } from "@/components/auth/auth-modal";
-import { CustomizationProvider } from "@/context/customization-context";
+import { CustomizationProvider, useCustomization } from "@/context/customization-context";
 import { AuthProvider, useAuth } from "@/context/auth-context";
 import { NotificationProvider, useNotifications } from "@/context/notification-context";
 import { useNotes } from "@/hooks/use-notes";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { SidebarPanel } from "@/components/notes/sidebar-panel";
 import { NoteList } from "@/components/notes/note-list";
 import { NoteEditor } from "@/components/notes/note-editor";
@@ -46,6 +47,7 @@ export default function App() {
 }
 
 function MainApp() {
+  const { settings } = useCustomization();
   const { user, loading } = useAuth();
   const { showNotification } = useNotifications();
   const [guestMode, setGuestMode] = useState(false);
@@ -500,9 +502,32 @@ function MainApp() {
     />
   );
 
+  const isFluidGlass = settings.theme === "fluid-glass";
+
   return (
-    <main className="app-backdrop relative h-[100dvh] min-h-[100dvh] w-full overflow-hidden flex flex-col">
-      <div className="grain-overlay pointer-events-none absolute inset-0" />
+    <main
+      className={cn(
+        "relative h-[100dvh] min-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500",
+        isFluidGlass ? "liquid-stage" : "app-backdrop",
+        isFluidGlass && settings.fluidAppearance === "dark" && "dark"
+      )}
+      style={
+        isFluidGlass && settings.fluidPureBlack
+          ? { background: "#050507", backgroundColor: "#050507" }
+          : undefined
+      }
+    >
+      {isFluidGlass ? (
+        settings.fluidOrbsEnabled && !settings.fluidPureBlack && (
+          <>
+            <div className="liquid-orb liquid-orb-a" aria-hidden />
+            <div className="liquid-orb liquid-orb-b" aria-hidden />
+            <div className="liquid-orb liquid-orb-c" aria-hidden />
+          </>
+        )
+      ) : (
+        <div className="grain-overlay pointer-events-none absolute inset-0" />
+      )}
       <NotificationBanner />
 
       {/* Daily Goal View */}

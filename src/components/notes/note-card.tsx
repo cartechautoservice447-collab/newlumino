@@ -2,6 +2,7 @@ import { Star, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate, snippet, type Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
+import { useCustomization } from "@/context/customization-context";
 
 type Props = {
   note: Note;
@@ -22,6 +23,9 @@ export function NoteCard({
   onToggleFavorite,
   onOpenMobileMenu,
 }: Props) {
+  const { settings } = useCustomization();
+  const isFluidGlass = settings.theme === "fluid-glass";
+
   return (
     <div
       role="button"
@@ -39,12 +43,37 @@ export function NoteCard({
       }}
       style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
       className={cn(
-        "group liquid-surface animate-card-in relative w-full cursor-pointer rounded-2xl border p-4 text-left transition-all duration-300 select-none",
-        "border-white/5 bg-white/[0.03] hover:-translate-y-0.5 hover:scale-[1.015] hover:border-white/15 hover:bg-white/[0.06] active:scale-[0.985]",
-        active &&
-          "border-primary/40 bg-white/[0.08] shadow-[0_10px_30px_-18px_rgba(0,0,0,0.9)] ring-1 ring-primary/30",
+        "group liquid-surface animate-card-in relative w-full cursor-pointer rounded-2xl border p-4 text-left transition-all duration-300 select-none overflow-hidden",
+        isFluidGlass
+          ? cn(
+              "cursor-pointer !p-4 transition-all will-change-transform",
+              active && "ring-2 ring-emerald-400/80 border-emerald-400/60 shadow-[0_0_24px_rgba(52,211,153,0.35)]"
+            )
+          : cn(
+              "border-white/5 bg-white/[0.03] hover:-translate-y-0.5 hover:scale-[1.015] hover:border-white/15 hover:bg-white/[0.06] active:scale-[0.985]",
+              active &&
+                "border-primary/40 bg-white/[0.08] shadow-[0_10px_30px_-18px_rgba(0,0,0,0.9)] ring-1 ring-primary/30"
+            )
       )}
     >
+      {isFluidGlass && (
+        <>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit]"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 55%, rgba(255, 255, 255, 0.09) 100%)",
+            }}
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] border border-white/35 mix-blend-screen opacity-25"
+            style={{ filter: "url(#liquid-refraction)" }}
+          />
+          <span aria-hidden className="liquid-veil pointer-events-none absolute inset-0 -z-10 rounded-[inherit]" />
+        </>
+      )}
       <div className="flex items-start justify-between gap-2.5">
         <h3 className="line-clamp-1 flex-1 text-sm font-semibold tracking-tight text-foreground">
           {note.title || "Untitled note"}

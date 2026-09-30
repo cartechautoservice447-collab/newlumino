@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud } from "lucide-react";
+import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud, Moon, Sun, Droplets, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -94,10 +94,29 @@ function SliderRow({
   );
 }
 
-const themes: { value: ThemeBase; label: string }[] = [
-  { value: "original", label: "Original" },
-  { value: "dark", label: "Dark" },
-  { value: "light", label: "White / Light" },
+const themes: { value: ThemeBase; label: string; badge?: string; desc: string }[] = [
+  {
+    value: "original",
+    label: "Default Original Theme",
+    badge: "Main Website",
+    desc: "Current website default luminous glass system & custom shaders",
+  },
+  {
+    value: "fluid-glass",
+    label: "Old Website Theme",
+    badge: "Fluid Glass Studio",
+    desc: "Exact 3D water-gel lens, stage orbs & liquid refraction",
+  },
+  {
+    value: "dark",
+    label: "Dark",
+    desc: "Obsidian dark appearance",
+  },
+  {
+    value: "light",
+    label: "White / Light",
+    desc: "Daylight clean bright glass",
+  },
 ];
 
 const motions: { value: MotionLevel; label: string }[] = [
@@ -142,7 +161,7 @@ function SettingsContent({
   dailyGoalHours?: number;
 }) {
   const { user } = useAuth();
-  const { settings, update, applyGlassPreset, reset } = useCustomization();
+  const { settings, update, applyGlassPreset, reset, resetOldThemeDefaults } = useCustomization();
   const spring = liquidSpringParams(settings.liquidBounce);
 
   return (
@@ -231,8 +250,11 @@ function SettingsContent({
         dailyGoalHours={dailyGoalHours}
       />
 
-      <Section title="Color theme">
-        <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/5 bg-white/[0.03] p-1">
+      <Section
+        title="Theme Selector"
+        hint="Choose between the current website default theme and the old website theme."
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {themes.map((t) => (
             <button
               key={t.value}
@@ -242,17 +264,261 @@ function SettingsContent({
                 update({ theme: t.value });
               }}
               className={cn(
-                "rounded-lg px-2.5 py-1.5 text-xs transition-all touch-manipulation cursor-pointer",
+                "flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all touch-manipulation cursor-pointer",
                 settings.theme === t.value
-                  ? "bg-white/[0.12] text-foreground font-semibold shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "border-primary/50 bg-white/[0.12] text-foreground font-semibold shadow-md ring-1 ring-primary/40"
+                  : "border-white/5 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
               )}
             >
-              {t.label}
+              <div className="flex w-full items-center justify-between gap-1.5">
+                <span className="text-xs font-bold text-foreground">{t.label}</span>
+                {t.badge && (
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide shrink-0",
+                      settings.theme === t.value
+                        ? "bg-primary/20 text-primary"
+                        : "bg-white/10 text-muted-foreground"
+                    )}
+                  >
+                    {t.badge}
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] leading-tight text-muted-foreground/80 font-normal">
+                {t.desc}
+              </span>
             </button>
           ))}
         </div>
       </Section>
+
+      {/* Dedicated Old Website Theme (Fluid Glass Studio) Customization Section */}
+      {settings.theme === "fluid-glass" && (
+        <Section
+          title="Old Website Theme (Fluid Glass Studio)"
+          hint="Exact glass element, 3D water-gel lens, stage refraction & liquid physics from fluid-glass-studio."
+        >
+          <div className="space-y-3.5">
+            {/* Appearance Toggle: Night vs Day */}
+            <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] p-3">
+              <div>
+                <p className="text-xs font-semibold text-foreground">Appearance Mode</p>
+                <p className="text-[0.68rem] text-muted-foreground/70">
+                  {settings.fluidAppearance === "dark"
+                    ? "Night mode — obsidian liquid glass"
+                    : "Day mode — bright liquid glass"}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] p-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic("light");
+                    update({ fluidAppearance: "dark" });
+                  }}
+                  className={cn(
+                    "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition cursor-pointer",
+                    settings.fluidAppearance === "dark"
+                      ? "bg-white/20 text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Moon className="h-3 w-3" />
+                  <span>Night</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic("light");
+                    update({ fluidAppearance: "light" });
+                  }}
+                  className={cn(
+                    "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition cursor-pointer",
+                    settings.fluidAppearance === "light"
+                      ? "bg-white/20 text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Sun className="h-3 w-3" />
+                  <span>Day</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Pure Black Stage Switch */}
+            <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5">
+              <div>
+                <p className="text-xs font-semibold text-foreground">Pure Black Stage</p>
+                <p className="text-[0.68rem] text-muted-foreground/70">
+                  Flat pitch black background instead of the gradient glow. Glass panels stay as they are.
+                </p>
+              </div>
+              <Switch
+                checked={settings.fluidPureBlack}
+                onCheckedChange={(v) => update({ fluidPureBlack: v })}
+              />
+            </div>
+
+            {/* Ambient Drifting Orbs Switch */}
+            <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5">
+              <div>
+                <p className="text-xs font-semibold text-foreground">Ambient Drifting Orbs</p>
+                <p className="text-[0.68rem] text-muted-foreground/70">
+                  Floating luminous cyan/purple orbs drifting behind the glass.
+                </p>
+              </div>
+              <Switch
+                checked={settings.fluidOrbsEnabled}
+                onCheckedChange={(v) => update({ fluidOrbsEnabled: v })}
+              />
+            </div>
+
+            {/* UI Text Clarity */}
+            <div className="space-y-2 rounded-xl border border-white/5 bg-white/[0.03] p-3">
+              <div>
+                <p className="text-xs font-semibold text-foreground">UI Text Clarity</p>
+                <p className="text-[0.68rem] text-muted-foreground/70">
+                  Controls clarity and sharpness of normal interface text inside the glass panels.
+                </p>
+              </div>
+              <div className="grid grid-cols-4 gap-1 rounded-lg border border-white/10 bg-black/10 p-1">
+                {(["default", "smooth", "medium", "punchy"] as const).map((clarity) => (
+                  <button
+                    key={clarity}
+                    type="button"
+                    onClick={() => {
+                      haptic("light");
+                      update({ fluidTextClarity: clarity });
+                    }}
+                    className={cn(
+                      "rounded-md py-1 text-center text-xs font-medium capitalize transition cursor-pointer",
+                      settings.fluidTextClarity === clarity
+                        ? "bg-white/20 text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                    )}
+                  >
+                    {clarity}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Performance Mode */}
+            <div className="space-y-2 rounded-xl border border-white/5 bg-white/[0.03] p-3">
+              <div className="flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-amber-400" />
+                <p className="text-xs font-semibold text-foreground">Performance Mode</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic("light");
+                    update({ fluidPerformance: "high" });
+                  }}
+                  className={cn(
+                    "rounded-xl border p-2.5 text-left transition cursor-pointer",
+                    settings.fluidPerformance === "high"
+                      ? "border-primary/50 bg-primary/10 text-foreground font-semibold"
+                      : "border-white/5 bg-white/[0.02] text-muted-foreground hover:bg-white/[0.05]"
+                  )}
+                >
+                  <span className="block text-xs font-bold">High</span>
+                  <span className="mt-0.5 block text-[10px] text-muted-foreground">Balanced visual effects</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic("light");
+                    update({ fluidPerformance: "ultra" });
+                  }}
+                  className={cn(
+                    "rounded-xl border p-2.5 text-left transition cursor-pointer",
+                    settings.fluidPerformance === "ultra"
+                      ? "border-primary/50 bg-primary/10 text-foreground font-semibold"
+                      : "border-white/5 bg-white/[0.02] text-muted-foreground hover:bg-white/[0.05]"
+                  )}
+                >
+                  <span className="block text-xs font-bold">Ultra</span>
+                  <span className="mt-0.5 block text-[10px] text-muted-foreground">Maximum visual effects</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Fluid Glass Physics Sliders (Old Website) */}
+            <div className="space-y-3 rounded-xl border border-white/5 bg-white/[0.03] p-3.5">
+              <div className="flex items-center gap-2">
+                <Droplets className="h-3.5 w-3.5 text-sky-400" />
+                <p className="text-xs font-bold text-foreground">Fluid Glass Physics (Old Website Engine)</p>
+              </div>
+              <SliderRow
+                label="Liquid density (Viscosity & refraction blur)"
+                value={settings.fluidDensity}
+                suffix="px"
+                min={0}
+                max={40}
+                step={1}
+                onChange={(v) => update({ fluidDensity: v })}
+              />
+              <SliderRow
+                label="Liquid transparency (Alpha blending)"
+                value={settings.fluidTransparency}
+                suffix="%"
+                min={5}
+                max={95}
+                step={1}
+                onChange={(v) => update({ fluidTransparency: v })}
+              />
+              <SliderRow
+                label="Liquid clearness (Distortion index)"
+                value={settings.fluidClearness}
+                suffix=" idx"
+                min={0}
+                max={100}
+                step={1}
+                onChange={(v) => update({ fluidClearness: v })}
+              />
+              <SliderRow
+                label="Liquid gel (Surface tension & 3D bevel depth)"
+                value={settings.fluidGel}
+                suffix="%"
+                min={0}
+                max={100}
+                step={1}
+                onChange={(v) => update({ fluidGel: v })}
+              />
+              <SliderRow
+                label="Liquid bounce · Stiffness"
+                value={settings.fluidBounceStiffness}
+                min={100}
+                max={500}
+                step={5}
+                onChange={(v) => update({ fluidBounceStiffness: v })}
+              />
+              <SliderRow
+                label="Liquid bounce · Damping"
+                value={settings.fluidBounceDamping}
+                min={10}
+                max={40}
+                step={1}
+                onChange={(v) => update({ fluidBounceDamping: v })}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  haptic("medium");
+                  resetOldThemeDefaults();
+                }}
+                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.05] py-2 text-xs font-semibold text-muted-foreground hover:bg-white/[0.1] hover:text-foreground transition active:scale-95 cursor-pointer"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reset Old Website Theme Defaults
+              </button>
+            </div>
+          </div>
+        </Section>
+      )}
 
       <Section title="Glass quality" hint={settings.glassPreset === "custom" ? "Custom" : undefined}>
         <Ticks

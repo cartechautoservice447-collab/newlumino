@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
+import { useCustomization } from "@/context/customization-context";
 import type { Collection } from "@/lib/notes";
 import type { Filter } from "@/hooks/use-notes";
 
@@ -127,6 +128,9 @@ export function SidebarPanel({
   todayFocusSeconds = 0,
   dailyGoalHours = 2,
 }: Props) {
+  const { settings } = useCustomization();
+  const isFluidGlass = settings.theme === "fluid-glass";
+
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
 
@@ -148,7 +152,7 @@ export function SidebarPanel({
           </div>
           <div>
             <p className="text-[0.65rem] uppercase tracking-[0.28em] text-muted-foreground/70 font-semibold">
-              NewLumino
+              {isFluidGlass ? "Liquid Glass" : "NewLumino"}
             </p>
             <h1 className="text-base font-bold tracking-tight text-foreground">Glass Notes</h1>
           </div>
@@ -175,7 +179,12 @@ export function SidebarPanel({
       <button
         type="button"
         onClick={onCreateNote}
-        className="animate-pulse-glow flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-primary px-3.5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+        className={cn(
+          "flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98]",
+          isFluidGlass
+            ? "notes-pulse-glow bg-emerald-500 text-slate-950 shadow-[0_0_28px_rgba(16,185,129,0.62),0_10px_28px_rgba(5,150,105,0.42)] ring-1 ring-emerald-300/55 hover:scale-[1.015] hover:bg-emerald-400 py-2.5 px-4"
+            : "animate-pulse-glow border border-white/10 bg-primary px-3.5 py-2.5 text-primary-foreground shadow-lg hover:scale-[1.02]"
+        )}
       >
         <Plus className="h-4 w-4" />
         New Note

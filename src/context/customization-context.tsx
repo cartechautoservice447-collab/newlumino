@@ -9,6 +9,7 @@ import {
 } from "react";
 import {
   DEFAULT_CUSTOMIZATION,
+  FLUID_GLASS_DEFAULTS,
   GLASS_PRESETS,
   loadCustomization,
   saveCustomization,
@@ -23,6 +24,7 @@ type Ctx = {
   update: (patch: Partial<Customization>) => void;
   applyGlassPreset: (preset: Exclude<QualityLevel, "custom">) => void;
   reset: () => void;
+  resetOldThemeDefaults: () => void;
 };
 
 const CustomizationContext = createContext<Ctx | null>(null);
@@ -48,6 +50,17 @@ export function CustomizationProvider({ children }: { children: ReactNode }) {
     root.dataset["theme"] = settings.theme;
     root.dataset["motion"] = settings.motion;
     root.dataset["liquidGlass"] = settings.liquidGlassEnabled ? "on" : "off";
+    root.dataset["fluidAppearance"] = settings.fluidAppearance;
+    root.dataset["fluidPureBlack"] = settings.fluidPureBlack ? "on" : "off";
+    root.dataset["uiTextClarity"] = settings.fluidTextClarity;
+    root.dataset["glassPerformance"] = settings.fluidPerformance;
+
+    const isDark =
+      settings.theme === "dark" ||
+      (settings.theme === "fluid-glass" && settings.fluidAppearance === "dark");
+    root.classList.toggle("dark", isDark);
+    root.classList.toggle("pure-black", settings.theme === "fluid-glass" && settings.fluidPureBlack);
+    root.style.colorScheme = isDark ? "dark" : (settings.theme === "light" ? "light" : "dark");
   }, [settings]);
 
   const update = useCallback((patch: Partial<Customization>) => {
@@ -66,9 +79,13 @@ export function CustomizationProvider({ children }: { children: ReactNode }) {
 
   const reset = useCallback(() => setSettings(DEFAULT_CUSTOMIZATION), []);
 
+  const resetOldThemeDefaults = useCallback(() => {
+    setSettings((prev) => ({ ...prev, ...FLUID_GLASS_DEFAULTS }));
+  }, []);
+
   const value = useMemo(
-    () => ({ settings, update, applyGlassPreset, reset }),
-    [settings, update, applyGlassPreset, reset],
+    () => ({ settings, update, applyGlassPreset, reset, resetOldThemeDefaults }),
+    [settings, update, applyGlassPreset, reset, resetOldThemeDefaults],
   );
 
   return (

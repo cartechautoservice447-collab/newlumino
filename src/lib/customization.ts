@@ -1,7 +1,10 @@
-export type ThemeBase = "original" | "dark" | "light";
+export type ThemeBase = "original" | "fluid-glass" | "dark" | "light";
 export type QualityLevel = "low" | "medium" | "high" | "ultra" | "custom";
 export type MotionLevel = "low" | "medium" | "high" | "ultra";
 export type UiFont = "inter" | "system" | "mono";
+
+export type FluidGlassAppearance = "dark" | "light";
+export type FluidGlassTextClarity = "default" | "smooth" | "medium" | "punchy";
 
 export type Customization = {
   theme: ThemeBase;
@@ -15,13 +18,40 @@ export type Customization = {
   uiLineHeight: number;
   editorFontSize: number; // px
   editorLineHeight: number;
-  // Liquid Glass Engine
+  // Liquid Glass Engine (Current website default)
   liquidGlassEnabled: boolean;
   liquidDensity: number; // px 0..40 — viscosity/refraction blur
   liquidTransparency: number; // % 5..95 — alpha blending
   liquidClearness: number; // 0..100 — SVG turbulence distortion/glare clarity
   liquidGel: number; // 0..100 — surface tension / inner bevel depth
   liquidBounce: number; // 0..100 — spring springiness (drives stiffness+damping)
+
+  // Fluid Glass Studio (Old website theme)
+  fluidAppearance: FluidGlassAppearance;
+  fluidPureBlack: boolean;
+  fluidOrbsEnabled: boolean;
+  fluidTextClarity: FluidGlassTextClarity;
+  fluidPerformance: "high" | "ultra";
+  fluidDensity: number; // 0..40 (default 12)
+  fluidTransparency: number; // 5..95 (default 45)
+  fluidClearness: number; // 0..100 (default 35)
+  fluidGel: number; // 0..100 (default 55)
+  fluidBounceStiffness: number; // 100..500 (default 200)
+  fluidBounceDamping: number; // 10..40 (default 24)
+};
+
+export const FLUID_GLASS_DEFAULTS = {
+  fluidAppearance: "dark" as FluidGlassAppearance,
+  fluidPureBlack: false,
+  fluidOrbsEnabled: true,
+  fluidTextClarity: "default" as FluidGlassTextClarity,
+  fluidPerformance: "high" as "high" | "ultra",
+  fluidDensity: 12,
+  fluidTransparency: 45,
+  fluidClearness: 35,
+  fluidGel: 55,
+  fluidBounceStiffness: 200,
+  fluidBounceDamping: 24,
 };
 
 export const GLASS_PRESETS: Record<
@@ -57,6 +87,7 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   liquidClearness: 55,
   liquidGel: 50,
   liquidBounce: 55,
+  ...FLUID_GLASS_DEFAULTS,
 };
 
 const KEY = "glass-notes:customization:v1";
@@ -89,7 +120,7 @@ const MOTION_SCALE: Record<MotionLevel, number> = {
 };
 
 export function toCssVars(c: Customization): Record<string, string> {
-  return {
+  const vars: Record<string, string> = {
     "--glass-blur": `${c.glassBlur}px`,
     "--glass-alpha": `${c.glassOpacity / 100}`,
     "--glass-border-w": `${c.glassThickness}px`,
@@ -106,6 +137,42 @@ export function toCssVars(c: Customization): Record<string, string> {
     "--liquid-gel": `${c.liquidGel}`,
     "--liquid-bounce": `${c.liquidBounce}`,
   };
+
+  // Fluid Glass Studio (Old website theme) tokens
+  const fluidTransparency = (c.fluidTransparency ?? 45) / 100;
+  const darkVeilAlpha =
+    fluidTransparency <= 0.45
+      ? 0.0775 + 0.45 * fluidTransparency
+      : 0.46 - 0.4 * fluidTransparency;
+
+  vars["--fluid-density"] = `${c.fluidDensity ?? 12}px`;
+  vars["--fluid-transparency"] = `${fluidTransparency}`;
+  vars["--liquid-glass-alpha"] = `${fluidTransparency}`;
+  vars["--liquid-glass-dark-alpha"] = `${fluidTransparency * 0.16}`;
+  vars["--liquid-veil-alpha"] = `${fluidTransparency * 0.36}`;
+  vars["--liquid-dark-veil-alpha"] = `${darkVeilAlpha}`;
+  vars["--fluid-clearness"] = `${c.fluidClearness ?? 35}`;
+  vars["--fluid-gel"] = `${c.fluidGel ?? 55}`;
+  vars["--fluid-bounce"] = `${c.fluidBounceStiffness ?? 200}`;
+  vars["--fluid-bounce-damping"] = `${c.fluidBounceDamping ?? 24}`;
+
+  const gel = (c.fluidGel ?? 55) / 100;
+  vars["--fluid-border-radius"] = `${18 + gel * 26}px`;
+  vars["--fluid-card-radius"] = `${16 + gel * 20}px`;
+  vars["--fluid-shadow-inset-top"] = `${1 + gel * 1.5}px`;
+  vars["--fluid-shadow-inset-blur"] = `${2 + gel * 3}px`;
+  vars["--fluid-shadow-inset-bot"] = `-${2 + gel * 3}px`;
+  vars["--fluid-shadow-inset-bot-blur"] = `${4 + gel * 6}px`;
+  vars["--fluid-shadow-drop-y"] = `${8 + gel * 10}px`;
+  vars["--fluid-shadow-drop-blur"] = `${32 + gel * 24}px`;
+
+  if (c.fluidAppearance === "dark") {
+    vars["--water-gel-bg"] = `rgb(255 255 255 / var(--liquid-glass-dark-alpha, 0.07))`;
+  } else {
+    vars["--water-gel-bg"] = `rgb(255 255 255 / var(--liquid-glass-alpha, 0.45))`;
+  }
+
+  return vars;
 }
 
 /** Derives spring params (Framer-Motion-style) from a single 0..100 "bounce" value. */

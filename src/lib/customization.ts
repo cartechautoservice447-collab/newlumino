@@ -40,6 +40,10 @@ export type Customization = {
   fluidGel: number; // 0..100 (default 55)
   fluidBounceStiffness: number; // 100..500 (default 200)
   fluidBounceDamping: number; // 10..40 (default 24)
+  // Fluid Glass Studio — Background Theme (exact from fluid-glass-studio)
+  fluidBackgroundThemeEnabled: boolean;
+  fluidBackgroundOpacity: number; // 0..100 (default 100)
+  fluidFullDarkBackground: boolean;
 };
 
 export const FLUID_GLASS_DEFAULTS = {
@@ -54,6 +58,9 @@ export const FLUID_GLASS_DEFAULTS = {
   fluidGel: 55,
   fluidBounceStiffness: 200,
   fluidBounceDamping: 24,
+  fluidBackgroundThemeEnabled: false,
+  fluidBackgroundOpacity: 100,
+  fluidFullDarkBackground: false,
 };
 
 export const GLASS_PRESETS: Record<
@@ -145,12 +152,18 @@ export function toCssVars(c: Customization): Record<string, string> {
     "--liquid-bounce": `${c.liquidBounce}`,
   };
 
-  // Fluid Glass Studio (Old website theme) tokens
+  // Fluid Glass Studio (Old website theme) tokens — exact from fluid-glass-studio
   const fluidTransparency = (c.fluidTransparency ?? 45) / 100;
   const darkVeilAlpha =
     fluidTransparency <= 0.45
       ? 0.0775 + 0.45 * fluidTransparency
       : 0.46 - 0.4 * fluidTransparency;
+
+  // When old website theme is active, --liquid-density drives the glass blur in GlassPanel/index.css
+  // so it MUST come from fluidDensity not liquidDensity
+  if (c.websiteTheme === "fluid-glass") {
+    vars["--liquid-density"] = `${c.fluidDensity ?? 12}px`;
+  }
 
   vars["--fluid-density"] = `${c.fluidDensity ?? 12}px`;
   vars["--fluid-transparency"] = `${fluidTransparency}`;
@@ -162,6 +175,7 @@ export function toCssVars(c: Customization): Record<string, string> {
   vars["--fluid-gel"] = `${c.fluidGel ?? 55}`;
   vars["--fluid-bounce"] = `${c.fluidBounceStiffness ?? 200}`;
   vars["--fluid-bounce-damping"] = `${c.fluidBounceDamping ?? 24}`;
+  vars["--background-opacity"] = `${(c.fluidBackgroundOpacity ?? 100) / 100}`;
 
   const gel = (c.fluidGel ?? 55) / 100;
   vars["--fluid-border-radius"] = `${18 + gel * 26}px`;

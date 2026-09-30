@@ -505,15 +505,34 @@ function MainApp() {
   const isFluidTheme = settings.websiteTheme === "fluid-glass";
   const isPureBlack = isFluidTheme && settings.fluidPureBlack;
 
+  // Exact fluid-glass-studio background logic from Workspace component
+  const fluidBgEnabled = isFluidTheme && settings.fluidBackgroundThemeEnabled;
+  const backgroundAlpha = (settings.fluidBackgroundOpacity ?? 100) / 100;
+  const customBackground = fluidBgEnabled && !settings.fluidFullDarkBackground
+    ? `radial-gradient(120% 90% at 10% 0%, oklch(0.62 0.18 250 / ${backgroundAlpha}) 0%, transparent 60%),radial-gradient(100% 80% at 100% 10%, oklch(0.58 0.17 285 / ${backgroundAlpha}) 0%, transparent 55%),linear-gradient(170deg, oklch(0.5 0.17 258 / ${backgroundAlpha}), oklch(0.36 0.15 268 / ${backgroundAlpha}))`
+    : undefined;
+  const stageStyle = isFluidTheme
+    ? (fluidBgEnabled
+        ? {
+            background: settings.fluidFullDarkBackground ? "#050507" : customBackground,
+            backgroundColor: settings.fluidFullDarkBackground ? "#050507" : "#07070c",
+          }
+        : isPureBlack
+          ? { backgroundColor: "#050507" }
+          : undefined)
+    : undefined;
+
+  const orbStyle = fluidBgEnabled
+    ? { opacity: settings.fluidFullDarkBackground ? 0 : 0.75 * backgroundAlpha }
+    : undefined;
+
   return (
     <main
       className={cn(
         "relative h-[100dvh] min-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500",
         isFluidTheme ? "liquid-stage" : "app-backdrop"
       )}
-      style={{
-        backgroundColor: isPureBlack ? "#050507" : undefined,
-      }}
+      style={stageStyle}
     >
       {/* Default: grain mesh overlay */}
       {!isFluidTheme && (
@@ -523,9 +542,9 @@ function MainApp() {
       {/* Fluid Glass: drifting ambient orbs */}
       {isFluidTheme && !isPureBlack && settings.fluidOrbsEnabled && (
         <>
-          <div className="liquid-orb liquid-orb-a" aria-hidden />
-          <div className="liquid-orb liquid-orb-b" aria-hidden />
-          <div className="liquid-orb liquid-orb-c" aria-hidden />
+          <div className="liquid-orb liquid-orb-a" style={orbStyle} aria-hidden />
+          <div className="liquid-orb liquid-orb-b" style={orbStyle} aria-hidden />
+          <div className="liquid-orb liquid-orb-c" style={orbStyle} aria-hidden />
         </>
       )}
 

@@ -296,77 +296,136 @@ function SettingsContent({
           hint="Exact glass element, 3D water-gel lens, stage refraction & liquid physics from fluid-glass-studio."
         >
           <div className="space-y-3.5">
-            {/* Appearance Toggle: Night vs Day */}
-            <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] p-3">
+
+            {/* Appearance — exact ThemeToggle from fluid-glass-studio */}
+            <div className="flex items-center justify-between rounded-xl border border-white/20 bg-white/5 px-3.5 py-2.5">
               <div>
-                <p className="text-xs font-semibold text-foreground">Appearance Mode</p>
-                <p className="text-[0.68rem] text-muted-foreground/70">
+                <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">Appearance</p>
+                <p className="mt-1 text-xs text-muted-foreground">
                   {settings.fluidAppearance === "dark"
                     ? "Night mode — obsidian liquid glass"
                     : "Day mode — bright liquid glass"}
                 </p>
               </div>
-              <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] p-0.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("light");
-                    update({ fluidAppearance: "dark" });
-                  }}
+              {/* Exact ThemeToggle pill from fluid-glass-studio ThemeToggle.tsx */}
+              <button
+                type="button"
+                onClick={() => {
+                  haptic("light");
+                  update({ fluidAppearance: settings.fluidAppearance === "dark" ? "light" : "dark" });
+                }}
+                aria-label={settings.fluidAppearance === "dark" ? "Switch to day mode" : "Switch to night mode"}
+                aria-pressed={settings.fluidAppearance === "dark"}
+                className="relative flex h-10 w-[4.75rem] flex-shrink-0 items-center rounded-full border border-white/30 bg-white/15 px-1 backdrop-blur-xl transition-colors hover:bg-white/25 cursor-pointer"
+                style={{ backdropFilter: "blur(12px) saturate(160%)" }}
+              >
+                <span
                   className={cn(
-                    "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition cursor-pointer",
-                    settings.fluidAppearance === "dark"
-                      ? "bg-white/20 text-white shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
+                    "flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-300",
+                    settings.fluidAppearance === "dark" ? "ml-auto mr-0" : "ml-0 mr-auto"
                   )}
                 >
-                  <Moon className="h-3 w-3" />
-                  <span>Night</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("light");
-                    update({ fluidAppearance: "light" });
-                  }}
-                  className={cn(
-                    "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition cursor-pointer",
-                    settings.fluidAppearance === "light"
-                      ? "bg-white/20 text-white shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
+                  {settings.fluidAppearance === "dark" ? (
+                    <Moon className="h-4 w-4" />
+                  ) : (
+                    <Sun className="h-4 w-4" />
                   )}
-                >
-                  <Sun className="h-3 w-3" />
-                  <span>Day</span>
-                </button>
-              </div>
+                </span>
+                <span className="sr-only">{settings.fluidAppearance === "dark" ? "Night mode" : "Day mode"}</span>
+              </button>
             </div>
 
             {/* Pure Black Stage Switch */}
-            <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5">
+            <div className="flex items-center justify-between rounded-xl border border-white/20 bg-white/5 px-3.5 py-2.5">
               <div>
-                <p className="text-xs font-semibold text-foreground">Pure Black Stage</p>
-                <p className="text-[0.68rem] text-muted-foreground/70">
-                  Flat pitch black background instead of the gradient glow. Glass panels stay as they are.
+                <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">Pure Black</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Flat black background instead of the gradient glow. Glass panels stay as they are.
                 </p>
               </div>
               <Switch
                 checked={settings.fluidPureBlack}
-                onCheckedChange={(v) => update({ fluidPureBlack: v })}
+                onCheckedChange={(v) => {
+                  haptic("light");
+                  update({ fluidPureBlack: v });
+                }}
               />
             </div>
 
+            {/* Background Theme — exact from fluid-glass-studio EngineSettingsModal */}
+            <div className="space-y-4 rounded-xl border border-white/20 bg-white/5 p-3.5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">Background Theme</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Independent background controls. Glass panels and Glass physics are unchanged.
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.fluidBackgroundThemeEnabled}
+                  onCheckedChange={(v) => {
+                    haptic("light");
+                    update({ fluidBackgroundThemeEnabled: v });
+                  }}
+                  aria-label="Enable background theme controls"
+                />
+              </div>
+              {settings.fluidBackgroundThemeEnabled && (
+                <div className="space-y-4 border-t border-white/10 pt-4">
+                  {/* Background Opacity slider */}
+                  <div className="space-y-2">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Background Opacity</span>
+                      <span className="font-mono text-xs text-accent-foreground">{settings.fluidBackgroundOpacity}%</span>
+                    </div>
+                    <SliderRow
+                      label=""
+                      value={settings.fluidBackgroundOpacity}
+                      suffix="%"
+                      min={0}
+                      max={100}
+                      step={1}
+                      onChange={(v) => update({ fluidBackgroundOpacity: v })}
+                    />
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      Controls only the background layer behind the Glass UI.
+                    </p>
+                  </div>
+                  {/* Fully Dark Theme */}
+                  <div className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Fully Dark Theme</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Use a uniform deep-dark background so the existing Glass sits cleanly on top.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.fluidFullDarkBackground}
+                      onCheckedChange={(v) => {
+                        haptic("light");
+                        update({ fluidFullDarkBackground: v });
+                      }}
+                      aria-label="Toggle fully dark background"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Ambient Drifting Orbs Switch */}
-            <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5">
+            <div className="flex items-center justify-between rounded-xl border border-white/20 bg-white/5 px-3.5 py-2.5">
               <div>
-                <p className="text-xs font-semibold text-foreground">Ambient Drifting Orbs</p>
-                <p className="text-[0.68rem] text-muted-foreground/70">
+                <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">Ambient Orbs</p>
+                <p className="mt-1 text-xs text-muted-foreground">
                   Floating luminous cyan/purple orbs drifting behind the glass.
                 </p>
               </div>
               <Switch
                 checked={settings.fluidOrbsEnabled}
-                onCheckedChange={(v) => update({ fluidOrbsEnabled: v })}
+                onCheckedChange={(v) => {
+                  haptic("light");
+                  update({ fluidOrbsEnabled: v });
+                }}
               />
             </div>
 

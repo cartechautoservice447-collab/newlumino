@@ -8,6 +8,7 @@ import { NotificationProvider, useNotifications } from "@/context/notification-c
 import { useNotes } from "@/hooks/use-notes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { ThemeStage } from "@/components/theme/theme-stage";
 import { SidebarPanel } from "@/components/notes/sidebar-panel";
 import { NoteList } from "@/components/notes/note-list";
 import { NoteEditor } from "@/components/notes/note-editor";
@@ -200,7 +201,7 @@ function MainApp() {
   // Dashboard view
   if (view === "dashboard") {
     return (
-      <div className="min-h-screen w-full relative">
+      <ThemeStage className="min-h-screen w-full">
         <CourseDashboard
           courses={n.courses}
           notes={n.notes}
@@ -456,7 +457,7 @@ function MainApp() {
           selectedNote={n.selected || n.notes[0] || null}
           onUpdateNote={n.updateNote}
         />
-      </div>
+      </ThemeStage>
     );
   }
 
@@ -502,29 +503,8 @@ function MainApp() {
     />
   );
 
-  const isFluidTheme = settings.websiteTheme === "fluid-glass";
-
   return (
-    <main
-      className={cn(
-        "relative h-[100dvh] min-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500",
-        isFluidTheme ? "liquid-stage" : "app-backdrop"
-      )}
-    >
-      {/* Default New Theme: grain mesh overlay */}
-      {!isFluidTheme && (
-        <div className="grain-overlay pointer-events-none absolute inset-0" />
-      )}
-
-      {/* Old Website Theme: 3 authentic atmospheric glow orbs from fluid-glass-studio */}
-      {isFluidTheme && (settings.fluidOrbsEnabled ?? true) && (
-        <>
-          <div className="liquid-orb liquid-orb-a" aria-hidden />
-          <div className="liquid-orb liquid-orb-b" aria-hidden />
-          <div className="liquid-orb liquid-orb-c" aria-hidden />
-        </>
-      )}
-
+    <ThemeStage className="relative flex flex-col">
       <NotificationBanner />
 
       {/* Daily Goal View */}
@@ -931,6 +911,6 @@ function MainApp() {
         selectedNote={n.selected || n.visibleNotes[0] || null}
         onUpdateNote={n.updateNote}
       />
-    </main>
+    </ThemeStage>
   );
 }

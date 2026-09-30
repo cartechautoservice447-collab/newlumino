@@ -858,6 +858,6 @@ export function CourseDashboard({
           </div>
         </div>
       ) : null}
-    </main>
+    </div>
   );
 }

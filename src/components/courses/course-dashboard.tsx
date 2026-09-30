@@ -19,7 +19,6 @@ import {
   Zap,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
-import { useCustomization } from "@/context/customization-context";
 import { cn } from "@/lib/utils";
 import { COURSE_ACCENTS, formatDate, type Course, type CourseAccent, type Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
@@ -203,9 +202,6 @@ export function CourseDashboard({
     onDeleteCourse(deletingCourse.id);
     setDeletingCourse(null);
   };
-
-  const { settings } = useCustomization();
-  const isFluidTheme = settings.websiteTheme === "fluid-glass";
 
   const totalNotes = notes.length;
   const favNotes = notes.filter((n) => n.favorite).length;

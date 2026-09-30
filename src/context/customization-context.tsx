@@ -48,7 +48,6 @@ export function CustomizationProvider({ children }: { children: ReactNode }) {
     const vars = toCssVars(settings);
     for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
     root.dataset["theme"] = settings.theme;
-    root.dataset["backgroundOption"] = settings.backgroundOption;
     root.dataset["motion"] = settings.motion;
     root.dataset["liquidGlass"] = settings.liquidGlassEnabled ? "on" : "off";
     root.dataset["fluidAppearance"] = settings.fluidAppearance;

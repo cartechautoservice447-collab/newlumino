@@ -5,7 +5,6 @@ export type UiFont = "inter" | "system" | "mono";
 
 export type FluidGlassAppearance = "dark" | "light";
 export type FluidGlassTextClarity = "default" | "smooth" | "medium" | "punchy";
-export type BackgroundOption = "default" | "fluid-glass" | "aurora" | "cosmic-sunset";
 
 export type Customization = {
   theme: ThemeBase;
@@ -26,10 +25,6 @@ export type Customization = {
   liquidClearness: number; // 0..100 — SVG turbulence distortion/glare clarity
   liquidGel: number; // 0..100 — surface tension / inner bevel depth
   liquidBounce: number; // 0..100 — spring springiness (drives stiffness+damping)
-
-  // Dedicated Background Option
-  backgroundOption: BackgroundOption;
-  backgroundOpacity: number; // % 0..100
 
   // Fluid Glass Studio (Old website theme)
   fluidAppearance: FluidGlassAppearance;
@@ -92,8 +87,6 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   liquidClearness: 55,
   liquidGel: 50,
   liquidBounce: 55,
-  backgroundOption: "default",
-  backgroundOpacity: 100,
   ...FLUID_GLASS_DEFAULTS,
 };
 
@@ -143,8 +136,6 @@ export function toCssVars(c: Customization): Record<string, string> {
     "--liquid-clearness": `${c.liquidClearness}`,
     "--liquid-gel": `${c.liquidGel}`,
     "--liquid-bounce": `${c.liquidBounce}`,
-    "--background-opacity": `${(c.backgroundOpacity ?? 100) / 100}`,
-    "--background-option": c.backgroundOption ?? "default",
   };
 
   // Fluid Glass Studio (Old website theme) tokens

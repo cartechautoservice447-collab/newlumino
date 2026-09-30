@@ -503,18 +503,7 @@ function MainApp() {
   );
 
   const isFluidTheme = settings.theme === "fluid-glass";
-  const bg = settings.backgroundOption ?? (isFluidTheme ? "fluid-glass" : "default");
   const isPureBlack = isFluidTheme && settings.fluidPureBlack;
-  const bgOpacity = (settings.backgroundOpacity ?? 100) / 100;
-
-  const bgClass =
-    bg === "fluid-glass"
-      ? "liquid-stage"
-      : bg === "aurora"
-      ? "aurora-stage"
-      : bg === "cosmic-sunset"
-      ? "cosmic-stage"
-      : "app-backdrop";
 
   return (
     <main
@@ -524,43 +513,26 @@ function MainApp() {
       )}
       style={{ backgroundColor: isPureBlack ? "#050507" : "#07070c" }}
     >
-      {/* Dedicated Ambient Background Layer */}
+      {/* Ambient Background Layer — switches between default and fluid-glass stage */}
       <div
         className={cn(
           "pointer-events-none absolute inset-0 -z-10 overflow-hidden transition-all duration-500",
-          bgClass
+          isFluidTheme ? "liquid-stage" : "app-backdrop"
         )}
-        style={{
-          opacity: isPureBlack ? 0 : bgOpacity,
-          background: isPureBlack ? "#050507" : undefined,
-        }}
+        style={{ opacity: isPureBlack ? 0 : 1 }}
         aria-hidden
       >
-        {bg === "default" && (
+        {/* Default: grain mesh overlay */}
+        {!isFluidTheme && (
           <div className="grain-overlay pointer-events-none absolute inset-0" />
         )}
 
-        {bg === "fluid-glass" && !isPureBlack && settings.fluidOrbsEnabled && (
+        {/* Fluid Glass: drifting ambient orbs */}
+        {isFluidTheme && !isPureBlack && settings.fluidOrbsEnabled && (
           <>
             <div className="liquid-orb liquid-orb-a" aria-hidden />
             <div className="liquid-orb liquid-orb-b" aria-hidden />
             <div className="liquid-orb liquid-orb-c" aria-hidden />
-          </>
-        )}
-
-        {bg === "aurora" && !isPureBlack && (
-          <>
-            <div className="aurora-orb aurora-orb-a" aria-hidden />
-            <div className="aurora-orb aurora-orb-b" aria-hidden />
-            <div className="aurora-orb aurora-orb-c" aria-hidden />
-          </>
-        )}
-
-        {bg === "cosmic-sunset" && !isPureBlack && (
-          <>
-            <div className="cosmic-orb cosmic-orb-a" aria-hidden />
-            <div className="cosmic-orb cosmic-orb-b" aria-hidden />
-            <div className="cosmic-orb cosmic-orb-c" aria-hidden />
           </>
         )}
       </div>

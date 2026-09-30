@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
-import { liquidSpringParams, type MotionLevel, type ThemeBase, type UiFont } from "@/lib/customization";
+import { liquidSpringParams, type MotionLevel, type ThemeBase, type UiFont, type BackgroundOption } from "@/lib/customization";
 import { haptic } from "@/lib/haptics";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AiNotificationSection } from "./ai-notification-section";
@@ -116,6 +116,43 @@ const themes: { value: ThemeBase; label: string; badge?: string; desc: string }[
     value: "light",
     label: "White / Light",
     desc: "Daylight clean bright glass",
+  },
+];
+
+const backgroundOptions: {
+  value: BackgroundOption;
+  label: string;
+  badge?: string;
+  desc: string;
+  previewGradient: string;
+}[] = [
+  {
+    value: "default",
+    label: "Default Background",
+    badge: "Current Website",
+    desc: "Original NewLumino deep multi-layered radial backdrop with subtle mesh grain",
+    previewGradient: "radial-gradient(circle at 20% 20%, oklch(0.45 0.14 262), oklch(0.17 0.023 268))",
+  },
+  {
+    value: "fluid-glass",
+    label: "Old Website Background",
+    badge: "Fluid Glass Studio",
+    desc: "Exact liquid stage from fluid-glass-studio repo with ambient drifting orbs",
+    previewGradient: "radial-gradient(circle at 20% 20%, oklch(0.55 0.2 265), oklch(0.5 0.2 330) 60%, oklch(0.17 0.04 265))",
+  },
+  {
+    value: "aurora",
+    label: "Aurora Borealis",
+    badge: "New Gradient",
+    desc: "Luminous emerald & cyan atmospheric nebula glow with floating particles",
+    previewGradient: "radial-gradient(circle at 20% 20%, oklch(0.58 0.22 165), oklch(0.42 0.19 215) 60%, oklch(0.12 0.02 230))",
+  },
+  {
+    value: "cosmic-sunset",
+    label: "Cosmic Sunset",
+    badge: "New Gradient",
+    desc: "Velvet violet, twilight magenta & warm sunset amber cosmic dusk glow",
+    previewGradient: "radial-gradient(circle at 20% 20%, oklch(0.58 0.24 320), oklch(0.68 0.22 35) 60%, oklch(0.11 0.025 270))",
   },
 ];
 
@@ -290,6 +327,73 @@ function SettingsContent({
               </span>
             </button>
           ))}
+        </div>
+      </Section>
+
+      {/* Dedicated Background Option Section */}
+      <Section
+        title="Background Option"
+        hint="Select the ambient backdrop gradient: default website, old website liquid stage, or new gradients."
+      >
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {backgroundOptions.map((bg) => {
+              const isSelected = settings.backgroundOption === bg.value;
+              return (
+                <button
+                  key={bg.value}
+                  type="button"
+                  onClick={() => {
+                    haptic("light");
+                    update({ backgroundOption: bg.value });
+                  }}
+                  className={cn(
+                    "flex flex-col items-start gap-1.5 rounded-xl border p-3 text-left transition-all touch-manipulation cursor-pointer relative overflow-hidden group",
+                    isSelected
+                      ? "border-primary/50 bg-white/[0.12] text-foreground font-semibold shadow-md ring-1 ring-primary/40"
+                      : "border-white/5 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
+                  )}
+                >
+                  <div className="flex w-full items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className="h-3.5 w-3.5 rounded-full border border-white/20 shadow-inner shrink-0"
+                        style={{ background: bg.previewGradient }}
+                      />
+                      <span className="text-xs font-bold text-foreground truncate">{bg.label}</span>
+                    </div>
+                    {bg.badge && (
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide shrink-0",
+                          isSelected
+                            ? "bg-primary/20 text-primary"
+                            : "bg-white/10 text-muted-foreground"
+                        )}
+                      >
+                        {bg.badge}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] leading-tight text-muted-foreground/80 font-normal">
+                    {bg.desc}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="pt-1">
+            <SliderRow
+              label="Background Opacity"
+              value={settings.backgroundOpacity ?? 100}
+              suffix="%"
+              min={10}
+              max={100}
+              step={5}
+              onChange={(v) => update({ backgroundOpacity: v })}
+            />
+          </div>
         </div>
       </Section>
 

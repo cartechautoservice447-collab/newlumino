@@ -95,6 +95,30 @@
   --backdrop-layers: linear-gradient(180deg, oklch(0.16 0.005 262), oklch(0.11 0.004 262));
 }
 
+[data-background-option="fluid-glass"] {
+  --backdrop-layers:
+    radial-gradient(120% 90% at 15% 5%, oklch(0.55 0.2 265 / 45%) 0%, transparent 60%),
+    radial-gradient(100% 80% at 85% 15%, oklch(0.5 0.2 330 / 40%) 0%, transparent 55%),
+    radial-gradient(110% 80% at 50% 95%, oklch(0.55 0.16 195 / 35%) 0%, transparent 60%),
+    linear-gradient(175deg, oklch(0.18 0.045 265), oklch(0.12 0.025 280));
+}
+
+[data-background-option="aurora"] {
+  --backdrop-layers:
+    radial-gradient(120% 90% at 15% 5%, oklch(0.46 0.18 165 / 45%) 0%, transparent 60%),
+    radial-gradient(100% 80% at 85% 15%, oklch(0.42 0.19 215 / 40%) 0%, transparent 55%),
+    radial-gradient(110% 80% at 50% 95%, oklch(0.50 0.16 145 / 35%) 0%, transparent 60%),
+    linear-gradient(175deg, oklch(0.15 0.035 185), oklch(0.10 0.02 230));
+}
+
+[data-background-option="cosmic-sunset"] {
+  --backdrop-layers:
+    radial-gradient(120% 90% at 15% 5%, oklch(0.58 0.24 320 / 45%) 0%, transparent 60%),
+    radial-gradient(100% 80% at 85% 15%, oklch(0.68 0.22 35 / 40%) 0%, transparent 55%),
+    radial-gradient(110% 80% at 50% 95%, oklch(0.62 0.22 355 / 35%) 0%, transparent 60%),
+    linear-gradient(175deg, oklch(0.17 0.035 290), oklch(0.10 0.02 260));
+}
+
 [data-theme="light"] {
   --background: oklch(0.96 0.006 258);
   --foreground: oklch(0.24 0.02 264);
@@ -482,9 +506,101 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .liquid-orb {
+  .liquid-orb,
+  .aurora-orb,
+  .cosmic-orb {
     animation: none;
   }
+}
+
+/* Aurora Borealis Stage (New Background: Emerald & Cyan Nebula) */
+.aurora-stage {
+  background:
+    radial-gradient(120% 90% at 15% 5%, oklch(0.46 0.18 165 / 45%) 0%, transparent 60%),
+    radial-gradient(100% 80% at 85% 15%, oklch(0.42 0.19 215 / 40%) 0%, transparent 55%),
+    radial-gradient(110% 80% at 50% 95%, oklch(0.50 0.16 145 / 35%) 0%, transparent 60%),
+    linear-gradient(175deg, oklch(0.15 0.035 185), oklch(0.10 0.02 230));
+  transition: background 600ms ease, color 400ms ease;
+}
+
+.aurora-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: liquid-drift 18s ease-in-out infinite;
+}
+
+.aurora-orb-a {
+  width: 26rem;
+  height: 26rem;
+  top: -6rem;
+  left: -5rem;
+  background: oklch(0.58 0.22 165);
+}
+
+.aurora-orb-b {
+  width: 22rem;
+  height: 22rem;
+  bottom: -7rem;
+  right: -4rem;
+  background: oklch(0.62 0.20 215);
+  animation-delay: -6s;
+}
+
+.aurora-orb-c {
+  width: 18rem;
+  height: 18rem;
+  top: 45%;
+  left: 55%;
+  background: oklch(0.55 0.18 190);
+  animation-delay: -12s;
+}
+
+/* Cosmic Sunset Stage (New Background: Velvet Violet & Sunset Amber) */
+.cosmic-stage {
+  background:
+    radial-gradient(120% 90% at 15% 5%, oklch(0.45 0.22 320 / 45%) 0%, transparent 60%),
+    radial-gradient(100% 80% at 85% 15%, oklch(0.52 0.21 355 / 40%) 0%, transparent 55%),
+    radial-gradient(110% 80% at 50% 95%, oklch(0.55 0.18 55 / 35%) 0%, transparent 60%),
+    linear-gradient(175deg, oklch(0.16 0.045 300), oklch(0.11 0.025 270));
+  transition: background 600ms ease, color 400ms ease;
+}
+
+.cosmic-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: liquid-drift 18s ease-in-out infinite;
+}
+
+.cosmic-orb-a {
+  width: 26rem;
+  height: 26rem;
+  top: -6rem;
+  left: -5rem;
+  background: oklch(0.58 0.24 320);
+}
+
+.cosmic-orb-b {
+  width: 22rem;
+  height: 22rem;
+  bottom: -7rem;
+  right: -4rem;
+  background: oklch(0.68 0.22 35);
+  animation-delay: -6s;
+}
+
+.cosmic-orb-c {
+  width: 18rem;
+  height: 18rem;
+  top: 45%;
+  left: 55%;
+  background: oklch(0.62 0.22 355);
+  animation-delay: -12s;
 }
 
 /* Dynamic Liquid Veil */

@@ -502,32 +502,69 @@ function MainApp() {
     />
   );
 
-  const isFluidGlass = settings.theme === "fluid-glass";
+  const isFluidTheme = settings.theme === "fluid-glass";
+  const bg = settings.backgroundOption ?? (isFluidTheme ? "fluid-glass" : "default");
+  const isPureBlack = isFluidTheme && settings.fluidPureBlack;
+  const bgOpacity = (settings.backgroundOpacity ?? 100) / 100;
+
+  const bgClass =
+    bg === "fluid-glass"
+      ? "liquid-stage"
+      : bg === "aurora"
+      ? "aurora-stage"
+      : bg === "cosmic-sunset"
+      ? "cosmic-stage"
+      : "app-backdrop";
 
   return (
     <main
       className={cn(
         "relative h-[100dvh] min-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500",
-        isFluidGlass ? "liquid-stage" : "app-backdrop",
-        isFluidGlass && settings.fluidAppearance === "dark" && "dark"
+        isFluidTheme && settings.fluidAppearance === "dark" && "dark"
       )}
-      style={
-        isFluidGlass && settings.fluidPureBlack
-          ? { background: "#050507", backgroundColor: "#050507" }
-          : undefined
-      }
+      style={{ backgroundColor: isPureBlack ? "#050507" : "#07070c" }}
     >
-      {isFluidGlass ? (
-        settings.fluidOrbsEnabled && !settings.fluidPureBlack && (
+      {/* Dedicated Ambient Background Layer */}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 -z-10 overflow-hidden transition-all duration-500",
+          bgClass
+        )}
+        style={{
+          opacity: isPureBlack ? 0 : bgOpacity,
+          background: isPureBlack ? "#050507" : undefined,
+        }}
+        aria-hidden
+      >
+        {bg === "default" && (
+          <div className="grain-overlay pointer-events-none absolute inset-0" />
+        )}
+
+        {bg === "fluid-glass" && !isPureBlack && settings.fluidOrbsEnabled && (
           <>
             <div className="liquid-orb liquid-orb-a" aria-hidden />
             <div className="liquid-orb liquid-orb-b" aria-hidden />
             <div className="liquid-orb liquid-orb-c" aria-hidden />
           </>
-        )
-      ) : (
-        <div className="grain-overlay pointer-events-none absolute inset-0" />
-      )}
+        )}
+
+        {bg === "aurora" && !isPureBlack && (
+          <>
+            <div className="aurora-orb aurora-orb-a" aria-hidden />
+            <div className="aurora-orb aurora-orb-b" aria-hidden />
+            <div className="aurora-orb aurora-orb-c" aria-hidden />
+          </>
+        )}
+
+        {bg === "cosmic-sunset" && !isPureBlack && (
+          <>
+            <div className="cosmic-orb cosmic-orb-a" aria-hidden />
+            <div className="cosmic-orb cosmic-orb-b" aria-hidden />
+            <div className="cosmic-orb cosmic-orb-c" aria-hidden />
+          </>
+        )}
+      </div>
+
       <NotificationBanner />
 
       {/* Daily Goal View */}

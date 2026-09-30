@@ -47,7 +47,7 @@ export type Customization = {
 };
 
 export const FLUID_GLASS_DEFAULTS = {
-  fluidAppearance: "dark" as FluidGlassAppearance,
+  fluidAppearance: "light" as FluidGlassAppearance,
   fluidPureBlack: false,
   fluidOrbsEnabled: true,
   fluidTextClarity: "default" as FluidGlassTextClarity,

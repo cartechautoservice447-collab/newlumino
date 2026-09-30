@@ -19,6 +19,8 @@ import {
   Zap,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { useCustomization } from "@/context/customization-context";
+import { cn } from "@/lib/utils";
 import { COURSE_ACCENTS, formatDate, type Course, type CourseAccent, type Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
 
@@ -202,12 +204,32 @@ export function CourseDashboard({
     setDeletingCourse(null);
   };
 
+  const { settings } = useCustomization();
+  const isFluidTheme = settings.websiteTheme === "fluid-glass";
+
   const totalNotes = notes.length;
   const favNotes = notes.filter((n) => n.favorite).length;
 
   return (
-    <main className="app-backdrop relative min-h-[100dvh] w-full overflow-x-hidden pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-12">
-      <div className="grain-overlay pointer-events-none absolute inset-0" />
+    <main
+      className={cn(
+        "relative min-h-[100dvh] w-full overflow-x-hidden pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-12 transition-colors duration-500",
+        isFluidTheme ? "liquid-stage" : "app-backdrop"
+      )}
+    >
+      {/* Default: grain mesh overlay */}
+      {!isFluidTheme && (
+        <div className="grain-overlay pointer-events-none absolute inset-0" />
+      )}
+
+      {/* Fluid Glass: 3 authentic atmospheric glow orbs */}
+      {isFluidTheme && (settings.fluidOrbsEnabled ?? true) && (
+        <>
+          <div className="liquid-orb liquid-orb-a" aria-hidden />
+          <div className="liquid-orb liquid-orb-b" aria-hidden />
+          <div className="liquid-orb liquid-orb-c" aria-hidden />
+        </>
+      )}
       <div className="relative mx-auto w-full max-w-[1240px] p-3.5 sm:p-8">
 
         {/* Header Bar with Feature 7: Time-of-Day Contextual Dynamic Greeting */}

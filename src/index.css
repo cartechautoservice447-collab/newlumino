@@ -394,120 +394,65 @@
 /* Authentic Liquid Stage Background from Fluid Glass Studio */
 .liquid-stage {
   background:
-    radial-gradient(120% 90% at 10% 0%, oklch(0.62 0.18 250) 0%, transparent 60%),
-    radial-gradient(100% 80% at 100% 10%, oklch(0.58 0.17 285) 0%, transparent 55%),
-    linear-gradient(170deg, oklch(0.5 0.17 258), oklch(0.36 0.15 268));
+    radial-gradient(
+      120% 90% at 10% 0%,
+      oklch(0.62 0.18 250) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      100% 80% at 100% 10%,
+      oklch(0.58 0.17 285) 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      170deg,
+      oklch(0.5 0.17 258),
+      oklch(0.36 0.15 268)
+    ) !important;
   transition: background 600ms ease, color 400ms ease;
 }
 
-.dark .liquid-stage,
-[data-fluid-appearance="dark"] .liquid-stage {
-  background:
-    radial-gradient(120% 90% at 10% 0%, oklch(0.32 0.11 265) 0%, transparent 60%),
-    radial-gradient(100% 80% at 100% 10%, oklch(0.27 0.12 320) 0%, transparent 55%),
-    linear-gradient(170deg, oklch(0.17 0.04 265), oklch(0.11 0.03 275));
-}
-
-[data-fluid-appearance="light"] .liquid-stage {
-  background:
-    radial-gradient(120% 90% at 10% 0%, oklch(0.62 0.18 250) 0%, transparent 60%),
-    radial-gradient(100% 80% at 100% 10%, oklch(0.58 0.17 285) 0%, transparent 55%),
-    linear-gradient(170deg, oklch(0.5 0.17 258), oklch(0.36 0.15 268));
-}
-
-.dark.pure-black .liquid-stage,
-.pure-black .liquid-stage,
-[data-fluid-pure-black="on"] .liquid-stage {
-  background:
-    radial-gradient(120% 90% at 10% 0%, oklch(0.24 0.01 265) 0%, transparent 60%),
-    radial-gradient(100% 80% at 100% 10%, oklch(0.2 0.01 285) 0%, transparent 55%),
-    linear-gradient(170deg, oklch(0.16 0.008 265), oklch(0.11 0.006 265)) !important;
-}
-
-/* Ambient Drifting Liquid Orbs */
+/* Original three atmospheric glow orbs from fluid-glass-studio */
 .liquid-orb {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(60px);
-  opacity: 0.75;
+  filter: blur(60px) !important;
+  opacity: 0.75 !important;
   pointer-events: none;
   animation: liquid-drift 18s ease-in-out infinite;
 }
 
-.dark .liquid-orb,
-[data-fluid-appearance="dark"] .liquid-orb {
-  opacity: 0.45;
-}
-
-.dark.pure-black .liquid-orb,
-.pure-black .liquid-orb,
-[data-fluid-pure-black="on"] .liquid-orb {
-  opacity: 0.2;
-}
-
 .liquid-orb-a {
-  width: 26rem;
-  height: 26rem;
-  top: -6rem;
-  left: -5rem;
-  background: oklch(0.75 0.19 250);
-}
-
-.dark .liquid-orb-a,
-[data-fluid-appearance="dark"] .liquid-orb-a {
-  background: oklch(0.55 0.2 265);
-}
-
-.dark.pure-black .liquid-orb-a,
-.pure-black .liquid-orb-a,
-[data-fluid-pure-black="on"] .liquid-orb-a {
-  background: oklch(0.34 0.12 265);
+  width: 26rem !important;
+  height: 26rem !important;
+  top: -6rem !important;
+  left: -5rem !important;
+  background: oklch(0.75 0.19 250) !important;
 }
 
 .liquid-orb-b {
-  width: 22rem;
-  height: 22rem;
-  bottom: -7rem;
-  right: -4rem;
-  background: oklch(0.78 0.2 330);
-  animation-delay: -6s;
-}
-
-.dark .liquid-orb-b,
-[data-fluid-appearance="dark"] .liquid-orb-b {
-  background: oklch(0.5 0.2 330);
-}
-
-.dark.pure-black .liquid-orb-b,
-.pure-black .liquid-orb-b,
-[data-fluid-pure-black="on"] .liquid-orb-b {
-  background: oklch(0.32 0.12 330);
+  width: 22rem !important;
+  height: 22rem !important;
+  bottom: -7rem !important;
+  right: -4rem !important;
+  background: oklch(0.78 0.2 330) !important;
+  animation-delay: -6s !important;
 }
 
 .liquid-orb-c {
-  width: 18rem;
-  height: 18rem;
-  top: 45%;
-  left: 55%;
-  background: oklch(0.85 0.17 190);
-  animation-delay: -12s;
-}
-
-.dark .liquid-orb-c,
-[data-fluid-appearance="dark"] .liquid-orb-c {
-  background: oklch(0.55 0.16 195);
-}
-
-.dark.pure-black .liquid-orb-c,
-.pure-black .liquid-orb-c,
-[data-fluid-pure-black="on"] .liquid-orb-c {
-  background: oklch(0.34 0.1 195);
+  width: 18rem !important;
+  height: 18rem !important;
+  top: 45% !important;
+  left: 55% !important;
+  background: oklch(0.85 0.17 190) !important;
+  animation-delay: -12s !important;
 }
 
 @keyframes liquid-drift {
   0%, 100% {
     transform: translate3d(0, 0, 0) scale(1);
   }
+
   50% {
     transform: translate3d(4rem, -3rem, 0) scale(1.12);
   }

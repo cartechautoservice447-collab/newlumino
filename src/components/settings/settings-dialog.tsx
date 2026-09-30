@@ -295,24 +295,102 @@ function SettingsContent({
           title="Old Website Theme (Fluid Glass Studio)"
           hint="Exact glass element, 3D water-gel lens, stage refraction & liquid physics from fluid-glass-studio."
         >
-          <div className="space-y-3.5">
+          <div className="space-y-4">
+            {/* 1. UI Text Clarity — exact from fluid-glass-studio EngineSettingsModal */}
+            <div className="space-y-3 rounded-2xl border border-white/20 bg-white/5 p-4">
+              <div>
+                <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">UI Text Clarity</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Controls clarity and color strength of normal interface text only. Glass physics and appearance are unchanged.
+                </p>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5 rounded-xl border border-white/10 bg-black/10 p-1">
+                {(["default", "smooth", "medium", "punchy"] as const).map((clarity) => (
+                  <button
+                    key={clarity}
+                    type="button"
+                    onClick={() => {
+                      haptic("light");
+                      update({ fluidTextClarity: clarity });
+                    }}
+                    aria-pressed={settings.fluidTextClarity === clarity}
+                    className={cn(
+                      "rounded-lg px-2 py-2 text-xs font-medium capitalize transition cursor-pointer",
+                      settings.fluidTextClarity === clarity
+                        ? "bg-white/20 text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-white/10 hover:text-foreground"
+                    )}
+                  >
+                    {clarity}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            {/* Appearance — exact ThemeToggle from fluid-glass-studio */}
-            <div className="flex items-center justify-between rounded-xl border border-white/20 bg-white/5 px-3.5 py-2.5">
+            {/* 2. Performance Mode — exact from fluid-glass-studio EngineSettingsModal */}
+            <div className="space-y-3 rounded-2xl border border-white/20 bg-white/5 p-4">
+              <div className="flex items-center gap-2">
+                <Zap className="size-4 text-amber-400" />
+                <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">Performance Mode</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Choose the visual-performance profile used across the Glass interface.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic("light");
+                    update({ fluidPerformance: "high" });
+                  }}
+                  aria-pressed={settings.fluidPerformance === "high"}
+                  className={cn(
+                    "rounded-xl border p-3 text-left transition cursor-pointer",
+                    settings.fluidPerformance === "high"
+                      ? "border-white/40 bg-white/15 text-foreground font-semibold"
+                      : "border-white/10 bg-white/[.03] text-muted-foreground hover:bg-white/10"
+                  )}
+                >
+                  <span className="block text-sm font-medium">High</span>
+                  <span className="mt-1 block text-[11px] text-muted-foreground">Balanced visual effects</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic("light");
+                    update({ fluidPerformance: "ultra" });
+                  }}
+                  aria-pressed={settings.fluidPerformance === "ultra"}
+                  className={cn(
+                    "rounded-xl border p-3 text-left transition cursor-pointer",
+                    settings.fluidPerformance === "ultra"
+                      ? "border-white/40 bg-white/15 text-foreground font-semibold"
+                      : "border-white/10 bg-white/[.03] text-muted-foreground hover:bg-white/10"
+                  )}
+                >
+                  <span className="block text-sm font-medium">Ultra</span>
+                  <span className="mt-1 block text-[11px] text-muted-foreground">Maximum visual effects</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Appearance — exact ThemeToggle from fluid-glass-studio */}
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/20 bg-white/5 p-4">
               <div>
                 <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">Appearance</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {settings.fluidAppearance === "dark"
-                    ? "Night mode — obsidian liquid glass"
-                    : "Day mode — bright liquid glass"}
+                  {settings.fluidAppearance === "dark" ? "Night mode — obsidian liquid" : "Day mode — bright liquid"}
                 </p>
               </div>
-              {/* Exact ThemeToggle pill from fluid-glass-studio ThemeToggle.tsx */}
               <button
                 type="button"
                 onClick={() => {
                   haptic("light");
-                  update({ fluidAppearance: settings.fluidAppearance === "dark" ? "light" : "dark" });
+                  const nextApp = settings.fluidAppearance === "dark" ? "light" : "dark";
+                  update({
+                    fluidAppearance: nextApp,
+                    ...(nextApp === "light" ? { fluidPureBlack: false } : {}),
+                  });
                 }}
                 aria-label={settings.fluidAppearance === "dark" ? "Switch to day mode" : "Switch to night mode"}
                 aria-pressed={settings.fluidAppearance === "dark"}
@@ -335,8 +413,8 @@ function SettingsContent({
               </button>
             </div>
 
-            {/* Pure Black Stage Switch */}
-            <div className="flex items-center justify-between rounded-xl border border-white/20 bg-white/5 px-3.5 py-2.5">
+            {/* 4. Pure Black — exact from fluid-glass-studio EngineSettingsModal */}
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/20 bg-white/5 p-4">
               <div>
                 <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">Pure Black</p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -347,13 +425,17 @@ function SettingsContent({
                 checked={settings.fluidPureBlack}
                 onCheckedChange={(v) => {
                   haptic("light");
-                  update({ fluidPureBlack: v });
+                  update({
+                    fluidPureBlack: v,
+                    ...(v ? { fluidAppearance: "dark" } : {}),
+                  });
                 }}
+                aria-label="Toggle pure black background"
               />
             </div>
 
-            {/* Background Theme — exact from fluid-glass-studio EngineSettingsModal */}
-            <div className="space-y-4 rounded-xl border border-white/20 bg-white/5 p-3.5">
+            {/* 5. Background Theme — exact from fluid-glass-studio EngineSettingsModal */}
+            <div className="space-y-4 rounded-2xl border border-white/20 bg-white/5 p-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">Background Theme</p>
@@ -371,21 +453,22 @@ function SettingsContent({
                 />
               </div>
               {settings.fluidBackgroundThemeEnabled && (
-                <div className="space-y-4 border-t border-white/10 pt-4">
+                <div className="space-y-5 border-t border-white/10 pt-4">
                   {/* Background Opacity slider */}
                   <div className="space-y-2">
                     <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Background Opacity</span>
+                      <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">
+                        Background Opacity
+                      </span>
                       <span className="font-mono text-xs text-accent-foreground">{settings.fluidBackgroundOpacity}%</span>
                     </div>
-                    <SliderRow
-                      label=""
-                      value={settings.fluidBackgroundOpacity}
-                      suffix="%"
+                    <Slider
+                      value={[settings.fluidBackgroundOpacity]}
                       min={0}
                       max={100}
                       step={1}
-                      onChange={(v) => update({ fluidBackgroundOpacity: v })}
+                      onValueChange={(vals) => update({ fluidBackgroundOpacity: vals[0] ?? 100 })}
+                      aria-label="Background Opacity"
                     />
                     <p className="text-xs leading-relaxed text-muted-foreground">
                       Controls only the background layer behind the Glass UI.
@@ -412,8 +495,8 @@ function SettingsContent({
               )}
             </div>
 
-            {/* Ambient Drifting Orbs Switch */}
-            <div className="flex items-center justify-between rounded-xl border border-white/20 bg-white/5 px-3.5 py-2.5">
+            {/* 6. Ambient Orbs Switch */}
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/20 bg-white/5 p-4">
               <div>
                 <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-foreground">Ambient Orbs</p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -426,149 +509,143 @@ function SettingsContent({
                   haptic("light");
                   update({ fluidOrbsEnabled: v });
                 }}
+                aria-label="Toggle ambient drifting orbs"
               />
             </div>
 
-            {/* UI Text Clarity */}
-            <div className="space-y-2 rounded-xl border border-white/5 bg-white/[0.03] p-3">
-              <div>
-                <p className="text-xs font-semibold text-foreground">UI Text Clarity</p>
-                <p className="text-[0.68rem] text-muted-foreground/70">
-                  Controls clarity and sharpness of normal interface text inside the glass panels.
+            {/* 7. Liquid Glass Physics — exact divider and sliders from fluid-glass-studio */}
+            <div className="flex items-center gap-3 pt-2">
+              <h3 className="text-[0.68rem] font-bold uppercase tracking-[0.28em] text-foreground">Liquid Glass Physics</h3>
+              <span className="h-px flex-1 bg-gradient-to-r from-white/40 to-transparent" />
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Liquid Density</span>
+                  <span className="font-mono text-xs text-accent-foreground">{settings.fluidDensity}px</span>
+                </div>
+                <Slider
+                  value={[settings.fluidDensity]}
+                  min={0}
+                  max={40}
+                  step={1}
+                  onValueChange={(vals) => update({ fluidDensity: vals[0] ?? 12 })}
+                  aria-label="Liquid Density"
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Viscosity & refraction — backdrop blur radius of every glass surface.
                 </p>
               </div>
-              <div className="grid grid-cols-4 gap-1 rounded-lg border border-white/10 bg-black/10 p-1">
-                {(["default", "smooth", "medium", "punchy"] as const).map((clarity) => (
-                  <button
-                    key={clarity}
-                    type="button"
-                    onClick={() => {
-                      haptic("light");
-                      update({ fluidTextClarity: clarity });
-                    }}
-                    className={cn(
-                      "rounded-md py-1 text-center text-xs font-medium capitalize transition cursor-pointer",
-                      settings.fluidTextClarity === clarity
-                        ? "bg-white/20 text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
-                    )}
-                  >
-                    {clarity}
-                  </button>
-                ))}
-              </div>
-            </div>
 
-            {/* Performance Mode */}
-            <div className="space-y-2 rounded-xl border border-white/5 bg-white/[0.03] p-3">
-              <div className="flex items-center gap-1.5">
-                <Zap className="h-3.5 w-3.5 text-amber-400" />
-                <p className="text-xs font-semibold text-foreground">Performance Mode</p>
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Liquid Transparency</span>
+                  <span className="font-mono text-xs text-accent-foreground">{settings.fluidTransparency}%</span>
+                </div>
+                <Slider
+                  value={[settings.fluidTransparency]}
+                  min={5}
+                  max={95}
+                  step={1}
+                  onValueChange={(vals) => update({ fluidTransparency: vals[0] ?? 45 })}
+                  aria-label="Liquid Transparency"
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Alpha blending — how much of the world behind shows through the panel.
+                </p>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("light");
-                    update({ fluidPerformance: "high" });
-                  }}
-                  className={cn(
-                    "rounded-xl border p-2.5 text-left transition cursor-pointer",
-                    settings.fluidPerformance === "high"
-                      ? "border-primary/50 bg-primary/10 text-foreground font-semibold"
-                      : "border-white/5 bg-white/[0.02] text-muted-foreground hover:bg-white/[0.05]"
-                  )}
-                >
-                  <span className="block text-xs font-bold">High</span>
-                  <span className="mt-0.5 block text-[10px] text-muted-foreground">Balanced visual effects</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("light");
-                    update({ fluidPerformance: "ultra" });
-                  }}
-                  className={cn(
-                    "rounded-xl border p-2.5 text-left transition cursor-pointer",
-                    settings.fluidPerformance === "ultra"
-                      ? "border-primary/50 bg-primary/10 text-foreground font-semibold"
-                      : "border-white/5 bg-white/[0.02] text-muted-foreground hover:bg-white/[0.05]"
-                  )}
-                >
-                  <span className="block text-xs font-bold">Ultra</span>
-                  <span className="mt-0.5 block text-[10px] text-muted-foreground">Maximum visual effects</span>
-                </button>
-              </div>
-            </div>
 
-            {/* Fluid Glass Physics Sliders (Old Website) */}
-            <div className="space-y-3 rounded-xl border border-white/5 bg-white/[0.03] p-3.5">
-              <div className="flex items-center gap-2">
-                <Droplets className="h-3.5 w-3.5 text-sky-400" />
-                <p className="text-xs font-bold text-foreground">Fluid Glass Physics (Old Website Engine)</p>
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Liquid Clearness</span>
+                  <span className="font-mono text-xs text-accent-foreground">{settings.fluidClearness} idx</span>
+                </div>
+                <Slider
+                  value={[settings.fluidClearness]}
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={(vals) => update({ fluidClearness: vals[0] ?? 35 })}
+                  aria-label="Liquid Clearness"
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Distortion & glare clarity — SVG turbulence index on refracted edges.
+                </p>
               </div>
-              <SliderRow
-                label="Liquid density (Viscosity & refraction blur)"
-                value={settings.fluidDensity}
-                suffix="px"
-                min={0}
-                max={40}
-                step={1}
-                onChange={(v) => update({ fluidDensity: v })}
-              />
-              <SliderRow
-                label="Liquid transparency (Alpha blending)"
-                value={settings.fluidTransparency}
-                suffix="%"
-                min={5}
-                max={95}
-                step={1}
-                onChange={(v) => update({ fluidTransparency: v })}
-              />
-              <SliderRow
-                label="Liquid clearness (Distortion index)"
-                value={settings.fluidClearness}
-                suffix=" idx"
-                min={0}
-                max={100}
-                step={1}
-                onChange={(v) => update({ fluidClearness: v })}
-              />
-              <SliderRow
-                label="Liquid gel (Surface tension & 3D bevel depth)"
-                value={settings.fluidGel}
-                suffix="%"
-                min={0}
-                max={100}
-                step={1}
-                onChange={(v) => update({ fluidGel: v })}
-              />
-              <SliderRow
-                label="Liquid bounce · Stiffness"
-                value={settings.fluidBounceStiffness}
-                min={100}
-                max={500}
-                step={5}
-                onChange={(v) => update({ fluidBounceStiffness: v })}
-              />
-              <SliderRow
-                label="Liquid bounce · Damping"
-                value={settings.fluidBounceDamping}
-                min={10}
-                max={40}
-                step={1}
-                onChange={(v) => update({ fluidBounceDamping: v })}
-              />
+
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Liquid Gel</span>
+                  <span className="font-mono text-xs text-accent-foreground">{settings.fluidGel}%</span>
+                </div>
+                <Slider
+                  value={[settings.fluidGel]}
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={(vals) => update({ fluidGel: vals[0] ?? 55 })}
+                  aria-label="Liquid Gel"
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Surface tension curves, 3D inner bevel and drop shadow depth.
+                </p>
+              </div>
+
+              {/* Bounce Sub-Card */}
+              <div className="space-y-4 rounded-2xl border border-white/20 bg-white/5 p-4">
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">
+                      Liquid Bounce · Stiffness
+                    </span>
+                    <span className="font-mono text-xs text-accent-foreground">{settings.fluidBounceStiffness}</span>
+                  </div>
+                  <Slider
+                    value={[settings.fluidBounceStiffness]}
+                    min={100}
+                    max={500}
+                    step={5}
+                    onValueChange={(vals) => update({ fluidBounceStiffness: vals[0] ?? 200 })}
+                    aria-label="Liquid Bounce Stiffness"
+                  />
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Spring stiffness driving the gel bounce on hover, click and drag.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">
+                      Liquid Bounce · Damping
+                    </span>
+                    <span className="font-mono text-xs text-accent-foreground">{settings.fluidBounceDamping}</span>
+                  </div>
+                  <Slider
+                    value={[settings.fluidBounceDamping]}
+                    min={10}
+                    max={40}
+                    step={1}
+                    onValueChange={(vals) => update({ fluidBounceDamping: vals[0] ?? 24 })}
+                    aria-label="Liquid Bounce Damping"
+                  />
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Lower damping = wobblier liquid; higher damping settles instantly.
+                  </p>
+                </div>
+              </div>
+
+              {/* 8. Reset Button — exact from fluid-glass-studio EngineSettingsModal */}
               <button
                 type="button"
                 onClick={() => {
                   haptic("medium");
                   resetOldThemeDefaults();
                 }}
-                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.05] py-2 text-xs font-semibold text-muted-foreground hover:bg-white/[0.1] hover:text-foreground transition active:scale-95 cursor-pointer"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 py-2.5 text-xs font-semibold text-foreground hover:bg-white/20 transition active:scale-98 cursor-pointer"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
-                Reset Old Website Theme Defaults
+                <RotateCcw className="size-4" />
+                Reset engine defaults
               </button>
             </div>
           </div>

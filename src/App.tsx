@@ -517,9 +517,7 @@ function MainApp() {
             background: settings.fluidFullDarkBackground ? "#050507" : customBackground,
             backgroundColor: settings.fluidFullDarkBackground ? "#050507" : "#07070c",
           }
-        : isPureBlack
-          ? { backgroundColor: "#050507" }
-          : undefined)
+        : undefined)
     : undefined;
 
   const orbStyle = fluidBgEnabled
@@ -527,26 +525,27 @@ function MainApp() {
     : undefined;
 
   return (
-    <main
-      className={cn(
-        "relative h-[100dvh] min-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500",
-        isFluidTheme ? "liquid-stage" : "app-backdrop"
-      )}
-      style={stageStyle}
-    >
-      {/* Default: grain mesh overlay */}
-      {!isFluidTheme && (
-        <div className="grain-overlay pointer-events-none absolute inset-0" />
-      )}
+    <div className={cn("relative h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidTheme && "bg-[#07070c]")}>
+      <main
+        className={cn(
+          "relative h-full w-full overflow-hidden flex flex-col transition-colors duration-500",
+          isFluidTheme ? "liquid-stage" : "app-backdrop"
+        )}
+        style={stageStyle}
+      >
+        {/* Default: grain mesh overlay */}
+        {!isFluidTheme && (
+          <div className="grain-overlay pointer-events-none absolute inset-0" />
+        )}
 
-      {/* Fluid Glass: drifting ambient orbs */}
-      {isFluidTheme && !isPureBlack && settings.fluidOrbsEnabled && (
-        <>
-          <div className="liquid-orb liquid-orb-a" style={orbStyle} aria-hidden />
-          <div className="liquid-orb liquid-orb-b" style={orbStyle} aria-hidden />
-          <div className="liquid-orb liquid-orb-c" style={orbStyle} aria-hidden />
-        </>
-      )}
+        {/* Fluid Glass: drifting ambient orbs (exact from fluid-glass-studio Workspace) */}
+        {isFluidTheme && settings.fluidOrbsEnabled && (
+          <>
+            <div className="liquid-orb liquid-orb-a" style={orbStyle} aria-hidden />
+            <div className="liquid-orb liquid-orb-b" style={orbStyle} aria-hidden />
+            <div className="liquid-orb liquid-orb-c" style={orbStyle} aria-hidden />
+          </>
+        )}
 
       <NotificationBanner />
 
@@ -955,5 +954,6 @@ function MainApp() {
         onUpdateNote={n.updateNote}
       />
     </main>
+    </div>
   );
 }

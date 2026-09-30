@@ -54,17 +54,24 @@ export function CustomizationProvider({ children }: { children: ReactNode }) {
       root.dataset["theme"] = "fluid-glass";
       root.dataset["fluidAppearance"] = settings.fluidAppearance;
       root.dataset["fluidPureBlack"] = settings.fluidPureBlack ? "on" : "off";
+      root.dataset["backgroundTheme"] = settings.fluidBackgroundThemeEnabled ? "on" : "off";
+      root.dataset["fullDarkBackground"] =
+        settings.fluidBackgroundThemeEnabled && settings.fluidFullDarkBackground ? "on" : "off";
       root.dataset["uiTextClarity"] = settings.fluidTextClarity;
       root.dataset["glassPerformance"] = settings.fluidPerformance;
       root.classList.toggle("pure-black", settings.fluidPureBlack);
-      root.classList.remove("dark");
+      root.classList.toggle("dark", settings.fluidAppearance === "dark");
+      root.style.colorScheme = settings.fluidAppearance;
     } else {
       // Default Website: Original / Dark / White Light (Exact NewLumino theme engine)
       root.dataset["theme"] = settings.theme;
       root.classList.remove("pure-black");
-      root.classList.remove("dark");
+      root.classList.toggle("dark", settings.theme === "dark");
+      root.style.colorScheme = settings.theme === "dark" ? "dark" : "light";
       delete root.dataset["fluidAppearance"];
       delete root.dataset["fluidPureBlack"];
+      delete root.dataset["backgroundTheme"];
+      delete root.dataset["fullDarkBackground"];
       delete root.dataset["uiTextClarity"];
       delete root.dataset["glassPerformance"];
     }

@@ -201,7 +201,7 @@ function MainApp() {
   // Dashboard view
   if (view === "dashboard") {
     return (
-      <ThemeStage className="min-h-screen w-full">
+      <ThemeStage className="min-h-screen w-full overflow-y-auto">
         <CourseDashboard
           courses={n.courses}
           notes={n.notes}
@@ -504,7 +504,7 @@ function MainApp() {
   );
 
   return (
-    <ThemeStage className="relative flex flex-col">
+    <ThemeStage className="h-[100dvh] min-h-[100dvh] flex flex-col">
       <NotificationBanner />
 
       {/* Daily Goal View */}

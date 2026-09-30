@@ -1,4 +1,5 @@
-export type ThemeBase = "original" | "fluid-glass" | "dark" | "light";
+export type WebsiteTheme = "default" | "fluid-glass";
+export type ThemeBase = "original" | "dark" | "light";
 export type QualityLevel = "low" | "medium" | "high" | "ultra" | "custom";
 export type MotionLevel = "low" | "medium" | "high" | "ultra";
 export type UiFont = "inter" | "system" | "mono";
@@ -7,6 +8,7 @@ export type FluidGlassAppearance = "dark" | "light";
 export type FluidGlassTextClarity = "default" | "smooth" | "medium" | "punchy";
 
 export type Customization = {
+  websiteTheme: WebsiteTheme;
   theme: ThemeBase;
   glassPreset: QualityLevel;
   glassBlur: number; // px 0..32
@@ -72,6 +74,7 @@ export const FONT_STACKS: Record<UiFont, string> = {
 };
 
 export const DEFAULT_CUSTOMIZATION: Customization = {
+  websiteTheme: "default",
   theme: "original",
   glassPreset: "high",
   ...GLASS_PRESETS.high,
@@ -97,8 +100,12 @@ export function loadCustomization(): Customization {
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return DEFAULT_CUSTOMIZATION;
-    const parsed = JSON.parse(raw) as Partial<Customization>;
-    return { ...DEFAULT_CUSTOMIZATION, ...parsed };
+    const rawParsed = JSON.parse(raw) as Record<string, unknown>;
+    if (rawParsed.theme === "fluid-glass") {
+      rawParsed.websiteTheme = "fluid-glass";
+      rawParsed.theme = "original";
+    }
+    return { ...DEFAULT_CUSTOMIZATION, ...(rawParsed as Partial<Customization>) };
   } catch {
     return DEFAULT_CUSTOMIZATION;
   }

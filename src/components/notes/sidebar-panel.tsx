@@ -129,7 +129,7 @@ export function SidebarPanel({
   dailyGoalHours = 2,
 }: Props) {
   const { settings } = useCustomization();
-  const isFluidGlass = settings.theme === "fluid-glass";
+  const isFluidGlass = settings.websiteTheme === "fluid-glass";
 
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");

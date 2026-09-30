@@ -502,40 +502,32 @@ function MainApp() {
     />
   );
 
-  const isFluidTheme = settings.theme === "fluid-glass";
+  const isFluidTheme = settings.websiteTheme === "fluid-glass";
   const isPureBlack = isFluidTheme && settings.fluidPureBlack;
 
   return (
     <main
       className={cn(
         "relative h-[100dvh] min-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500",
-        isFluidTheme && settings.fluidAppearance === "dark" && "dark"
+        isFluidTheme ? "liquid-stage" : "app-backdrop"
       )}
-      style={{ backgroundColor: isPureBlack ? "#050507" : "#07070c" }}
+      style={{
+        backgroundColor: isPureBlack ? "#050507" : undefined,
+      }}
     >
-      {/* Ambient Background Layer — switches between default and fluid-glass stage */}
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-0 -z-10 overflow-hidden transition-all duration-500",
-          isFluidTheme ? "liquid-stage" : "app-backdrop"
-        )}
-        style={{ opacity: isPureBlack ? 0 : 1 }}
-        aria-hidden
-      >
-        {/* Default: grain mesh overlay */}
-        {!isFluidTheme && (
-          <div className="grain-overlay pointer-events-none absolute inset-0" />
-        )}
+      {/* Default: grain mesh overlay */}
+      {!isFluidTheme && (
+        <div className="grain-overlay pointer-events-none absolute inset-0" />
+      )}
 
-        {/* Fluid Glass: drifting ambient orbs */}
-        {isFluidTheme && !isPureBlack && settings.fluidOrbsEnabled && (
-          <>
-            <div className="liquid-orb liquid-orb-a" aria-hidden />
-            <div className="liquid-orb liquid-orb-b" aria-hidden />
-            <div className="liquid-orb liquid-orb-c" aria-hidden />
-          </>
-        )}
-      </div>
+      {/* Fluid Glass: drifting ambient orbs */}
+      {isFluidTheme && !isPureBlack && settings.fluidOrbsEnabled && (
+        <>
+          <div className="liquid-orb liquid-orb-a" aria-hidden />
+          <div className="liquid-orb liquid-orb-b" aria-hidden />
+          <div className="liquid-orb liquid-orb-c" aria-hidden />
+        </>
+      )}
 
       <NotificationBanner />
 

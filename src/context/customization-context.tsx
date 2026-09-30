@@ -47,20 +47,27 @@ export function CustomizationProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     const vars = toCssVars(settings);
     for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
-    root.dataset["theme"] = settings.theme;
     root.dataset["motion"] = settings.motion;
     root.dataset["liquidGlass"] = settings.liquidGlassEnabled ? "on" : "off";
-    root.dataset["fluidAppearance"] = settings.fluidAppearance;
-    root.dataset["fluidPureBlack"] = settings.fluidPureBlack ? "on" : "off";
-    root.dataset["uiTextClarity"] = settings.fluidTextClarity;
-    root.dataset["glassPerformance"] = settings.fluidPerformance;
 
-    const isDark =
-      settings.theme === "dark" ||
-      (settings.theme === "fluid-glass" && settings.fluidAppearance === "dark");
-    root.classList.toggle("dark", isDark);
-    root.classList.toggle("pure-black", settings.theme === "fluid-glass" && settings.fluidPureBlack);
-    root.style.colorScheme = isDark ? "dark" : (settings.theme === "light" ? "light" : "dark");
+    if (settings.websiteTheme === "fluid-glass") {
+      root.dataset["theme"] = "fluid-glass";
+      root.dataset["fluidAppearance"] = settings.fluidAppearance;
+      root.dataset["fluidPureBlack"] = settings.fluidPureBlack ? "on" : "off";
+      root.dataset["uiTextClarity"] = settings.fluidTextClarity;
+      root.dataset["glassPerformance"] = settings.fluidPerformance;
+      root.classList.toggle("pure-black", settings.fluidPureBlack);
+      root.classList.remove("dark");
+    } else {
+      // Default Website: Original / Dark / White Light (Exact NewLumino theme engine)
+      root.dataset["theme"] = settings.theme;
+      root.classList.remove("pure-black");
+      root.classList.remove("dark");
+      delete root.dataset["fluidAppearance"];
+      delete root.dataset["fluidPureBlack"];
+      delete root.dataset["uiTextClarity"];
+      delete root.dataset["glassPerformance"];
+    }
   }, [settings]);
 
   const update = useCallback((patch: Partial<Customization>) => {

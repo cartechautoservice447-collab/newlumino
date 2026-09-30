@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
-import { liquidSpringParams, type MotionLevel, type ThemeBase, type UiFont } from "@/lib/customization";
+import { liquidSpringParams, type MotionLevel, type ThemeBase, type UiFont, type WebsiteTheme } from "@/lib/customization";
 import { haptic } from "@/lib/haptics";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AiNotificationSection } from "./ai-notification-section";
@@ -94,9 +94,9 @@ function SliderRow({
   );
 }
 
-const themes: { value: ThemeBase; label: string; badge?: string; desc: string }[] = [
+const websiteThemes: { value: WebsiteTheme; label: string; badge?: string; desc: string }[] = [
   {
-    value: "original",
+    value: "default",
     label: "Default Original Theme",
     badge: "Main Website",
     desc: "Current website default luminous glass system & custom shaders",
@@ -107,6 +107,12 @@ const themes: { value: ThemeBase; label: string; badge?: string; desc: string }[
     badge: "Fluid Glass Studio",
     desc: "Exact 3D water-gel lens, stage orbs & liquid refraction",
   },
+];
+
+const colorThemes: { value: ThemeBase; label: string }[] = [
+  { value: "original", label: "Original" },
+  { value: "dark", label: "Dark" },
+  { value: "light", label: "White / Light" },
 ];
 
 const motions: { value: MotionLevel; label: string }[] = [
@@ -245,17 +251,17 @@ function SettingsContent({
         hint="Choose between the current website default theme and the old website theme."
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {themes.map((t) => (
+          {websiteThemes.map((t) => (
             <button
               key={t.value}
               type="button"
               onClick={() => {
                 haptic("light");
-                update({ theme: t.value });
+                update({ websiteTheme: t.value });
               }}
               className={cn(
                 "flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all touch-manipulation cursor-pointer",
-                settings.theme === t.value
+                settings.websiteTheme === t.value
                   ? "border-primary/50 bg-white/[0.12] text-foreground font-semibold shadow-md ring-1 ring-primary/40"
                   : "border-white/5 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
               )}
@@ -266,7 +272,7 @@ function SettingsContent({
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide shrink-0",
-                      settings.theme === t.value
+                      settings.websiteTheme === t.value
                         ? "bg-primary/20 text-primary"
                         : "bg-white/10 text-muted-foreground"
                     )}
@@ -284,7 +290,7 @@ function SettingsContent({
       </Section>
 
       {/* Dedicated Old Website Theme (Fluid Glass Studio) Customization Section */}
-      {settings.theme === "fluid-glass" && (
+      {settings.websiteTheme === "fluid-glass" && (
         <Section
           title="Old Website Theme (Fluid Glass Studio)"
           hint="Exact glass element, 3D water-gel lens, stage refraction & liquid physics from fluid-glass-studio."
@@ -510,9 +516,32 @@ function SettingsContent({
         </Section>
       )}
 
-      {/* Glass quality & Liquid Glass Physics — only shown in Default Original Theme */}
-      {settings.theme !== "fluid-glass" && (
+      {/* Default Original Theme Settings — Color theme, Glass quality & Liquid Glass Physics */}
+      {settings.websiteTheme !== "fluid-glass" && (
         <>
+          <Section title="Color theme">
+            <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/5 bg-white/[0.03] p-1">
+              {colorThemes.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => {
+                    haptic("light");
+                    update({ theme: t.value });
+                  }}
+                  className={cn(
+                    "rounded-lg px-2.5 py-1.5 text-xs transition-colors touch-manipulation cursor-pointer",
+                    settings.theme === t.value
+                      ? "bg-white/[0.12] text-foreground font-semibold shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </Section>
+
           <Section title="Glass quality" hint={settings.glassPreset === "custom" ? "Custom" : undefined}>
             <Ticks
               value={settings.glassPreset}

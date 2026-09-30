@@ -24,7 +24,7 @@ export function NoteCard({
   onOpenMobileMenu,
 }: Props) {
   const { settings } = useCustomization();
-  const isFluidGlass = settings.theme === "fluid-glass";
+  const isFluidGlass = settings.websiteTheme === "fluid-glass";
 
   return (
     <div

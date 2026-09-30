@@ -27,7 +27,7 @@ export function GlassPanel({
   style,
 }: GlassPanelProps) {
   const { settings } = useCustomization();
-  const isFluidGlass = settings.theme === "fluid-glass";
+  const isFluidGlass = settings.websiteTheme === "fluid-glass";
 
   if (!isFluidGlass) {
     return (

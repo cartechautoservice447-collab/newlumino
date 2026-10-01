@@ -174,18 +174,85 @@ export const glass = (blur: number) => ({
   };
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function normalizeCourse(value: unknown): Course | null {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.name !== "string") {
+    return null;
+  }
+  return {
+    id: value.id,
+    name: value.name,
+    description: typeof value.description === "string" ? value.description : "",
+    color: COURSE_ACCENTS.includes(value.color as CourseAccent)
+      ? (value.color as CourseAccent)
+      : "sky",
+    category: typeof value.category === "string" ? value.category : undefined,
+    createdAt: typeof value.createdAt === "number" ? value.createdAt : Date.now(),
+    updatedAt: typeof value.updatedAt === "number" ? value.updatedAt : Date.now(),
+  };
+}
+
+function normalizeCollection(value: unknown): Collection | null {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.name !== "string") {
+    return null;
+  }
+  return {
+    id: value.id,
+    courseId: typeof value.courseId === "string" ? value.courseId : undefined,
+    name: value.name,
+    category: typeof value.category === "string" ? value.category : undefined,
+    parentId:
+      typeof value.parentId === "string" || value.parentId === null
+        ? value.parentId
+        : undefined,
+  };
+}
+
+function normalizeNote(value: unknown): Note | null {
+  if (!isRecord(value) || typeof value.id !== "string") {
+    return null;
+  }
+  return {
+    id: value.id,
+    title: typeof value.title === "string" ? value.title : "Untitled note",
+    body: typeof value.body === "string" ? value.body : "",
+    favorite: Boolean(value.favorite),
+    courseId: typeof value.courseId === "string" || value.courseId === null ? value.courseId : undefined,
+    collectionId:
+      typeof value.collectionId === "string" || value.collectionId === null
+        ? value.collectionId
+        : null,
+    revision: typeof value.revision === "number" ? value.revision : 0,
+    sourceId: typeof value.sourceId === "string" || value.sourceId === null ? value.sourceId : null,
+    createdAt: typeof value.createdAt === "number" ? value.createdAt : Date.now(),
+    updatedAt: typeof value.updatedAt === "number" ? value.updatedAt : Date.now(),
+  };
+}
+
 export const loadState = (): NotesState => {
   if (typeof window === "undefined") return { courses: [], notes: [], collections: [] };
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return seedState();
-    const parsed = JSON.parse(raw) as Partial<NotesState>;
-    if (!parsed || !Array.isArray(parsed.courses)) return seedState();
-    return {
-      courses: parsed.courses ?? [],
-      collections: parsed.collections ?? [],
-      notes: parsed.notes ?? [],
-    };
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isRecord(parsed)) return seedState();
+
+    const courses = Array.isArray(parsed.courses)
+      ? parsed.courses.map(normalizeCourse).filter((course): course is Course => Boolean(course))
+      : [];
+    const collections = Array.isArray(parsed.collections)
+      ? parsed.collections
+          .map(normalizeCollection)
+          .filter((collection): collection is Collection => Boolean(collection))
+      : [];
+    const notes = Array.isArray(parsed.notes)
+      ? parsed.notes.map(normalizeNote).filter((note): note is Note => Boolean(note))
+      : [];
+
+    return { courses, collections, notes };
   } catch {
     return seedState();
   }

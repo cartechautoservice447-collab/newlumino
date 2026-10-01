@@ -26,13 +26,28 @@ export function usePomodoroTimer(activeContext?: {
   activeCourseName?: string;
 }) {
   const [settings, setSettings] = useState<PomodoroSettings>(() => {
+    const fallback: PomodoroSettings = { focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 };
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (!saved) return fallback;
+      const parsed = JSON.parse(saved) as Partial<PomodoroSettings> | null;
+      if (!parsed || typeof parsed !== "object") return fallback;
+
+      const normalizeMinutes = (value: unknown, defaultValue: number) => {
+        const minutes = Number(value);
+        return Number.isFinite(minutes)
+          ? Math.max(1, Math.min(180, Math.round(minutes)))
+          : defaultValue;
+      };
+
+      return {
+        focusMinutes: normalizeMinutes(parsed.focusMinutes, fallback.focusMinutes),
+        shortBreakMinutes: normalizeMinutes(parsed.shortBreakMinutes, fallback.shortBreakMinutes),
+        longBreakMinutes: normalizeMinutes(parsed.longBreakMinutes, fallback.longBreakMinutes),
+      };
     } catch {
-      // ignore
+      return fallback;
     }
-    return { focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 };
   });
 
   const [mode, setMode] = useState<PomodoroMode>("focus");

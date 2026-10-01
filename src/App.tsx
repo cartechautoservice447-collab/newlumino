@@ -49,11 +49,41 @@ export default function App() {
 }
 
 function MainApp() {
-  const { settings } = useCustomization();
   const { user, loading } = useAuth();
-  const { showNotification } = useNotifications();
   const [guestMode, setGuestMode] = useState(false);
-  const n = useNotes(user?.id);
+
+  // Keep the auth screen isolated from the full workspace stack. This prevents
+  // notes/Pomodoro/storage initialization from crashing the login screen.
+  if (loading && !guestMode) {
+    return (
+      <div className="app-backdrop min-h-screen w-full flex items-center justify-center text-muted-foreground font-mono text-xs">
+        Loading NewLumino...
+      </div>
+    );
+  }
+
+  if (!user && !guestMode) {
+    return <AuthModal onGuestAccess={() => setGuestMode(true)} />;
+  }
+
+  return (
+    <AuthenticatedApp
+      userId={user?.id ?? null}
+      onOpenAuth={onOpenAuth}
+    />
+  );
+}
+
+function AuthenticatedApp({
+  userId,
+  onOpenAuth,
+}: {
+  userId: string | null;
+  onOpenAuth: () => void;
+}) {
+  const { settings } = useCustomization();
+  const { showNotification } = useNotifications();
+  const n = useNotes(userId);
   const isMobile = useIsMobile();
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -202,14 +232,6 @@ function MainApp() {
     n.updateNote(n.selected.id, { body: updated });
   };
 
-  if (loading && !guestMode) {
-    return <div className="app-backdrop min-h-screen w-full flex items-center justify-center text-muted-foreground font-mono text-xs">Loading NewLumino...</div>;
-  }
-
-  if (!user && !guestMode) {
-    return <AuthModal onGuestAccess={() => setGuestMode(true)} />;
-  }
-
   // Dashboard view
   if (view === "dashboard") {
     return (
@@ -313,7 +335,7 @@ function MainApp() {
             realtimeStatus={n.realtimeStatus}
             isSyncing={n.isSyncing}
             onRefresh={() => void n.refreshFromCloud()}
-            onOpenAuth={() => setGuestMode(false)}
+            onOpenAuth={onOpenAuth}
           />
         )}
 
@@ -479,7 +501,7 @@ function MainApp() {
           realtimeStatus={n.realtimeStatus}
           isSyncing={n.isSyncing}
           onRefresh={() => void n.refreshFromCloud()}
-          onOpenAuth={() => setGuestMode(false)}
+          onOpenAuth={onOpenAuth}
           noteTitle={n.selected?.title || n.notes[0]?.title}
           activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
           focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
@@ -948,7 +970,7 @@ function MainApp() {
         realtimeStatus={n.realtimeStatus}
         isSyncing={n.isSyncing}
         onRefresh={() => void n.refreshFromCloud()}
-        onOpenAuth={() => setGuestMode(false)}
+        onOpenAuth={onOpenAuth}
         noteTitle={n.selected?.title || n.visibleNotes[0]?.title}
         activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
         focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}

@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { soundscapeEngine, type SoundscapeType } from "@/lib/soundscapes";
 import type { NoteTimeEntry, PomodoroSessionRecord, PomodoroPlanResult } from "@/lib/pomodoro-ai";
-<<<<<<< HEAD
-=======
 import { notifyPomodoroPhaseChange } from "@/lib/push-notifications";
->>>>>>> 1231699 (Update NewLumino project)
 
 export type PomodoroMode = "focus" | "shortBreak" | "longBreak";
 
@@ -235,12 +232,9 @@ export function usePomodoroTimer(activeContext?: {
               setCompletedSessions((c) => c + 1);
               setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
 
-<<<<<<< HEAD
-=======
               // Send native push notification
               notifyPomodoroPhaseChange("shortBreak", settings.shortBreakMinutes).catch(() => {});
 
->>>>>>> 1231699 (Update NewLumino project)
               // Record Session History
               const record: PomodoroSessionRecord = {
                 id: `sess-${Date.now()}`,
@@ -257,10 +251,7 @@ export function usePomodoroTimer(activeContext?: {
               return settings.shortBreakMinutes * 60;
             } else {
               setMode("focus");
-<<<<<<< HEAD
-=======
               notifyPomodoroPhaseChange("work", settings.focusMinutes).catch(() => {});
->>>>>>> 1231699 (Update NewLumino project)
               return settings.focusMinutes * 60;
             }
           }

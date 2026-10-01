@@ -201,7 +201,7 @@ function MainApp() {
   // Dashboard view
   if (view === "dashboard") {
     return (
-      <ThemeStage className="min-h-screen w-full overflow-y-auto">
+      <ThemeStage className="h-[100dvh] min-h-[100dvh] w-full overflow-hidden">
         <CourseDashboard
           courses={n.courses}
           notes={n.notes}

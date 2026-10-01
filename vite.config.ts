@@ -1,13 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-<<<<<<< HEAD
-import {defineConfig} from 'vite';
-
-export default defineConfig(() => {
-  return {
-    plugins: [react(), tailwindcss()],
-=======
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -34,7 +27,8 @@ export default defineConfig(() => {
           id: '/',
           name: 'NewLumino — Liquid Glass Study Studio',
           short_name: 'NewLumino',
-          description: 'Modern active-recall notes and study studio with real-time synchronized courses, liquid glass aesthetics, and AI flashcards.',
+          description:
+            'Modern active-recall notes and study studio with real-time synchronized courses, liquid glass aesthetics, and AI flashcards.',
           theme_color: '#0f172a',
           background_color: '#090d16',
           display: 'standalone',
@@ -124,22 +118,16 @@ export default defineConfig(() => {
         },
       }),
     ],
->>>>>>> 1231699 (Update NewLumino project)
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
       },
     },
     server: {
-<<<<<<< HEAD
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modify—file watching is disabled to prevent flickering during agent edits.
+      // Keep file watching disabled when DISABLE_HMR=true to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
-=======
-      hmr: false,
->>>>>>> 1231699 (Update NewLumino project)
     },
   };
 });

@@ -324,540 +324,190 @@ export function CourseDashboard({
           </button>
         </div>
 
-        {/* Mobile-Only Feature 2: Daily Focus Progress Ring & Study Streak Widget */}
-        <div className="sm:hidden mt-3.5 glass-panel rounded-3xl p-3.5 border border-primary/25 bg-gradient-to-br from-primary/10 via-white/[0.02] to-amber-500/10 shadow-lg">
-          <div className="flex items-center justify-between gap-3">
-            {/* Left: Progress Ring & Focus Minutes */}
-            <div className="flex items-center gap-3 min-w-0">
-              {/* Circular Progress Ring */}
-              <div className="relative flex h-11 w-11 shrink-0 items-center justify-center">
-                <svg className="h-11 w-11 -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    className="text-white/10"
-                    strokeWidth="3.2"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path
-                    className="text-primary transition-all duration-700 ease-out"
-                    strokeDasharray={`${progressPct}, 100`}
-                    strokeWidth="3.2"
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <span className="absolute font-mono text-[0.65rem] font-bold text-foreground">
-                  {progressPct}%
-                </span>
-              </div>
+        {/* Mobile Feature 2: Premium Daily Focus Command Center */}
+        <section className="sm:hidden mt-6 rounded-[1.75rem] border border-primary/20 bg-[linear-gradient(135deg,rgba(78,222,163,.10),rgba(20,24,34,.84)_48%,rgba(251,191,36,.07))] p-4.5 shadow-[0_18px_48px_-18px_rgba(0,0,0,.65)] backdrop-blur-3xl">
+          <div className="relative overflow-hidden rounded-[1.45rem]">
+            <div className="pointer-events-none absolute -right-14 -top-16 h-40 w-40 rounded-full bg-emerald-300/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-12 h-36 w-36 rounded-full bg-cyan-300/8 blur-3xl" />
 
+            <div className="relative flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h4 className="text-xs font-bold text-foreground truncate">Today's Focus</h4>
-                  <span className="rounded-full bg-amber-500/20 px-1.5 py-0.2 text-[0.58rem] font-bold text-amber-300 flex items-center gap-0.5">
-                    <Flame className="h-2.5 w-2.5" />
-                    <span>Streak</span>
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  <p className="text-[0.65rem] font-bold uppercase tracking-[0.18em] text-primary">Daily Focus</p>
+                </div>
+                <h3 className="mt-1 text-[1.02rem] font-bold tracking-tight text-foreground">Build today's momentum</h3>
+                <p className="mt-0.5 text-[0.68rem] leading-relaxed text-muted-foreground">
+                  Your live study progress toward the daily focus target.
+                </p>
+              </div>
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[0.58rem] font-bold uppercase tracking-wider text-amber-300">
+                <Flame className="h-2.5 w-2.5" /> Streak
+              </span>
+            </div>
+
+            <div className="relative mt-5 flex items-center gap-4">
+              <div className="relative flex h-[78px] w-[78px] shrink-0 items-center justify-center">
+                <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
+                  <path
+                    stroke="currentColor"
+                    strokeWidth="2.8"
+                    fill="none"
+                    className="text-white/8"
+                    d="M18 2.2a15.8 15.8 0 1 1 0 31.6 15.8 15.8 0 0 1 0-31.6"
+                  />
+                  <path
+                    stroke="currentColor"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                    fill="none"
+                    className="text-primary transition-all duration-700 ease-out"
+                    strokeDasharray={`${progressPct},100`}
+                    d="M18 2.2a15.8 15.8 0 1 1 0 31.6 15.8 15.8 0 0 1 0-31.6"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-mono text-sm font-black text-foreground">{progressPct}%</span>
+                  <span className="text-[0.48rem] font-bold uppercase tracking-widest text-muted-foreground">Focused</span>
+                </div>
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-mono text-[1.7rem] font-black tracking-tight text-foreground">{todayMinutes}m</span>
+                  <span className="text-[0.68rem] font-semibold text-muted-foreground">/ {Math.round(dailyGoalHours * 60)}m goal</span>
+                </div>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/8">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-primary via-emerald-300 to-cyan-300 shadow-[0_0_12px_rgba(78,222,163,.35)] transition-[width] duration-700 ease-out"
+                    style={{ width: `${Math.max(2, progressPct)}%` }}
+                  />
+                </div>
+                <div className="mt-2 flex items-center gap-1.5">
+                  <span className={cn("h-1.5 w-1.5 rounded-full", progressPct >= 100 ? "bg-emerald-300" : "bg-cyan-300 animate-pulse")} />
+                  <span className="text-[0.62rem] font-semibold text-muted-foreground">
+                    {progressPct >= 100 ? "Daily target reached" : "Flow synchronized"}
                   </span>
                 </div>
-                <p className="text-[0.65rem] text-muted-foreground truncate mt-0.5">
-                  {todayMinutes}m of {dailyGoalHours * 60}m daily goal
-                </p>
               </div>
             </div>
 
-            {/* Right: 1-Tap Quick Start Focus Button */}
             <button
               type="button"
               onClick={() => {
                 haptic("medium");
                 onStartFocus?.();
               }}
-              className="shrink-0 flex items-center gap-1.5 rounded-xl bg-primary/20 border border-primary/40 px-3 py-2 text-xs font-bold text-primary active:scale-90 hover:bg-primary/30 transition shadow-sm cursor-pointer"
+              className="relative mt-5 flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary via-emerald-400 to-cyan-300 px-4 text-[0.82rem] font-bold text-[#022115] shadow-[0_10px_28px_-10px_rgba(78,222,163,.65)] transition-all duration-200 active:scale-[0.985]"
             >
-              <Zap className="h-3.5 w-3.5 text-amber-300" />
-              <span>Start Focus</span>
+              <Zap className="h-4 w-4" />
+              <span>{progressPct >= 100 ? "Start another focus block" : "Start a focused study block"}</span>
+              <span className="rounded-full bg-black/15 px-2 py-0.5 text-[0.58rem] font-black">25m</span>
             </button>
           </div>
-        </div>
+        </section>
 
-        {/* Mobile-Only Feature 1: "Continue Studying" / Recent Notes Shelf */}
+        {/* Mobile Feature 1: Premium Continue Learning Shelf */}
         {recentNotes.length > 0 && (
-          <div className="sm:hidden mt-4 space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-primary" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                  Continue Studying
-                </h3>
+          <section className="sm:hidden mt-7 space-y-3">
+            <div className="flex items-end justify-between px-1">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-cyan-300" />
+                  <p className="text-[0.65rem] font-bold uppercase tracking-[0.18em] text-cyan-300">Continue Learning</p>
+                </div>
+                <h3 className="mt-1 text-[0.95rem] font-bold tracking-tight text-foreground">Pick up where you left off</h3>
               </div>
-              <span className="text-[0.6rem] font-mono text-muted-foreground">
-                Recent notes
-              </span>
+              <button
+                type="button"
+                onClick={() => onOpenAllNotes?.()}
+                className="shrink-0 text-[0.62rem] font-bold text-primary transition-transform active:translate-x-0.5"
+              >
+                View all
+              </button>
             </div>
 
-            {/* Horizontal Swipeable Carousel */}
-            <div className="flex gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scroll-sleek snap-x snap-mandatory">
-              {recentNotes.map((note) => {
-                const course = courses.find((c) => c.id === note.courseId);
-                const accent = course ? (ACCENT_STYLES[course.color] ?? ACCENT_STYLES.sky) : ACCENT_STYLES.sky;
+            {(() => {
+              const featured = recentNotes[0];
+              const featuredCourse = courses.find((c) => c.id === featured.courseId);
+              const featuredAccent = featuredCourse
+                ? (ACCENT_STYLES[featuredCourse.color] ?? ACCENT_STYLES.sky)
+                : ACCENT_STYLES.sky;
 
-                return (
-                  <div
-                    key={note.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => {
-                      haptic("light");
-                      onOpenNote?.(note.id, note.courseId || undefined);
-                    }}
-                    className="glass-panel snap-start shrink-0 w-[230px] rounded-2xl p-3 border border-white/10 hover:border-primary/40 bg-white/[0.03] active:scale-[0.97] transition cursor-pointer flex flex-col justify-between select-none shadow-sm"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between gap-1 mb-1.5">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-md border ${accent.border} ${accent.bg} px-1.5 py-0.2 text-[0.6rem] font-bold ${accent.text} truncate max-w-[140px]`}
-                        >
-                          <span className={`h-1.5 w-1.5 rounded-full ${accent.dot} shrink-0`} />
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic("light");
+                    onOpenNote?.(featured.id, featured.courseId || undefined);
+                  }}
+                  className="glass-panel group relative w-full overflow-hidden rounded-[1.75rem] border border-cyan-300/15 bg-[linear-gradient(135deg,rgba(28,36,54,.78),rgba(12,17,26,.90))] p-4 text-left shadow-[0_16px_40px_-16px_rgba(0,0,0,.75)] transition-all duration-200 active:scale-[0.99]"
+                >
+                  <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-cyan-300/10 blur-3xl" />
+                  <div className="relative">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className={`inline-flex min-w-0 max-w-[75%] items-center gap-1.5 rounded-full border ${featuredAccent.border} ${featuredAccent.bg} px-2.5 py-1 text-[0.58rem] font-bold uppercase tracking-wider ${featuredAccent.text}`}>
+                        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${featuredAccent.dot}`} />
+                        <span className="truncate">{featuredCourse?.name || "General"}</span>
+                      </span>
+                      {featured.favorite ? <Star className="h-4 w-4 shrink-0 fill-amber-400 text-amber-400" /> : <ArrowRight className="h-4 w-4 shrink-0 text-cyan-300" />}
+                    </div>
+
+                    <h4 className="mt-3 truncate text-[1rem] font-bold tracking-tight text-foreground group-active:text-cyan-200">
+                      {featured.title || "Untitled Note"}
+                    </h4>
+                    <p className="mt-1.5 line-clamp-2 text-[0.7rem] leading-relaxed text-muted-foreground">
+                      {featured.body?.replace(/[#*\`>_-]/g, "").slice(0, 110) || "Open this note to continue learning."}
+                    </p>
+
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/6 pt-3">
+                      <span className="flex items-center gap-1.5 text-[0.58rem] font-medium text-muted-foreground/80">
+                        <Clock className="h-3 w-3" />
+                        Edited {formatDate(featured.updatedAt)}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[0.62rem] font-bold text-cyan-300">
+                        Resume <ArrowRight className="h-3 w-3" />
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })()}
+
+            {recentNotes.length > 1 && (
+              <div className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto pb-1 pt-0.5 scroll-sleek">
+                {recentNotes.slice(1).map((note) => {
+                  const course = courses.find((c) => c.id === note.courseId);
+                  const accent = course ? (ACCENT_STYLES[course.color] ?? ACCENT_STYLES.sky) : ACCENT_STYLES.sky;
+
+                  return (
+                    <button
+                      key={note.id}
+                      type="button"
+                      onClick={() => {
+                        haptic("light");
+                        onOpenNote?.(note.id, note.courseId || undefined);
+                      }}
+                      className="glass-panel snap-start flex w-[236px] shrink-0 flex-col justify-between rounded-2xl border border-white/10 bg-white/[0.035] p-3.5 text-left shadow-sm transition-all duration-200 active:scale-[0.985]"
+                    >
+                      <div className="min-w-0">
+                        <span className={`inline-flex max-w-full items-center gap-1 rounded-md border ${accent.border} ${accent.bg} px-2 py-0.5 text-[0.58rem] font-bold ${accent.text}`}>
+                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${accent.dot}`} />
                           <span className="truncate">{course?.name || "General"}</span>
                         </span>
-                        {note.favorite && (
-                          <Star className="h-3 w-3 text-amber-400 fill-amber-400 shrink-0" />
-                        )}
+                        <h4 className="mt-2 truncate text-xs font-bold text-foreground">{note.title || "Untitled Note"}</h4>
+                        <p className="mt-1 line-clamp-2 text-[0.62rem] leading-relaxed text-muted-foreground">{note.body?.replace(/[#*\`>_-]/g, "").slice(0, 76) || "No preview available."}</p>
                       </div>
-
-                      <h4 className="text-xs font-bold text-foreground truncate">
-                        {note.title || "Untitled Note"}
-                      </h4>
-
-                      <p className="text-[0.65rem] text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
-                        {note.body?.replace(/[#*`>_-]/g, "").slice(0, 80) || "Empty note snippet..."}
-                      </p>
-                    </div>
-
-                    <div className="mt-2.5 pt-2 border-t border-white/5 flex items-center justify-between text-[0.6rem] text-muted-foreground/70">
-                      <span>{formatDate(note.updatedAt)}</span>
-                      <span className="text-primary font-medium flex items-center gap-0.5">
-                        Resume <ArrowRight className="h-2.5 w-2.5" />
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Filter and Actions Bar */}
-        <div id="courses-section" className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 scroll-mt-6">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search course title or description..."
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.05] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground/60 backdrop-blur-xl focus:border-primary/50 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Category Pills and Create Button Row */}
-        <div className="mt-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none flex-1">
-            {categories.length > 2 ? (
-              categories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium capitalize transition whitespace-nowrap ${
-                    selectedCategory === cat
-                      ? "bg-white/15 text-foreground border border-white/20 shadow-sm"
-                      : "text-muted-foreground hover:bg-white/5"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))
-            ) : (
-              <div className="text-[0.65rem] uppercase tracking-widest text-muted-foreground/40 font-bold px-1">
-                Your Library
+                      <div className="mt-3 flex items-center justify-between border-t border-white/6 pt-2 text-[0.56rem] text-muted-foreground/70">
+                        <span>{formatDate(note.updatedAt)}</span>
+                        <span className="font-semibold text-primary">Resume →</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
-          </div>
+          </section>
+        )}
 
-          <button
-            type="button"
-            onClick={() => {
-              haptic("medium");
-              setAdding(true);
-            }}
-            className="shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary px-5 py-2.5 text-xs sm:text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create Course</span>
-          </button>
-        </div>
-
-        {/* MOBILE VIEW: Mobile Liquid Glass Course Cards */}
-        <div className="sm:hidden mt-5 flex flex-col gap-3.5 w-full">
-          {filteredCourses.map((c, i) => {
-            const courseNotes = notes.filter((n) => n.courseId === c.id);
-            const last = courseNotes.length > 0
-              ? Math.max(...courseNotes.map((n) => n.updatedAt))
-              : c.updatedAt || c.createdAt;
-            const style = ACCENT_STYLES[c.color] ?? ACCENT_STYLES.sky;
-
-            return (
-              <div
-                key={c.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  haptic("light");
-                  onOpenCourse(c.id);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    haptic("light");
-                    onOpenCourse(c.id);
-                  }
-                }}
-                style={{ animationDelay: `${i * 35}ms` }}
-                className="glass-panel animate-panel-in group relative cursor-pointer overflow-hidden rounded-[1.75rem] p-4.5 text-left border border-white/12 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-3xl shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_12px_36px_0_rgba(0,0,0,0.4)] active:scale-[0.975] transition-all duration-300 select-none flex flex-col justify-between w-full"
-              >
-                {/* Delete course button */}
-                <button
-                  type="button"
-                  aria-label={`Delete ${c.name}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeletingCourse(c);
-                  }}
-                  className="absolute right-3.5 top-3.5 z-10 rounded-xl border border-white/10 bg-black/40 p-2 text-muted-foreground backdrop-blur-md transition-all duration-200 hover:border-destructive/40 hover:bg-destructive/20 hover:text-destructive active:scale-90 cursor-pointer"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-
-                <div>
-                  <div className="flex items-start justify-between gap-3 pr-8">
-                    <span
-                      className={`flex h-11 w-11 items-center justify-center rounded-2xl border ${style.border} ${style.bg} ${style.text} ${style.glow} shadow-md transition-transform group-hover:scale-105 shrink-0`}
-                    >
-                      <FolderOpen className="h-5 w-5" />
-                    </span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-0.5 text-xs font-mono font-medium tabular-nums text-muted-foreground">
-                      {courseNotes.length} {courseNotes.length === 1 ? "note" : "notes"}
-                    </span>
-                  </div>
-
-                  <h3 className="mt-3 truncate text-[1.05rem] font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                    {c.name}
-                  </h3>
-
-                  {c.description ? (
-                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground/80 leading-relaxed">
-                      {c.description}
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-xs text-muted-foreground/40 italic">
-                      No description provided
-                    </p>
-                  )}
-
-                  <div className="mt-3 flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-lg border ${style.border} ${style.bg} px-2.5 py-0.5 text-[0.68rem] uppercase tracking-[0.16em] font-semibold ${style.text}`}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
-                      {c.color}
-                    </span>
-                    {c.category && c.category !== c.description?.slice(0, 30) && (
-                      <span className="inline-block rounded-lg border border-white/5 bg-white/[0.05] px-2.5 py-0.5 text-[0.68rem] uppercase tracking-[0.16em] font-semibold text-muted-foreground/80">
-                        {c.category}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
-                  <span className="text-xs text-muted-foreground/70">
-                    {last ? `Edited ${formatDate(last)}` : "No notes yet"}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
-                    Open Workspace
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* DESKTOP VIEW: Original 3-Column Grid */}
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 w-full">
-          {filteredCourses.map((c, i) => {
-            const courseNotes = notes.filter((n) => n.courseId === c.id);
-            const last = courseNotes.length > 0
-              ? Math.max(...courseNotes.map((n) => n.updatedAt))
-              : c.updatedAt || c.createdAt;
-            const style = ACCENT_STYLES[c.color] ?? ACCENT_STYLES.sky;
-
-            return (
-              <div
-                key={c.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  haptic("light");
-                  onOpenCourse(c.id);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    haptic("light");
-                    onOpenCourse(c.id);
-                  }
-                }}
-                style={{ animationDelay: `${i * 45}ms` }}
-                className="glass-panel animate-panel-in group relative cursor-pointer overflow-hidden rounded-3xl p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:border-white/20 hover:shadow-2xl active:scale-[0.985] select-none flex flex-col justify-between"
-              >
-                {/* Delete course button */}
-                <button
-                  type="button"
-                  aria-label={`Delete ${c.name}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeletingCourse(c);
-                  }}
-                  className="absolute right-3.5 top-3.5 z-10 rounded-xl border border-white/10 bg-black/40 p-2 text-muted-foreground opacity-0 backdrop-blur-md transition-all duration-200 hover:border-destructive/40 hover:bg-destructive/20 hover:text-destructive group-hover:opacity-100 active:scale-90 cursor-pointer"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-
-                <div>
-                  <div className="flex items-start justify-between gap-3">
-                    <span
-                      className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${style.border} ${style.bg} ${style.text} ${style.glow} group-hover:scale-110 transition-transform shadow-lg`}
-                    >
-                      <FolderOpen className="h-6 w-6" />
-                    </span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-mono tabular-nums text-muted-foreground">
-                      {courseNotes.length} {courseNotes.length === 1 ? "note" : "notes"}
-                    </span>
-                  </div>
-
-                  <h3 className="mt-4 truncate text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                    {c.name}
-                  </h3>
-
-                  {c.description ? (
-                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground/80 leading-relaxed">
-                      {c.description}
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-xs text-muted-foreground/40 italic">
-                      No description provided
-                    </p>
-                  )}
-
-                  <div className="mt-3.5 flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-lg border ${style.border} ${style.bg} px-2.5 py-0.5 text-[0.68rem] uppercase tracking-[0.16em] font-semibold ${style.text}`}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
-                      {c.color}
-                    </span>
-                    {c.category && c.category !== c.description?.slice(0, 30) && (
-                      <span className="inline-block rounded-lg border border-white/5 bg-white/[0.05] px-2.5 py-0.5 text-[0.68rem] uppercase tracking-[0.16em] font-semibold text-muted-foreground/80">
-                        {c.category}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-5 flex items-center justify-between border-t border-white/5 pt-3.5">
-                  <span className="text-xs text-muted-foreground/70">
-                    {last ? `Edited ${formatDate(last)}` : "No notes yet"}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-primary opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-                    Open Workspace
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {filteredCourses.length === 0 ? (
-          <div className="mt-12 glass-panel rounded-3xl p-12 text-center max-w-md mx-auto">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-muted-foreground/60 mx-auto mb-4">
-              <FolderOpen className="h-7 w-7" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground">No courses found</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {searchQuery
-                ? "Try a different search query."
-                : "Create your first course folder to begin taking notes."}
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedCategory("all");
-                setAdding(true);
-              }}
-              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-lg"
-            >
-              <Plus className="h-4 w-4" />
-              Create First Course
-            </button>
-          </div>
-        ) : null}
-      </div>
-
-      {/* New Course Modal - Responsive Bottom Sheet on Mobile / Centered on Desktop */}
-      {adding ? (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 backdrop-blur-md">
-          <div className="glass-panel animate-panel-in w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl border border-white/15 max-h-[90dvh] overflow-y-auto scroll-sleek pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:pb-7">
-            {/* Mobile Drag Indicator Pill */}
-            <div className="sm:hidden mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
-            
-            <h3 className="text-lg font-bold tracking-tight text-foreground">
-              New Course Folder
-            </h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Creates a synchronized course in the shared backend across NewLumino and Fluid Glass Studio.
-            </p>
-
-            <div className="mt-4 sm:mt-5 space-y-3.5 sm:space-y-4">
-              <div>
-                <label className="block text-[0.68rem] uppercase tracking-wider text-muted-foreground/80 mb-1.5 font-semibold">
-                  Course Title
-                </label>
-                <input
-                  autoFocus
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && submit()}
-                  placeholder="e.g. CS50P — Python, Biology 101, Linear Algebra"
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary/50 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[0.68rem] uppercase tracking-wider text-muted-foreground/80 mb-1.5 font-semibold">
-                  Description (optional)
-                </label>
-                <input
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && submit()}
-                  placeholder="e.g. Programming in Python, lectures, and active recall notes"
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary/50 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[0.68rem] uppercase tracking-wider text-muted-foreground/80 mb-2 font-semibold">
-                  Accent Color
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {COURSE_ACCENTS.map((acc) => {
-                    const st = ACCENT_STYLES[acc];
-                    const isSelected = selectedColor === acc;
-                    return (
-                      <button
-                        key={acc}
-                        type="button"
-                        onClick={() => setSelectedColor(acc)}
-                        className={`flex items-center sm:flex-col justify-center sm:justify-center gap-2 sm:gap-1.5 rounded-xl border p-2.5 sm:p-2 text-center transition ${
-                          isSelected
-                            ? `${st.border} ${st.bg} scale-102 sm:scale-105 shadow-md`
-                            : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]"
-                        }`}
-                      >
-                        <span className={`h-4 w-4 rounded-full ${st.dot} flex items-center justify-center shrink-0`}>
-                          {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
-                        </span>
-                        <span className="text-[0.68rem] sm:text-[0.6rem] capitalize text-foreground/80 font-medium">
-                          {acc}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[0.68rem] uppercase tracking-wider text-muted-foreground/80 mb-1.5 font-semibold">
-                  Category Tag
-                </label>
-                <input
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && submit()}
-                  placeholder="e.g. Programming, Science, Design"
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary/50 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="mt-5 sm:mt-6 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setAdding(false)}
-                className="rounded-xl border border-white/5 bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground touch-manipulation cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={submit}
-                disabled={!title.trim()}
-                className="rounded-xl border border-white/10 bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 touch-manipulation cursor-pointer"
-              >
-                Create Course
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Delete Confirmation Modal - Responsive Sheet */}
-      {deletingCourse ? (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 backdrop-blur-md">
-          <div className="glass-panel animate-panel-in w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-destructive/20 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:pb-6">
-            <h3 className="text-lg font-bold tracking-tight text-foreground">
-              Delete &ldquo;{deletingCourse.name}&rdquo;?
-            </h3>
-            <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-              This permanently removes this course folder and every note contained inside from the shared cloud database. This will also update Fluid Glass Studio in real time.
-            </p>
-            <div className="mt-5 sm:mt-6 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setDeletingCourse(null)}
-                className="rounded-xl border border-white/5 bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground touch-manipulation cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="rounded-xl border border-destructive/40 bg-destructive px-5 py-2.5 text-xs font-semibold text-destructive-foreground shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation cursor-pointer"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
+19299

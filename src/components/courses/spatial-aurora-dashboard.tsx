@@ -217,38 +217,47 @@ export function SpatialAuroraDashboard({
         </header>
 
         <div className="mx-auto flex w-full max-w-[480px] flex-col gap-6 px-5 pt-6">
-          <section className="relative overflow-hidden rounded-[30px] border border-white/[0.08] bg-[linear-gradient(135deg,rgba(28,36,54,.65),rgba(14,18,29,.82))] p-6 shadow-[0_12px_32px_-8px_rgba(0,0,0,.55)] backdrop-blur-[28px]">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-gradient-to-br from-emerald-300/30 via-cyan-300/20 to-transparent blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-12 h-48 w-48 rounded-full bg-violet-300/20 blur-2xl" />
-            <div className="relative z-10 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/15 text-emerald-300">
-                  <Sparkles className="h-4 w-4" />
+          <section className="relative overflow-hidden rounded-[30px] border border-white/[0.08] bg-[linear-gradient(135deg,rgba(28,36,54,.68),rgba(14,18,29,.86))] p-5 shadow-[0_18px_44px_-14px_rgba(0,0,0,.65)] backdrop-blur-[30px]">
+            <div className="pointer-events-none absolute -right-20 -top-16 h-56 w-56 rounded-full bg-gradient-to-br from-emerald-300/25 via-cyan-300/14 to-transparent blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 -left-14 h-52 w-52 rounded-full bg-violet-300/14 blur-3xl" />
+
+            <div className="relative z-10 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/12 text-emerald-300">
+                    <Sparkles className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">Focus Horizon</span>
+                    <h2 className="mt-0.5 truncate text-[15px] font-bold text-white">Daily momentum</h2>
+                  </div>
                 </div>
-                <span className="text-[12px] font-bold uppercase tracking-widest text-white">Focus Horizon</span>
               </div>
-              <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-bold text-amber-200">
-                <Flame className="h-[15px] w-[15px] text-amber-400" /> Daily Momentum
+              <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-bold text-amber-200">
+                <Flame className="h-3.5 w-3.5 text-amber-400" /> {progress >= 100 ? "Goal Reached" : "Flow Synchronized"}
               </span>
             </div>
 
             <div className="relative z-10 mt-5 flex items-center gap-5">
-              <ProgressRing percent={progress} />
+              <div className="shrink-0 scale-[0.88] origin-left">
+                <ProgressRing percent={progress} />
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-[32px] font-extrabold text-white">{focusMinutes}m</span>
-                  <span className="text-xs font-semibold text-slate-400">/ {goalMinutes}m goal</span>
+                  <span className="font-mono text-[31px] font-extrabold text-white">{focusMinutes}m</span>
+                  <span className="text-[11px] font-semibold text-slate-400">/ {goalMinutes}m goal</span>
                 </div>
-                <p className="mt-1 text-[12px] leading-relaxed text-slate-400">Your live focus progress from today. Keep the flow moving toward your daily goal.</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-300" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-300">{progress >= 100 ? "Goal Reached" : "Flow Synchronized"}</span>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">Your live focus progress from today. Keep the flow moving toward your daily goal.</p>
+                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
+                  <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300 transition-[width] duration-700" style={{ width: `${Math.max(2, progress)}%` }} />
                 </div>
               </div>
             </div>
 
-            <button type="button" onClick={() => { haptic("medium"); onStartFocus?.(); }} className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-300 via-teal-400 to-cyan-300 px-4 text-[15px] font-bold text-[#022115] shadow-[0_8px_24px_rgba(78,222,163,.35)] active:scale-[0.98]">
-              <Sparkles className="h-[22px] w-[22px]" /> Immerse into Study <span className="rounded-full bg-black/20 px-2 py-0.5 text-[11px] font-black">25m block</span>
+            <button type="button" onClick={() => { haptic("medium"); onStartFocus?.(); }} className="relative z-10 mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-300 via-teal-400 to-cyan-300 px-4 text-[14px] font-bold text-[#022115] shadow-[0_10px_28px_-10px_rgba(78,222,163,.7)] active:scale-[0.985]">
+              <Sparkles className="h-[19px] w-[19px]" />
+              {progress >= 100 ? "Start another focus block" : "Immerse into Study"}
+              <span className="rounded-full bg-black/15 px-2 py-0.5 text-[10px] font-black">25m block</span>
             </button>
           </section>
 
@@ -271,28 +280,42 @@ export function SpatialAuroraDashboard({
           </section>
 
           {recentNote ? (
-            <section className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2"><PlayCircle className="h-[18px] w-[18px] text-cyan-300" /><h2 className="text-xs font-bold uppercase tracking-wider text-white">Continue Learning</h2></div>
-                <button type="button" onClick={onOpenAllNotes} className="flex items-center gap-0.5 text-xs font-semibold text-emerald-300">Explore All <ChevronRight className="h-3.5 w-3.5" /></button>
-              </div>
-              <div className="rounded-3xl border border-white/[0.08] bg-[linear-gradient(135deg,rgba(28,36,54,.65),rgba(14,18,29,.82))] p-5 shadow-[0_12px_32px_-8px_rgba(0,0,0,.55)] backdrop-blur-[28px]">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-0.5 text-[11px] font-bold text-cyan-300"><span className="h-1.5 w-1.5 rounded-full bg-cyan-300" /><span className="truncate">{recentNote.courseId ? courses.find((course) => course.id === recentNote.courseId)?.name || "Course" : "General"}</span></span>
-                    <h3 className="mt-2 truncate text-[16px] font-bold text-white">{recentNote.title || "Untitled Note"}</h3>
-                    <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-slate-400">{notePreview(recentNote.body) || "Open this note to continue learning."}</p>
+            <section className="flex flex-col gap-3.5">
+              <div className="flex items-end justify-between px-1">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <PlayCircle className="h-[18px] w-[18px] text-cyan-300" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">Continue Learning</span>
                   </div>
-                  <Bookmark className="h-5 w-5 shrink-0 text-amber-300" />
+                  <h2 className="mt-1 text-[15px] font-bold tracking-tight text-white">Pick up where you left off</h2>
                 </div>
-                <div className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.035] p-3">
-                  <div className="flex items-center gap-2.5"><div className="flex h-8 w-8 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-300/20 text-cyan-300"><Volume2 className="h-[18px] w-[18px]" /></div><div className="min-w-0"><span className="block truncate text-[11px] font-bold text-white">Recent Note Preview</span><span className="block truncate text-[10px] text-slate-400">Saved knowledge · updated {age(recentNote.updatedAt)}</span></div></div>
-                </div>
-                <div className="mt-3.5 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3.5">
-                  <span className="flex items-center gap-1.5 text-xs text-slate-400"><Timer className="h-[15px] w-[15px]" />Updated {age(recentNote.updatedAt)}</span>
-                  <button type="button" onClick={() => onOpenNote?.(recentNote.id, recentNote.courseId || undefined)} className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.07] px-4 py-1.5 text-xs font-bold text-cyan-300 active:scale-95">Continue Note <ArrowRight className="h-3.5 w-3.5" /></button>
-                </div>
+                <button type="button" onClick={onOpenAllNotes} className="shrink-0 text-[11px] font-semibold text-emerald-300 active:translate-x-0.5">Explore all</button>
               </div>
+
+              <button
+                type="button"
+                onClick={() => onOpenNote?.(recentNote.id, recentNote.courseId || undefined)}
+                className="group relative overflow-hidden rounded-3xl border border-cyan-300/12 bg-[linear-gradient(135deg,rgba(28,36,54,.72),rgba(14,18,29,.90))] p-5 text-left shadow-[0_16px_40px_-14px_rgba(0,0,0,.72)] transition-all duration-200 active:scale-[0.99]"
+              >
+                <div className="pointer-events-none absolute -right-12 -top-14 h-40 w-40 rounded-full bg-cyan-300/10 blur-3xl" />
+                <div className="relative">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="inline-flex min-w-0 max-w-[76%] items-center gap-1.5 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1 text-[10px] font-bold text-cyan-300">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300" />
+                      <span className="truncate">{recentNote.courseId ? courses.find((course) => course.id === recentNote.courseId)?.name || "Course" : "General"}</span>
+                    </span>
+                    <Bookmark className="h-5 w-5 shrink-0 text-amber-300" />
+                  </div>
+
+                  <h3 className="mt-3 truncate text-[17px] font-bold text-white">{recentNote.title || "Untitled Note"}</h3>
+                  <p className="mt-1.5 line-clamp-2 text-[12px] leading-relaxed text-slate-400">{notePreview(recentNote.body) || "Open this note to continue learning."}</p>
+
+                  <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3.5">
+                    <span className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400"><Timer className="h-[14px] w-[14px]" />Updated {age(recentNote.updatedAt)}</span>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.07] px-3 py-1.5 text-[10px] font-bold text-cyan-300">Resume <ArrowRight className="h-3 w-3" /></span>
+                  </div>
+                </div>
+              </button>
             </section>
           ) : null}
 

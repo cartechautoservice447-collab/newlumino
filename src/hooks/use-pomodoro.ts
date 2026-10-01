@@ -262,6 +262,10 @@ export function usePomodoroTimer(activeContext?: {
     setTimeLeft((prev) => Math.min(maxDuration, prev + Math.max(0, seconds)));
   }, [mode, settings]);
 
+  const skipTime = useCallback((seconds = 300) => {
+    setTimeLeft((prev) => Math.max(0, prev - Math.max(0, seconds)));
+  }, []);
+
   const resetTimer = useCallback(() => {
     setIsRunning(false);
     soundscapeEngine.stop();
@@ -342,6 +346,7 @@ export function usePomodoroTimer(activeContext?: {
     setSoundVolume,
     togglePlay,
     addTime,
+    skipTime,
     resetTimer,
     switchMode,
     setPreset,

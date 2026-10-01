@@ -759,8 +759,6 @@ html[data-ui-text-clarity="punchy"] .text-foreground { color: #fff !important; t
 html[data-ui-text-clarity="punchy"] .text-muted-foreground { color: oklch(0.94 0.01 250) !important; text-shadow: 0 0 0.28px currentColor; }
 html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px currentColor; }
 
-<<<<<<< HEAD
-=======
 /* ==========================================================================
    MOBILE APP WRAPPER & 120HZ LAG-FREE ENGINE
    Hardware acceleration, touch optimization, safe-area insets & performance mode
@@ -826,4 +824,3 @@ button, a, input, textarea, select, [role="button"], [role="tab"], .clickable {
 }
 
 
->>>>>>> 1231699 (Update NewLumino project)

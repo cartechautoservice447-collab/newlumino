@@ -586,6 +586,11 @@
   color: oklch(0.9 0.03 250) !important;
 }
 
+/* Fluid Glass Studio keeps collection delete controls visible. */
+[data-theme="fluid-glass"] .group > button[aria-label^="Delete"] {
+  opacity: 1;
+}
+
 /* Glowing New Note Pulse Button (Exact Fluid Glass Studio) */
 @keyframes notes-pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, #10b981 45%, transparent); }

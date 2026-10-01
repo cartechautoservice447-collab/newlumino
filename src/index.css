@@ -540,6 +540,32 @@
   color: var(--panel-fg);
 }
 
+[data-theme="fluid-glass"] .glass-scrollbar {
+  scrollbar-color: rgb(255 255 255 / 0.52) transparent;
+}
+
+[data-theme="fluid-glass"] .glass-scrollbar::-webkit-scrollbar-track {
+  background: rgb(255 255 255 / 0.08);
+}
+
+[data-theme="fluid-glass"] .glass-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.34));
+  background-clip: padding-box;
+}
+
+.dark [data-theme="fluid-glass"] .glass-scrollbar {
+  scrollbar-color: rgb(255 255 255 / 0.42) transparent;
+}
+
+.dark [data-theme="fluid-glass"] .glass-scrollbar::-webkit-scrollbar-track {
+  background: rgb(255 255 255 / 0.06);
+}
+
+.dark [data-theme="fluid-glass"] .glass-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.25));
+  background-clip: padding-box;
+}
+
 [data-theme="fluid-glass"] .liquid-panel .text-foreground {
   color: var(--panel-fg);
 }
@@ -625,6 +651,13 @@
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 55%, rgba(255, 255, 255, 0.09) 100%),
     rgb(255 255 255 / var(--liquid-veil-alpha, 0.16));
+}
+
+[data-theme="fluid-glass"].dark .glass-panel::before,
+.dark [data-theme="fluid-glass"] .glass-panel::before {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 55%, rgba(255, 255, 255, 0.09) 100%),
+    rgb(6 10 26 / var(--liquid-dark-veil-alpha, 0.28));
 }
 
 [data-theme="fluid-glass"] .glass-panel::after {

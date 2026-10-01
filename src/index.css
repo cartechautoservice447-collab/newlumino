@@ -761,8 +761,8 @@ html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px c
 
 
 
-/* Mobile dashboard premium feature motion: momentum + recent activity.
-   These classes are mounted only inside MobileMomentumAndActivity (sm:hidden). */
+/* Mobile dashboard premium feature motion for Today’s Momentum.
+   Mounted only inside the mobile-only momentum card. */
 @keyframes mobile-momentum-breathe {
   0%, 100% {
     transform: translate3d(0, 0, 0);
@@ -845,5 +845,5 @@ html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px c
   .mobile-momentum-sheen,
   .mobile-momentum-orb,
   .mobile-momentum-icon,
-  .mobile-momentum-progress,
+  .mobile-momentum-progress
 }

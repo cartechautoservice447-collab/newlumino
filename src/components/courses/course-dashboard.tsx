@@ -325,10 +325,10 @@ export function CourseDashboard({
         </div>
 
         {/* Mobile Feature 2: Premium Daily Focus Command Center */}
-        <section className="sm:hidden mt-6 rounded-[1.75rem] border border-primary/20 bg-[linear-gradient(135deg,rgba(78,222,163,.10),rgba(20,24,34,.84)_48%,rgba(251,191,36,.07))] p-4.5 shadow-[0_18px_48px_-18px_rgba(0,0,0,.65)] backdrop-blur-3xl">
-          <div className="relative overflow-hidden rounded-[1.45rem]">
+        <section className="sm:hidden mt-6 rounded-[1.75rem] border border-primary/20 bg-gradient-to-br from-primary/10 via-white/[0.03] to-amber-500/10 p-5 shadow-[0_18px_48px_-18px_rgba(0,0,0,.65)] backdrop-blur-3xl">
+          <div className="relative overflow-hidden rounded-[1.5rem]">
             <div className="pointer-events-none absolute -right-14 -top-16 h-40 w-40 rounded-full bg-emerald-300/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-12 h-36 w-36 rounded-full bg-cyan-300/8 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-12 h-36 w-36 rounded-full bg-cyan-300/10 blur-3xl" />
 
             <div className="relative flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -377,7 +377,7 @@ export function CourseDashboard({
                   <span className="font-mono text-[1.7rem] font-black tracking-tight text-foreground">{todayMinutes}m</span>
                   <span className="text-[0.68rem] font-semibold text-muted-foreground">/ {Math.round(dailyGoalHours * 60)}m goal</span>
                 </div>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/8">
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-primary via-emerald-300 to-cyan-300 shadow-[0_0_12px_rgba(78,222,163,.35)] transition-[width] duration-700 ease-out"
                     style={{ width: `${Math.max(2, progressPct)}%` }}
@@ -460,7 +460,7 @@ export function CourseDashboard({
                       {featured.body?.replace(/[#*\`>_-]/g, "").slice(0, 110) || "Open this note to continue learning."}
                     </p>
 
-                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/6 pt-3">
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
                       <span className="flex items-center gap-1.5 text-[0.58rem] font-medium text-muted-foreground/80">
                         <Clock className="h-3 w-3" />
                         Edited {formatDate(featured.updatedAt)}
@@ -498,7 +498,7 @@ export function CourseDashboard({
                         <h4 className="mt-2 truncate text-xs font-bold text-foreground">{note.title || "Untitled Note"}</h4>
                         <p className="mt-1 line-clamp-2 text-[0.62rem] leading-relaxed text-muted-foreground">{note.body?.replace(/[#*\`>_-]/g, "").slice(0, 76) || "No preview available."}</p>
                       </div>
-                      <div className="mt-3 flex items-center justify-between border-t border-white/6 pt-2 text-[0.56rem] text-muted-foreground/70">
+                      <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-2 text-[0.56rem] text-muted-foreground/70">
                         <span>{formatDate(note.updatedAt)}</span>
                         <span className="font-semibold text-primary">Resume →</span>
                       </div>

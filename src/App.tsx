@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { AuthModal } from "@/components/auth/auth-modal";
@@ -24,10 +24,10 @@ import { MobileNoteSheet } from "@/components/mobile/mobile-note-sheet";
 import { MobileMoreOptionsSheet } from "@/components/mobile/mobile-more-options-sheet";
 import { MobileQuickDraftSheet } from "@/components/mobile/mobile-quick-draft-sheet";
 import { usePomodoroTimer } from "@/hooks/use-pomodoro";
-import { PomodoroFloatingPill } from "@/components/tools/pomodoro-floating-pill";
-import { PomodoroDialog } from "@/components/tools/pomodoro-dialog";
 import { FlashcardsDialog } from "@/components/tools/flashcards-dialog";
-import { PomodoroSessionCompleteDialog } from "@/components/tools/pomodoro-session-complete-dialog";
+const PomodoroFloatingPill = lazy(() => import("@/components/tools/pomodoro-floating-pill").then((module) => ({ default: module.PomodoroFloatingPill })));
+const PomodoroDialog = lazy(() => import("@/components/tools/pomodoro-dialog").then((module) => ({ default: module.PomodoroDialog })));
+const PomodoroSessionCompleteDialog = lazy(() => import("@/components/tools/pomodoro-session-complete-dialog").then((module) => ({ default: module.PomodoroSessionCompleteDialog })));
 import { DailyGoalView } from "@/components/tools/daily-goal-view";
 import { MarkdownCheatsheet } from "@/components/tools/markdown-cheatsheet";
 import { AiExamSimulatorDialog } from "@/components/tools/ai-exam-simulator-dialog";
@@ -69,7 +69,7 @@ function MainApp() {
   return (
     <AuthenticatedApp
       userId={user?.id ?? null}
-      onOpenAuth={onOpenAuth}
+      onOpenAuth={() => setGuestMode(false)}
     />
   );
 }
@@ -462,17 +462,21 @@ function AuthenticatedApp({
         />
 
         {/* Unobtrusive Floating Pomodoro Pill */}
-        <PomodoroFloatingPill
-          pomodoro={pomodoro}
-          onOpenFullDialog={() => setPomodoroDialogOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <PomodoroFloatingPill
+            pomodoro={pomodoro}
+            onOpenFullDialog={() => setPomodoroDialogOpen(true)}
+          />
+        </Suspense>
 
         {/* Study Tools Dialogs */}
-        <PomodoroDialog
-          open={pomodoroDialogOpen}
-          onOpenChange={setPomodoroDialogOpen}
-          pomodoro={pomodoro}
-        />
+        <Suspense fallback={null}>
+          <PomodoroDialog
+            open={pomodoroDialogOpen}
+            onOpenChange={setPomodoroDialogOpen}
+            pomodoro={pomodoro}
+          />
+        </Suspense>
 
         <FlashcardsDialog
           open={flashcardsDialogOpen}
@@ -486,14 +490,16 @@ function AuthenticatedApp({
           autoAIGenerate={autoAIGenerateCards}
         />
 
-        <PomodoroSessionCompleteDialog
-          open={sessionCompleteModalOpen}
-          onOpenChange={setSessionCompleteModalOpen}
-          activeNote={n.selected || n.visibleNotes[0] || null}
-          completedSessions={pomodoro.completedSessions}
-          onStartAIFlashcards={handleStartSessionAIFlashcards}
-          onStartBreak={() => pomodoro.switchMode("shortBreak")}
-        />
+        <Suspense fallback={null}>
+          <PomodoroSessionCompleteDialog
+            open={sessionCompleteModalOpen}
+            onOpenChange={setSessionCompleteModalOpen}
+            activeNote={n.selected || n.visibleNotes[0] || null}
+            completedSessions={pomodoro.completedSessions}
+            onStartAIFlashcards={handleStartSessionAIFlashcards}
+            onStartBreak={() => pomodoro.switchMode("shortBreak")}
+          />
+        </Suspense>
 
         <SettingsDialog
           open={settingsOpen}
@@ -923,25 +929,29 @@ function AuthenticatedApp({
       />
 
       {/* Unobtrusive Floating Pomodoro Pill */}
-      <PomodoroFloatingPill
-        pomodoro={pomodoro}
-        onOpenFullDialog={() => setPomodoroDialogOpen(true)}
-      />
+      <Suspense fallback={null}>
+        <PomodoroFloatingPill
+          pomodoro={pomodoro}
+          onOpenFullDialog={() => setPomodoroDialogOpen(true)}
+        />
+      </Suspense>
 
       {/* Study Tools Dialogs */}
-      <PomodoroDialog
-        open={pomodoroDialogOpen}
-        onOpenChange={setPomodoroDialogOpen}
-        pomodoro={pomodoro}
-        courses={n.courses}
-        activeCourse={n.activeCourse}
-        notes={n.notes}
-        selectedNote={n.selected}
-        onOpenFlashcards={(note) => {
-          setFlashcardTargetNote(note);
-          setFlashcardsDialogOpen(true);
-        }}
-      />
+      <Suspense fallback={null}>
+        <PomodoroDialog
+          open={pomodoroDialogOpen}
+          onOpenChange={setPomodoroDialogOpen}
+          pomodoro={pomodoro}
+          courses={n.courses}
+          activeCourse={n.activeCourse}
+          notes={n.notes}
+          selectedNote={n.selected}
+          onOpenFlashcards={(note) => {
+            setFlashcardTargetNote(note);
+            setFlashcardsDialogOpen(true);
+          }}
+        />
+      </Suspense>
 
       <FlashcardsDialog
         open={flashcardsDialogOpen}
@@ -955,14 +965,16 @@ function AuthenticatedApp({
         autoAIGenerate={autoAIGenerateCards}
       />
 
-      <PomodoroSessionCompleteDialog
-        open={sessionCompleteModalOpen}
-        onOpenChange={setSessionCompleteModalOpen}
-        activeNote={n.selected || n.visibleNotes[0] || null}
-        completedSessions={pomodoro.completedSessions}
-        onStartAIFlashcards={handleStartSessionAIFlashcards}
-        onStartBreak={() => pomodoro.switchMode("shortBreak")}
-      />
+      <Suspense fallback={null}>
+        <PomodoroSessionCompleteDialog
+          open={sessionCompleteModalOpen}
+          onOpenChange={setSessionCompleteModalOpen}
+          activeNote={n.selected || n.visibleNotes[0] || null}
+          completedSessions={pomodoro.completedSessions}
+          onStartAIFlashcards={handleStartSessionAIFlashcards}
+          onStartBreak={() => pomodoro.switchMode("shortBreak")}
+        />
+      </Suspense>
 
       <SettingsDialog
         open={settingsOpen}

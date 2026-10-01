@@ -13,6 +13,7 @@ import {
   Coffee,
   FileText,
   Flame,
+  Headphones,
   Layers,
   Loader2,
   Pause,

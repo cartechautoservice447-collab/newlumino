@@ -170,87 +170,53 @@ export function PomodoroDialog({
         onOpenChange(val);
       }}
     >
-      <DialogContent className="glass-panel max-h-[92vh] overflow-y-auto rounded-3xl border border-white/15 bg-black/90 p-5 sm:p-7 shadow-2xl backdrop-blur-3xl scroll-sleek sm:max-w-[540px]">
-        {/* Top Header */}
-        <DialogHeader className="text-left space-y-1">
-          <div className="flex items-center justify-between">
+      <DialogContent className="glass-panel fixed inset-0 m-0 flex h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-[#0f131c] p-0 text-[#dfe2ef] shadow-none sm:inset-1/2 sm:h-[96vh] sm:w-[min(620px,calc(100vw-2rem))] sm:max-w-[620px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[2rem] sm:border sm:border-white/10 sm:shadow-2xl">
+        <header className="z-50 shrink-0 border-b border-white/[0.06] bg-[#0a0e17]/90 px-5 pb-2 pt-[calc(.75rem+env(safe-area-inset-top,0px))] backdrop-blur-2xl">
+          <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-primary/30 bg-primary/20 text-primary shadow-[0_0_12px_-2px_hsl(var(--primary)/0.6)]">
-                <Clock className="h-4 w-4" />
+              <button
+                type="button"
+                aria-label="Exit Session"
+                onClick={() => onOpenChange(false)}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05] text-slate-400 transition-transform active:scale-95"
+              >
+                <ArrowDown className="h-5 w-5" />
+              </button>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.06] px-3 py-1.5 backdrop-blur-md">
+                <span className={cn("h-2 w-2 rounded-full shadow-[0_0_8px_#4edea3]", isRunning ? "bg-emerald-300 animate-pulse" : "bg-amber-300")} />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Active Session</span>
               </span>
-              <div>
-                <DialogTitle className="text-lg font-bold tracking-tight text-foreground">
-                  Pomodoro &amp; Focus Engine
-                </DialogTitle>
-                <p className="text-[0.68rem] text-muted-foreground">
-                  AI Automatic Planning • Live Note Monitoring • Active Soundscapes
-                </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Ambient Soundscape"
+                aria-pressed={soundscape !== "none"}
+                onClick={() => {
+                  haptic("light");
+                  setSoundscape(soundscape === "none" ? "rain" : "none");
+                }}
+                className={cn(
+                  "flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-95",
+                  soundscape === "none" ? "bg-white/[0.05] text-slate-400" : "bg-cyan-400/10 text-cyan-300",
+                )}
+              >
+                <Waves className="h-5 w-5" />
+              </button>
+              <button type="button" aria-label="AI Planner" onClick={() => { haptic("light"); setActiveTab("ai_planner"); }} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05] text-violet-300 active:scale-95">
+                <Wand2 className="h-5 w-5" />
+              </button>
+              <button type="button" aria-label="Time Monitor" onClick={() => { haptic("light"); setActiveTab("analytics"); }} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05] text-cyan-300 active:scale-95">
+                <BarChart3 className="h-5 w-5" />
+              </button>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-300 text-[#003824]">
+                <Headphones className="h-[18px] w-[18px]" />
               </div>
             </div>
-
-            {completedSessions > 0 && (
-              <span className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-mono font-bold text-primary">
-                <Flame className="h-3.5 w-3.5 fill-primary" />
-                <span>{completedSessions} done</span>
-              </span>
-            )}
           </div>
-        </DialogHeader>
+        </header>
 
-        {/* Navigation Tabs (Timer / AI Planner / Analytics) */}
-        <div className="mt-3 grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/[0.04] p-1 select-none">
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              setActiveTab("timer");
-            }}
-            className={cn(
-              "flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all touch-manipulation cursor-pointer",
-              activeTab === "timer"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Clock className="h-3.5 w-3.5" />
-            <span>Timer</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              setActiveTab("ai_planner");
-            }}
-            className={cn(
-              "flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all touch-manipulation cursor-pointer",
-              activeTab === "ai_planner"
-                ? "bg-purple-600 text-white shadow-md shadow-purple-600/40"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Wand2 className="h-3.5 w-3.5" />
-            <span>AI Plan</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              setActiveTab("analytics");
-            }}
-            className={cn(
-              "flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all touch-manipulation cursor-pointer",
-              activeTab === "analytics"
-                ? "bg-emerald-500 text-black shadow-md font-extrabold"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span>Time Monitor</span>
-          </button>
-        </div>
-
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {/* TAB 1: Supplied Animated Pomodoro Session */}
         {activeTab === "timer" && (
           <div className="mt-3 animate-panel-in space-y-4">

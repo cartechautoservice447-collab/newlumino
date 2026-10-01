@@ -736,31 +736,41 @@ function SettingsContent({
         </Section>
       )}
 
-      {/* Default Original Theme Settings — Color theme, Glass quality & Liquid Glass Physics */}
+      {/* Default Original Theme Settings — Color theme is always available.
+          It is applied whenever the Default Original Theme website mode is active. */}
+      <Section
+        title="Default Theme Appearance"
+        hint={
+          settings.websiteTheme === "fluid-glass"
+            ? "Choose the Original, Dark, or White / Light appearance to use when you switch back to the Default Original Theme."
+            : "Choose the Original, Dark, or White / Light appearance for the current Default Original Theme."
+        }
+      >
+        <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/5 bg-white/[0.03] p-1">
+          {colorThemes.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => {
+                haptic("light");
+                update({ theme: t.value });
+              }}
+              aria-pressed={settings.theme === t.value}
+              className={cn(
+                "rounded-lg px-2.5 py-1.5 text-xs transition-colors touch-manipulation cursor-pointer",
+                settings.theme === t.value
+                  ? "bg-white/[0.12] text-foreground font-semibold shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </Section>
+
       {settings.websiteTheme !== "fluid-glass" && (
         <>
-          <Section title="Color theme">
-            <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/5 bg-white/[0.03] p-1">
-              {colorThemes.map((t) => (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => {
-                    haptic("light");
-                    update({ theme: t.value });
-                  }}
-                  className={cn(
-                    "rounded-lg px-2.5 py-1.5 text-xs transition-colors touch-manipulation cursor-pointer",
-                    settings.theme === t.value
-                      ? "bg-white/[0.12] text-foreground font-semibold shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </Section>
 
           <Section title="Glass quality" hint={settings.glassPreset === "custom" ? "Custom" : undefined}>
             <Ticks

@@ -14,7 +14,21 @@ type Props = {
   onOpenMobileMenu?: (e: React.MouseEvent) => void;
 };
 
-export function oldRelativeDate(timestamp: number) {\n  const delta = Math.max(0, Date.now() - timestamp);\n  const minutes = Math.floor(delta / 60000);\n  if (minutes < 1) return "Just now";\n  if (minutes < 60) return `${minutes}m ago`;\n  const hours = Math.floor(minutes / 60);\n  if (hours < 24) return `${hours}h ago`;\n  const days = Math.floor(hours / 24);\n  if (days < 7) return `${days}d ago`;\n  const weeks = Math.floor(days / 7);\n  if (weeks < 5) return `${weeks}w ago`;\n  return new Date(timestamp).toLocaleDateString();\n}\n\nfunction NoteCard({
+function oldRelativeDate(timestamp: number) {
+  const delta = Math.max(0, Date.now() - timestamp);
+  const minutes = Math.floor(delta / 60000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w ago`;
+  return new Date(timestamp).toLocaleDateString();
+}
+
+function NoteCard({
   note,
   active,
   index,

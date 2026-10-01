@@ -104,6 +104,6 @@ export function MobileMomentumAndActivity({
           </div>
         </div>
       </section>
-
+    </>
   );
 }

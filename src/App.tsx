@@ -681,7 +681,7 @@ function AuthenticatedApp({
         <div className={cn(
           "relative mx-auto flex-1 min-h-0 w-full max-w-[1700px] flex gap-4 transition-all",
           isMobile && n.selectedId
-            ? "h-full p-1.5 sm:p-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-4"
+            ? "h-full p-1.5 sm:p-4 pb-0 md:pb-4"
             : isMobile
               ? "h-full p-2 sm:p-4 md:pb-4"
               : "h-screen p-2 sm:p-4 pb-4 md:pb-4"

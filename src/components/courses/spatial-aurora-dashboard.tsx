@@ -217,7 +217,7 @@ export function SpatialAuroraDashboard({
           </div>
         </header>
 
-        <div className="mx-auto flex w-full max-w-[480px] flex-col gap-7 px-5 pt-7">
+        <div className="mx-auto flex w-full max-w-[480px] flex-col gap-9 px-5 pt-8">
           <section className="relative overflow-hidden rounded-[30px] border border-white/[0.08] bg-[linear-gradient(135deg,rgba(28,36,54,.65),rgba(14,18,29,.82))] p-6 shadow-[0_18px_44px_-14px_rgba(0,0,0,.55)] shadow-[0_12px_32px_-8px_rgba(0,0,0,.55)] backdrop-blur-[28px]">
             <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-gradient-to-br from-emerald-300/30 via-cyan-300/20 to-transparent blur-2xl" />
             <div className="pointer-events-none absolute -bottom-20 -left-12 h-48 w-48 rounded-full bg-violet-300/20 blur-2xl" />
@@ -297,14 +297,13 @@ export function SpatialAuroraDashboard({
             </section>
           ) : null}
 
-          <MobileMomentumAndActivity
-            notes={notes}
-            courses={courses}
-            todayFocusSeconds={todayFocusSeconds}
-            dailyGoalHours={dailyGoalHours}
-            onOpenNote={onOpenNote}
-            onOpenCourse={onOpenCourse}
-          />
+          <div className="sm:hidden mt-2 mb-1">
+            <MobileMomentumAndActivity
+              notes={notes}
+              todayFocusSeconds={todayFocusSeconds}
+              dailyGoalHours={dailyGoalHours}
+            />
+          </div>
 
           <section className="flex flex-col gap-3">
             <div className="relative">

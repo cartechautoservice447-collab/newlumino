@@ -759,35 +759,3 @@ html[data-ui-text-clarity="punchy"] .text-foreground { color: #fff !important; t
 html[data-ui-text-clarity="punchy"] .text-muted-foreground { color: oklch(0.94 0.01 250) !important; text-shadow: 0 0 0.28px currentColor; }
 html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px currentColor; }
 
-
-
-/* Mobile Today’s Momentum adapts to the selected website theme.
-   The default NewLumino appearance keeps its existing card surface.
-   Fluid Glass Studio reuses the same water-gel treatment as the rest
-   of the old website theme, without animation. */
-[data-theme="fluid-glass"] .mobile-momentum-card {
-  background-color: var(--water-gel-bg) !important;
-  background-image: none !important;
-  backdrop-filter: blur(var(--fluid-density, 12px)) saturate(200%) contrast(105%) !important;
-  -webkit-backdrop-filter: blur(var(--fluid-density, 12px)) saturate(200%) contrast(105%) !important;
-  border-radius: var(--fluid-card-radius, 24px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  border-top-color: rgba(255, 255, 255, 0.4) !important;
-  box-shadow:
-    inset 0 var(--fluid-shadow-inset-top, 1.5px) var(--fluid-shadow-inset-blur, 3.5px) 0 rgba(255, 255, 255, 0.52),
-    inset 0 var(--fluid-shadow-inset-bot, -3.5px) var(--fluid-shadow-inset-bot-blur, 7px) 0 rgba(0, 0, 0, 0.27),
-    0 var(--fluid-shadow-drop-y, 10px) var(--fluid-shadow-drop-blur, 36px) 0 rgba(0, 0, 0, 0.32) !important;
-}
-
-[data-theme="fluid-glass"] .mobile-momentum-card .text-white {
-  color: var(--foreground) !important;
-}
-
-[data-theme="fluid-glass"] .mobile-momentum-card .text-slate-400,
-[data-theme="fluid-glass"] .mobile-momentum-card .text-slate-500 {
-  color: var(--muted-foreground) !important;
-}
-
-[data-theme="fluid-glass"] .mobile-momentum-card .border-white\/\[0\.08\] {
-  border-color: var(--border) !important;
-}

@@ -14,7 +14,7 @@ type Props = {
   onOpenMobileMenu?: (e: React.MouseEvent) => void;
 };
 
-export function NoteCard({
+export function oldRelativeDate(timestamp: number) {\n  const delta = Math.max(0, Date.now() - timestamp);\n  const minutes = Math.floor(delta / 60000);\n  if (minutes < 1) return "Just now";\n  if (minutes < 60) return `${minutes}m ago`;\n  const hours = Math.floor(minutes / 60);\n  if (hours < 24) return `${hours}h ago`;\n  const days = Math.floor(hours / 24);\n  if (days < 7) return `${days}d ago`;\n  const weeks = Math.floor(days / 7);\n  if (weeks < 5) return `${weeks}w ago`;\n  return new Date(timestamp).toLocaleDateString();\n}\n\nfunction NoteCard({
   note,
   active,
   index,
@@ -47,7 +47,7 @@ export function NoteCard({
         isFluidGlass
           ? cn(
               "cursor-pointer !p-4 transition-all will-change-transform",
-              active && "ring-2 ring-emerald-400/80 border-emerald-400/60 shadow-[0_0_24px_rgba(52,211,153,0.35)]"
+              active && "ring-2 ring-emerald-400/70",
             )
           : cn(
               "border-white/5 bg-white/[0.03] hover:-translate-y-0.5 hover:scale-[1.015] hover:border-white/15 hover:bg-white/[0.06] active:scale-[0.985]",
@@ -116,25 +116,31 @@ export function NoteCard({
         </div>
       </div>
 
-      <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">
+<p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
         {snippet(note.body) || "Empty note"}
       </p>
 
-      <div className="mt-3.5 flex items-center justify-between text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground/70">
-        <div className="flex items-center gap-2">
-          <span>{formatDate(note.updatedAt)}</span>
-          {collectionName ? (
-            <>
-              <span className="h-1 w-1 rounded-full bg-current" />
-              <span className="truncate max-w-[120px] font-medium text-foreground/80">{collectionName}</span>
-            </>
-          ) : null}
-        </div>
-
-        {note.body && (
-          <span className="text-[0.65rem] tracking-normal font-mono opacity-60">
-            {note.body.split(/\s+/).filter(Boolean).length}w
-          </span>
+      <div className={cn(
+        "mt-2 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-muted-foreground",
+        !isFluidGlass && "mt-3.5 flex items-center justify-between"
+      )}>
+        {isFluidGlass ? oldRelativeDate(note.updatedAt) : (
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <span>{formatDate(note.updatedAt)}</span>
+              {collectionName ? (
+                <>
+                  <span className="h-1 w-1 rounded-full bg-current" />
+                  <span className="truncate max-w-[120px] font-medium text-foreground/80">{collectionName}</span>
+                </>
+              ) : null}
+            </div>
+            {note.body && (
+              <span className="text-[0.65rem] tracking-normal font-mono opacity-60">
+                {note.body.split(/\s+/).filter(Boolean).length}w
+              </span>
+            )}
+          </div>
         )}
       </div>
     </div>

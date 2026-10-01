@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   FolderClosed,
+  Files,
   Plus,
   Search,
   Star,
@@ -165,7 +166,7 @@ export function SidebarPanel({
         </div>
 
         <nav className="flex flex-col gap-1">
-          <NavRow icon={<Layers className="size-4" />} label="All Notes" count={counts.all} active={filter.kind === "all"} onClick={() => onFilterChange({ kind: "all" })} />
+          <NavRow icon={<Files className="size-4" />} label="All Notes" count={counts.all} active={filter.kind === "all"} onClick={() => onFilterChange({ kind: "all" })} />
           <NavRow icon={<Star className="size-4" />} label="Favorites" count={counts.favorites} active={filter.kind === "favorites"} onClick={() => onFilterChange({ kind: "favorites" })} />
         </nav>
 

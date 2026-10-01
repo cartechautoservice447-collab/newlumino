@@ -115,6 +115,16 @@ function MainApp() {
     }
   }, [isMobile, isFluidGlass]);
 
+  // Fluid Glass Studio starts its three-panel workspace with the navigation
+  // panel visible on desktop too. Keep the original layout available whenever
+  // the Old Website Theme becomes active.
+  useEffect(() => {
+    if (isFluidGlass) {
+      setSidebarOpen(true);
+      setListOpen(true);
+    }
+  }, [isFluidGlass]);
+
   const enterFocus = () => {
     if (!n.activeCourseId && n.courses[0]) {
       n.setActiveCourseId(n.courses[0].id);
@@ -155,7 +165,8 @@ function MainApp() {
     n.setSelectedId(null);
     n.setQuery("");
     setView("workspace");
-    setSidebarOpen(false);
+    setSidebarOpen(isFluidGlass);
+    setListOpen(true);
   };
 
   const backToCourses = () => {

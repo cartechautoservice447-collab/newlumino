@@ -28,7 +28,7 @@ function oldRelativeDate(timestamp: number) {
   return new Date(timestamp).toLocaleDateString();
 }
 
-function NoteCard({
+export function NoteCard({
   note,
   active,
   index,

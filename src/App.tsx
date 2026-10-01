@@ -614,14 +614,16 @@ function MainApp() {
 
       {/* Main Responsive Grid */}
       {view === "workspace" && (
-        <div className={`relative mx-auto flex-1 min-h-0 w-full max-w-[1700px] flex gap-4 transition-all ${
+        <div className={cn(
+          "relative mx-auto flex-1 min-h-0 w-full max-w-[1700px] flex gap-4 transition-all",
+          isFluidGlass && isMobile ? "overflow-x-auto overflow-y-hidden overscroll-x-contain" : "",
           isMobile && n.selectedId
             ? "h-full p-1.5 sm:p-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-4"
             : isMobile
               ? "h-full p-2 sm:p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-4"
               : "h-screen p-2 sm:p-4 pb-4 md:pb-4"
-        }`}>
-          {/* Mobile Slide-in Drawer: NewLumino mobile workspace only. Fluid Glass keeps the original three-panel layout. */}
+        )}>
+        {/* Mobile Slide-in Drawer: NewLumino mobile workspace only. Fluid Glass keeps the original three-panel layout. */}
           {isMobile && !isFluidGlass ? (
             <MobileSidebarDrawer
               open={sidebarOpen}

@@ -41,7 +41,7 @@ export function NoteList({
         </div>
         
         <div className="flex items-center gap-1.5">
-          {onCreateNote ? (
+          {onCreateNote && !isFluidGlass ? (
             <button
               type="button"
               aria-label="Create note"

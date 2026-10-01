@@ -17,13 +17,9 @@ import {
   Clock,
   Flame,
   Zap,
-<<<<<<< HEAD
-} from "lucide-react";
-=======
   Smartphone,
 } from "lucide-react";
 import { PWAInstallButton } from "@/components/pwa/pwa-install-button";
->>>>>>> 1231699 (Update NewLumino project)
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { COURSE_ACCENTS, formatDate, type Course, type CourseAccent, type Note } from "@/lib/notes";
@@ -85,10 +81,7 @@ type Props = {
   onAddCourse: (name: string, description?: string, color?: CourseAccent, category?: string) => void;
   onDeleteCourse: (id: string) => void;
   onOpenSettings: () => void;
-<<<<<<< HEAD
-=======
   onOpenAppHub?: () => void;
->>>>>>> 1231699 (Update NewLumino project)
   onOpenMenu?: () => void;
   onQuickNewNote?: () => void;
   onOpenNote?: (noteId: string, courseId?: string) => void;
@@ -110,10 +103,7 @@ export function CourseDashboard({
   onAddCourse,
   onDeleteCourse,
   onOpenSettings,
-<<<<<<< HEAD
-=======
   onOpenAppHub,
->>>>>>> 1231699 (Update NewLumino project)
   onOpenMenu,
   onOpenNote,
   onOpenAllNotes,
@@ -259,8 +249,6 @@ export function CourseDashboard({
 
           {/* Action Buttons: Settings Gear Icon on Mobile & Desktop */}
           <div className="flex items-center gap-2 shrink-0">
-<<<<<<< HEAD
-=======
             {onOpenAppHub && (
               <PWAInstallButton
                 variant="pill"
@@ -279,7 +267,6 @@ export function CourseDashboard({
                 <span className="hidden sm:inline">App Hub</span>
               </button>
             )}
->>>>>>> 1231699 (Update NewLumino project)
             <button
               type="button"
               aria-label="Settings"

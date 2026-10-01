@@ -79,6 +79,9 @@ export function PomodoroDialog({
     resetTimer,
     switchMode,
     setPreset,
+    addTime,
+    skipTime,
+    completeSession,
     activePlan,
     applyAIPlan,
     noteTimeSpent,
@@ -105,6 +108,10 @@ export function PomodoroDialog({
   // AI Generation State
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [generatedPlan, setGeneratedPlan] = useState<PomodoroPlanResult | null>(activePlan);
+  const [soundOpen, setSoundOpen] = useState(false);
+  const [sessionTasks, setSessionTasks] = useState<string[]>([]);
+  const [taskInput, setTaskInput] = useState("");
+  const [showTaskInput, setShowTaskInput] = useState(false);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;

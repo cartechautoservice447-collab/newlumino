@@ -21,6 +21,7 @@ import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import type { Course, CourseAccent, Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
+import { MobileMomentumAndActivity } from "./mobile-momentum-and-activity";
 
 type Props = {
   courses: Course[];
@@ -295,6 +296,15 @@ export function SpatialAuroraDashboard({
               </div>
             </section>
           ) : null}
+
+          <MobileMomentumAndActivity
+            notes={notes}
+            courses={courses}
+            todayFocusSeconds={todayFocusSeconds}
+            dailyGoalHours={dailyGoalHours}
+            onOpenNote={onOpenNote}
+            onOpenCourse={onOpenCourse}
+          />
 
           <section className="flex flex-col gap-3">
             <div className="relative">

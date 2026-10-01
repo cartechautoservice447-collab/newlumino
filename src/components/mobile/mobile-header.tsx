@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Sparkles, Menu, ArrowLeft, Settings, Search, X } from "lucide-react";
-=======
 import { Sparkles, Menu, ArrowLeft, Settings, Search, X, Smartphone } from "lucide-react";
->>>>>>> 1231699 (Update NewLumino project)
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 
@@ -13,10 +9,7 @@ type Props = {
   onBack?: () => void;
   onOpenSidebar?: () => void;
   onOpenSettings?: () => void;
-<<<<<<< HEAD
-=======
   onOpenAppHub?: () => void;
->>>>>>> 1231699 (Update NewLumino project)
   searchQuery?: string;
   onSearchChange?: (q: string) => void;
   showSearch?: boolean;
@@ -31,10 +24,7 @@ export function MobileHeader({
   onBack,
   onOpenSidebar,
   onOpenSettings,
-<<<<<<< HEAD
-=======
   onOpenAppHub,
->>>>>>> 1231699 (Update NewLumino project)
   searchQuery,
   onSearchChange,
   showSearch = false,
@@ -90,8 +80,6 @@ export function MobileHeader({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-<<<<<<< HEAD
-=======
           {onOpenAppHub ? (
             <button
               type="button"
@@ -107,7 +95,6 @@ export function MobileHeader({
             </button>
           ) : null}
 
->>>>>>> 1231699 (Update NewLumino project)
           {onToggleSearch ? (
             <button
               type="button"

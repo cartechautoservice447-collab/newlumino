@@ -66,6 +66,180 @@ function NavRow({
   onClick: () => void;
   onDelete?: () => void;
 }) {
+  if (isFluidGlass) {
+    return (
+      <aside className="glass-panel relative flex h-full min-h-0 w-full flex-col gap-5 rounded-[28px] p-4 shadow-2xl">
+        <div className="flex min-h-10 items-center justify-between gap-3 pr-1">
+          <div className="min-w-0">
+            <p className="text-[0.62rem] font-bold uppercase tracking-[0.30em] text-muted-foreground">Liquid Glass</p>
+            <h1 className="text-lg font-semibold tracking-tight text-foreground">Glass Notes</h1>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={onBackToCourses}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 text-foreground backdrop-blur-xl transition-colors hover:bg-white/20 active:scale-95"
+              aria-label="Back to My Courses"
+              title="Back to My Courses"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onCollapse}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-white/10 text-foreground backdrop-blur-xl transition-colors hover:bg-white/20 active:scale-95"
+              aria-label="Minimize navigation panel"
+              title="Minimize navigation panel"
+            >
+              <PanelLeftClose className="size-4 stroke-[1.8]" />
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onCreateNote}
+          className="notes-pulse-glow flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-medium text-slate-950 shadow-[0_0_28px_rgba(16,185,129,0.62),0_10px_28px_rgba(5,150,105,0.42)] ring-1 ring-emerald-300/55 transition-all hover:scale-[1.015] hover:bg-emerald-400 active:scale-[0.985]"
+        >
+          <Plus className="size-4 stroke-[2]" />
+          New Note
+        </button>
+
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            placeholder="Search notes"
+            aria-label="Search notes"
+            className="w-full rounded-xl border border-white/25 bg-white/10 py-2.5 pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground/80 backdrop-blur-xl focus:border-white/35 focus:outline-none"
+          />
+        </div>
+
+        <nav className="flex flex-col gap-1.5">
+          <NavRow
+            icon={<Layers className="size-4" />}
+            label="All Notes"
+            count={counts.all}
+            active={filter.kind === "all"}
+            onClick={() => onFilterChange({ kind: "all" })}
+          />
+          <NavRow
+            icon={<Star className="size-4" />}
+            label="Favorites"
+            count={counts.favorites}
+            active={filter.kind === "favorites"}
+            onClick={() => onFilterChange({ kind: "favorites" })}
+          />
+        </nav>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
+          <div className="flex items-center justify-between px-3">
+            <p className="text-[0.62rem] font-bold uppercase tracking-[0.28em] text-muted-foreground">Collections</p>
+            <button
+              type="button"
+              aria-label="New collection"
+              onClick={() => setAdding(true)}
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
+            >
+              <Plus className="size-3.5" />
+            </button>
+          </div>
+
+          <div className="scroll-sleek min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
+            {collections.map((c) => (
+              <NavRow
+                key={c.id}
+                icon={<FolderClosed className="size-4" />}
+                label={c.name}
+                count={counts.byCollection[c.id] ?? 0}
+                active={filter.kind === "collection" && filter.id === c.id}
+                onClick={() => onFilterChange({ kind: "collection", id: c.id })}
+                onDelete={() => onDeleteCollection(c.id)}
+              />
+            ))}
+            {collections.length === 0 && !adding ? (
+              <p className="px-3 py-2 text-xs text-muted-foreground">No collections yet.</p>
+            ) : null}
+            {adding ? (
+              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2">
+                <input
+                  autoFocus
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commit();
+                    if (e.key === "Escape") {
+                      setDraft("");
+                      setAdding(false);
+                    }
+                  }}
+                  placeholder="New collection"
+                  className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
+                />
+                <button type="button" onClick={commit} aria-label="Save collection" className="rounded-md p-1 text-primary hover:bg-white/10">
+                  <Check className="size-4" />
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          <form
+            className="flex items-center gap-1"
+            onSubmit={(event) => {
+              event.preventDefault();
+              commit();
+            }}
+          >
+            <input
+              value={adding ? "" : draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="New collection"
+              aria-label="New collection name"
+              className="h-10 min-w-0 flex-1 rounded-xl border border-white/25 bg-white/10 px-3 text-xs text-foreground placeholder:text-muted-foreground/75 focus:border-white/35 focus:outline-none"
+            />
+            <button
+              type="submit"
+              aria-label="Add collection"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-foreground transition-colors hover:bg-white/20 active:scale-95"
+            >
+              <span className="sr-only">Add collection</span>
+              <Plus className="size-4" />
+            </button>
+          </form>
+        </div>
+
+        <div className="border-t border-white/20 pt-4">
+          <div className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur-xl">
+            <div className="min-w-0 flex-1 px-1">
+              <p className="text-[0.58rem] font-bold uppercase tracking-[0.20em] text-muted-foreground">Account</p>
+              <p className="truncate text-xs font-medium text-foreground" title={user?.email ?? "Signed in"}>
+                {user?.email ?? "Signed in"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              aria-label="Open engine customization"
+              title="Engine Customization"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/30 bg-white/15 text-foreground backdrop-blur-xl transition-colors hover:bg-white/25 active:scale-95"
+            >
+              <Settings className="size-4" />
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-white/20 active:scale-[0.98]"
+          >
+            <LogOut className="size-3.5" />
+            Sign out
+          </button>
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -129,6 +303,7 @@ export function SidebarPanel({
   dailyGoalHours = 2,
 }: Props) {
   const { settings } = useCustomization();
+  const { user, signOut } = useAuth();
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
 
   const [adding, setAdding] = useState(false);

@@ -25,10 +25,7 @@ import {
   Moon,
   Sparkles,
   Wand2,
-<<<<<<< HEAD
-=======
   Smartphone,
->>>>>>> 1231699 (Update NewLumino project)
 } from "lucide-react";
 import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
@@ -51,10 +48,7 @@ type Props = {
   onBackToCourses?: () => void;
   // Tool options
   onOpenSettings: () => void;
-<<<<<<< HEAD
-=======
   onOpenAppHub?: () => void;
->>>>>>> 1231699 (Update NewLumino project)
   onOpenNewCourse: () => void;
   onOpenPomodoro: () => void;
   onOpenFlashcards: () => void;
@@ -87,10 +81,7 @@ export function MobileMoreOptionsSheet({
   onDeleteCollection,
   onBackToCourses,
   onOpenSettings,
-<<<<<<< HEAD
-=======
   onOpenAppHub,
->>>>>>> 1231699 (Update NewLumino project)
   onOpenNewCourse,
   onOpenPomodoro,
   onOpenFlashcards,
@@ -655,8 +646,6 @@ export function MobileMoreOptionsSheet({
                 <ChevronRight className="h-3.5 w-3.5 text-purple-300/70 transition-transform group-active:translate-x-1 shrink-0" />
               </button>
 
-<<<<<<< HEAD
-=======
               {/* Option: Native App Wrapper & Offline Hub */}
               {onOpenAppHub && (
                 <button
@@ -690,7 +679,6 @@ export function MobileMoreOptionsSheet({
                 </button>
               )}
 
->>>>>>> 1231699 (Update NewLumino project)
               {/* Option 3: Zen Focus Mode */}
               {onToggleFocus && (
                 <button

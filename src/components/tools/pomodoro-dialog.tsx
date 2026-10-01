@@ -1,30 +1,34 @@
 import React, { useState } from "react";
 import {
-  Play,
+  ArrowDown,
+  ArrowRight,
+  Award,
+  BarChart3,
+  BookOpen,
+  Brain,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Coffee,
+  FileText,
+  Flame,
+  Headphones,
+  Layers,
+  Loader2,
   Pause,
+  Play,
+  Plus,
   RotateCcw,
+  SkipForward,
+  Sparkles,
+  Timer,
+  UserRound,
   Volume2,
   VolumeX,
-  Sparkles,
-  Flame,
-  CheckCircle2,
-  Sliders,
-  SkipForward,
-  Brain,
-  Clock,
-  BarChart3,
   Wand2,
-  Target,
+  Waves,
   Zap,
-  Calendar,
-  Layers,
-  FileText,
-  TrendingUp,
-  Award,
-  BookOpen,
-  ArrowRight,
-  Loader2,
-  Check,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
@@ -79,6 +83,9 @@ export function PomodoroDialog({
     resetTimer,
     switchMode,
     setPreset,
+    addTime,
+    skipTime,
+    completeSession,
     activePlan,
     applyAIPlan,
     noteTimeSpent,
@@ -105,6 +112,35 @@ export function PomodoroDialog({
   // AI Generation State
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [generatedPlan, setGeneratedPlan] = useState<PomodoroPlanResult | null>(activePlan);
+  const [toolMenuOpen, setToolMenuOpen] = useState(false);
+  const [soundOpen, setSoundOpen] = useState(false);
+  const [sessionTasks, setSessionTasks] = useState<string[]>([]);
+  const [completedObjectives, setCompletedObjectives] = useState<Record<string, boolean>>({});
+  const [taskInput, setTaskInput] = useState("");
+  const [showTaskInput, setShowTaskInput] = useState(false);
+
+  const objectiveTexts =
+    generatedPlan?.milestones?.slice(0, 3) ?? [
+      selectedNote?.title ? `Study: ${selectedNote.title}` : "Review the active study material",
+      activeCourse?.name ? `Practice key concepts for ${activeCourse.name}` : "Practice the key concepts from this block",
+      "Review and consolidate key takeaways",
+    ];
+  const objectiveList = [...objectiveTexts, ...sessionTasks];
+  const completedObjectiveCount = objectiveList.filter((item) => completedObjectives[item]).length;
+
+  const handleAddTask = () => {
+    const value = taskInput.trim();
+    if (!value) return;
+    setSessionTasks((prev) => [...prev, value]);
+    setTaskInput("");
+    setShowTaskInput(false);
+  };
+
+  const toggleObjective = (text: string) => {
+    haptic("light");
+    setCompletedObjectives((prev) => ({ ...prev, [text]: !prev[text] }));
+  };
+
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -163,340 +199,219 @@ export function PomodoroDialog({
         onOpenChange(val);
       }}
     >
-      <DialogContent className="glass-panel max-h-[92vh] overflow-y-auto rounded-3xl border border-white/15 bg-black/90 p-5 sm:p-7 shadow-2xl backdrop-blur-3xl scroll-sleek sm:max-w-[540px]">
-        {/* Top Header */}
-        <DialogHeader className="text-left space-y-1">
-          <div className="flex items-center justify-between">
+      <DialogContent className="glass-panel fixed inset-0 m-0 flex h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 flex-col overflow-y-auto overflow-x-hidden rounded-none border-0 bg-[#0f131c] p-0 text-[#dfe2ef] shadow-none [&>button.absolute]:hidden sm:inset-1/2 sm:h-[96vh] sm:w-[min(620px,calc(100vw-2rem))] sm:max-w-[620px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[2rem] sm:border sm:border-white/10 sm:shadow-2xl">
+        <DialogTitle className="sr-only">Pomodoro Active Study Session</DialogTitle>
+        <header className="absolute left-0 right-0 top-0 z-50 border-b border-white/[0.06] bg-[#0a0e17]/85 px-5 pt-[calc(.75rem+env(safe-area-inset-top,0px))] backdrop-blur-2xl">
+          <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-primary/30 bg-primary/20 text-primary shadow-[0_0_12px_-2px_hsl(var(--primary)/0.6)]">
-                <Clock className="h-4 w-4" />
-              </span>
-              <div>
-                <DialogTitle className="text-lg font-bold tracking-tight text-foreground">
-                  Pomodoro &amp; Focus Engine
-                </DialogTitle>
-                <p className="text-[0.68rem] text-muted-foreground">
-                  AI Automatic Planning • Live Note Monitoring • Active Soundscapes
-                </p>
+              <button type="button" aria-label="Exit Session" onClick={() => onOpenChange(false)} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05] text-slate-400 transition-all hover:bg-white/[0.09] hover:text-white active:scale-95">
+                <ArrowDown className="h-5 w-5" />
+              </button>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-1 backdrop-blur-md">
+                <span className={cn("h-1.5 w-1.5 rounded-full", isRunning ? "bg-emerald-300 animate-ping" : "bg-amber-300")} />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-300">Active Session</span>
               </div>
             </div>
-
-            {completedSessions > 0 && (
-              <span className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-mono font-bold text-primary">
-                <Flame className="h-3.5 w-3.5 fill-primary" />
-                <span>{completedSessions} done</span>
-              </span>
-            )}
-          </div>
-        </DialogHeader>
-
-        {/* Navigation Tabs (Timer / AI Planner / Analytics) */}
-        <div className="mt-3 grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/[0.04] p-1 select-none">
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              setActiveTab("timer");
-            }}
-            className={cn(
-              "flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all touch-manipulation cursor-pointer",
-              activeTab === "timer"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Clock className="h-3.5 w-3.5" />
-            <span>Timer</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              setActiveTab("ai_planner");
-            }}
-            className={cn(
-              "flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all touch-manipulation cursor-pointer",
-              activeTab === "ai_planner"
-                ? "bg-purple-600 text-white shadow-md shadow-purple-600/40"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Wand2 className="h-3.5 w-3.5" />
-            <span>AI Plan</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              setActiveTab("analytics");
-            }}
-            className={cn(
-              "flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all touch-manipulation cursor-pointer",
-              activeTab === "analytics"
-                ? "bg-emerald-500 text-black shadow-md font-extrabold"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span>Time Monitor</span>
-          </button>
-        </div>
-
-        {/* TAB 1: Classic Timer & Audio Engine */}
-        {activeTab === "timer" && (
-          <div className="mt-3 animate-panel-in space-y-4">
-            {/* Phase Mode Tabs */}
-            <div className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/[0.04] p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("light");
-                  switchMode("focus");
-                }}
-                className={cn(
-                  "rounded-xl py-1.5 text-xs font-bold transition-all touch-manipulation cursor-pointer",
-                  mode === "focus"
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                Focus ({settings.focusMinutes}m)
+            <div className="relative flex items-center gap-2">
+              <button type="button" aria-label="Ambient Soundscape" aria-pressed={soundscape !== "none"} onClick={() => { haptic("light"); setSoundscape(soundscape === "none" ? "rain" : "none"); }} className={cn("flex h-11 w-11 items-center justify-center rounded-full transition-all active:scale-95", soundscape === "none" ? "bg-white/[0.05] text-slate-400" : "bg-cyan-400/10 text-cyan-300")}>
+                <Waves className="h-5 w-5" />
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("light");
-                  switchMode("shortBreak");
-                }}
-                className={cn(
-                  "rounded-xl py-1.5 text-xs font-bold transition-all touch-manipulation cursor-pointer",
-                  mode === "shortBreak"
-                    ? "bg-amber-400 text-black shadow-md"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                Short Break ({settings.shortBreakMinutes}m)
+              <button type="button" aria-label="Pomodoro tools" aria-expanded={toolMenuOpen} onClick={() => { haptic("light"); setToolMenuOpen((value) => !value); }} className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-[#003824] shadow-[0_0_14px_rgba(78,222,163,.25)] active:scale-95">
+                <UserRound className="h-[17px] w-[17px]" />
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("light");
-                  switchMode("longBreak");
-                }}
-                className={cn(
-                  "rounded-xl py-1.5 text-xs font-bold transition-all touch-manipulation cursor-pointer",
-                  mode === "longBreak"
-                    ? "bg-cyan-400 text-black shadow-md"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                Long Break ({settings.longBreakMinutes}m)
-              </button>
-            </div>
-
-            {/* Circular Progress & Clock Face */}
-            <div className="relative my-2 flex items-center justify-center">
-              <svg className="h-48 w-48 -rotate-90 transform" viewBox="0 0 200 200">
-                <circle
-                  cx="100"
-                  cy="100"
-                  r={radius}
-                  className="stroke-white/10"
-                  strokeWidth="8"
-                  fill="transparent"
-                />
-                <circle
-                  cx="100"
-                  cy="100"
-                  r={radius}
-                  stroke="currentColor"
-                  strokeWidth="9"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round"
-                  fill="transparent"
-                  className={cn(
-                    "transition-all duration-700 ease-linear",
-                    mode === "focus"
-                      ? "text-primary drop-shadow-[0_0_12px_hsl(var(--primary))]"
-                      : "text-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)]"
-                  )}
-                />
-              </svg>
-
-              <div className="absolute flex flex-col items-center justify-center text-center">
-                <span className="font-mono text-4xl sm:text-5xl font-black tracking-tight text-foreground">
-                  {timeFormatted}
-                </span>
-                <span className="mt-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                  {mode === "focus" ? "Focused Study" : "Rest & Recharge"}
-                </span>
-                {selectedNote && mode === "focus" && (
-                  <span className="mt-0.5 truncate max-w-[150px] text-[0.62rem] text-primary/80 font-medium">
-                    📖 {selectedNote.title}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Primary Controls */}
-            <div className="flex items-center justify-center gap-3">
-              <button
-                type="button"
-                aria-label="Reset timer"
-                onClick={() => {
-                  haptic("light");
-                  resetTimer();
-                }}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-muted-foreground hover:text-foreground active:scale-95 transition-all touch-manipulation cursor-pointer"
-                title="Reset"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("heavy");
-                  togglePlay();
-                }}
-                className={cn(
-                  "flex h-13 w-28 items-center justify-center gap-2 rounded-2xl border font-bold text-sm shadow-xl transition-transform active:scale-95 touch-manipulation cursor-pointer",
-                  isRunning
-                    ? "border-amber-400/40 bg-amber-400 text-black hover:bg-amber-300"
-                    : "border-primary/40 bg-primary text-primary-foreground hover:brightness-110"
-                )}
-              >
-                {isRunning ? (
-                  <>
-                    <Pause className="h-5 w-5 fill-current" />
-                    <span>Pause</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-5 w-5 fill-current" />
-                    <span>Start</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                aria-label="Skip to next phase"
-                onClick={() => {
-                  haptic("medium");
-                  switchMode(mode === "focus" ? "shortBreak" : "focus");
-                }}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-muted-foreground hover:text-foreground active:scale-95 transition-all touch-manipulation cursor-pointer"
-                title="Skip to next phase"
-              >
-                <SkipForward className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Interval Presets */}
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold">
-                Intervals:
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("light");
-                  setPreset(25, 5);
-                }}
-                className={cn(
-                  "rounded-xl border px-3 py-1 text-xs font-mono font-semibold transition-all active:scale-95 touch-manipulation cursor-pointer",
-                  settings.focusMinutes === 25
-                    ? "border-primary/40 bg-primary/20 text-primary font-bold"
-                    : "border-white/10 bg-white/[0.04] text-muted-foreground"
-                )}
-              >
-                25m / 5m
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("light");
-                  setPreset(50, 10);
-                }}
-                className={cn(
-                  "rounded-xl border px-3 py-1 text-xs font-mono font-semibold transition-all active:scale-95 touch-manipulation cursor-pointer",
-                  settings.focusMinutes === 50
-                    ? "border-primary/40 bg-primary/20 text-primary font-bold"
-                    : "border-white/10 bg-white/[0.04] text-muted-foreground"
-                )}
-              >
-                50m / 10m
-              </button>
-            </div>
-
-            {/* Ambient Soundscape Section */}
-            <div className="space-y-2.5 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-foreground">Ambient Soundscape</p>
-                  <p className="text-[0.65rem] text-muted-foreground">
-                    Plays automatically during active study sessions
-                  </p>
-                </div>
-                {soundscape !== "none" && isRunning && (
-                  <span className="flex items-center gap-1 text-[0.65rem] font-bold text-primary animate-pulse">
-                    <Volume2 className="h-3.5 w-3.5" />
-                    <span>Playing</span>
-                  </span>
-                )}
-              </div>
-
-              {/* Soundscape Options Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {SOUNDSCAPE_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => {
-                      haptic("light");
-                      setSoundscape(opt.id);
-                    }}
-                    className={cn(
-                      "flex items-center gap-2 rounded-xl border p-2 text-left transition-all active:scale-95 touch-manipulation cursor-pointer",
-                      soundscape === opt.id
-                        ? "border-primary/50 bg-primary/15 text-foreground font-bold shadow-sm"
-                        : "border-white/5 bg-white/[0.02] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
-                    )}
-                  >
-                    <span className="text-base">{opt.icon}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold leading-tight truncate">{opt.name}</p>
-                    </div>
+              {toolMenuOpen && (
+                <div className="absolute right-0 top-11 z-[60] w-44 rounded-2xl border border-white/10 bg-[#151b26] p-1.5 shadow-2xl">
+                  <button type="button" onClick={() => { haptic("light"); setActiveTab("ai_planner"); setToolMenuOpen(false); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-200 hover:bg-white/[0.07]">
+                    <Wand2 className="h-4 w-4 text-violet-300" />AI Planner
                   </button>
-                ))}
-              </div>
-
-              {/* Volume Slider */}
-              {soundscape !== "none" && (
-                <div className="flex items-center gap-3 pt-1">
-                  <VolumeX className="h-3.5 w-3.5 text-muted-foreground" />
-                  <Slider
-                    value={[soundVolume * 100]}
-                    min={0}
-                    max={100}
-                    step={5}
-                    onValueChange={(val) => setSoundVolume(val[0] / 100)}
-                    className="flex-1"
-                  />
-                  <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <button type="button" onClick={() => { haptic("light"); setActiveTab("analytics"); setToolMenuOpen(false); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-200 hover:bg-white/[0.07]">
+                    <BarChart3 className="h-4 w-4 text-emerald-300" />Time Monitor
+                  </button>
                 </div>
               )}
+            </div>
+          </div>
+        </header>
+
+        {activeTab === "timer" && (
+          <div className="absolute inset-0 z-10 flex min-h-[100dvh] flex-col bg-[#0f131c] text-[#dfe2ef]">
+            <style>{`
+              @keyframes auraPulse { 0%, 100% { transform: scale(1); opacity: .45; } 50% { transform: scale(1.1); opacity: .8; } }
+              @keyframes ringBreathing { 0%, 100% { filter: drop-shadow(0 0 10px rgba(78,222,163,.4)) drop-shadow(0 0 22px rgba(76,215,246,.25)); } 50% { filter: drop-shadow(0 0 18px rgba(78,222,163,.75)) drop-shadow(0 0 32px rgba(76,215,246,.45)); } }
+              @keyframes pausedPulse { 0%, 100% { filter: drop-shadow(0 0 6px rgba(251,191,36,.3)); opacity: .75; } 50% { filter: drop-shadow(0 0 14px rgba(251,191,36,.6)); opacity: .95; } }
+              @keyframes headGlowPulse { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #4cd7f6) drop-shadow(0 0 12px #4edea3); } 50% { transform: scale(1.3); filter: drop-shadow(0 0 10px #4cd7f6) drop-shadow(0 0 20px #6ffbbe); } }
+            `}</style>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <main className="flex min-h-[max(884px,100dvh)] w-full flex-col bg-[#0f131c] px-5 pb-8 pt-[calc(4.5rem+env(safe-area-inset-top,0px))]">
+                <div className="flex flex-col gap-2 pb-2 pt-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="inline-flex min-w-0 items-center gap-2 rounded-full bg-white/[0.06] px-3 py-1.5 backdrop-blur-md">
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_8px_#4cd7f6]" />
+                      <span className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300">{(activeCourse?.name || "General Study").slice(0, 30)}</span>
+                    </div>
+                    <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-400/10 px-3 py-1 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,.2)]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                      <span className="text-[9px] font-bold uppercase tracking-wider">Focus Phase {Math.min(4, Math.max(1, completedSessions + 1))} of 4</span>
+                    </div>
+                  </div>
+                  <div className="mt-1 flex flex-col gap-0.5">
+                    <h1 className="truncate text-[26px] font-bold leading-8 tracking-tight text-white">{selectedNote?.title || "Focused Study Session"}</h1>
+                    <p className="flex items-center gap-1.5 text-xs text-slate-400"><Timer className="h-[15px] w-[15px] text-emerald-300" />{mode === "focus" ? "Lecture • Core Syntax & Assertions" : "Recharge & Prepare for the Next Focus"}</p>
+                  </div>
+                </div>
+
+                <div className="relative my-6 flex w-full flex-col items-center justify-center">
+                  <div className={cn("pointer-events-none absolute -z-10 h-64 w-64 rounded-full blur-3xl", isRunning ? "bg-emerald-400/10" : "bg-amber-500/10")} style={{ animation: "auraPulse 4s ease-in-out infinite" }} />
+                  <div className={cn("pointer-events-none absolute -z-10 h-52 w-52 rounded-full blur-2xl", isRunning ? "bg-cyan-400/15" : "bg-amber-600/5")} style={{ animation: "auraPulse 4s ease-in-out infinite", animationDelay: "-2s" }} />
+                  <div className="relative flex h-72 w-72 items-center justify-center">
+                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 260 260" aria-hidden="true">
+                      <defs>
+                        <linearGradient id="newLuminoTimerGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+                          <stop offset="0%" stopColor="#4cd7f6" /><stop offset="60%" stopColor="#4edea3" /><stop offset="100%" stopColor="#10b981" />
+                        </linearGradient>
+                        <linearGradient id="newLuminoPausedGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+                          <stop offset="0%" stopColor="#fbbf24" /><stop offset="100%" stopColor="#f59e0b" />
+                        </linearGradient>
+                        <filter id="newLuminoPomodoroGlow" x="-30%" y="-30%" width="160%" height="160%">
+                          <feGaussianBlur result="blur" stdDeviation="4.5" /><feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                      </defs>
+                      <circle cx="130" cy="130" r="112" fill="none" stroke="rgba(255,255,255,.07)" strokeDasharray="4 6" strokeWidth="10" />
+                      <circle cx="130" cy="130" r="112" fill="none" stroke="rgba(255,255,255,.04)" strokeWidth="12" />
+                      <circle
+                        cx="130" cy="130" r="112" fill="none" filter="url(#newLuminoPomodoroGlow)"
+                        stroke={isRunning ? "url(#newLuminoTimerGradient)" : "url(#newLuminoPausedGradient)"}
+                        strokeDasharray="703.7"
+                        strokeDashoffset={Math.max(0, 703.7 * (1 - Math.min(1, totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0)))}
+                        strokeLinecap="round" strokeWidth="12"
+                        style={{ transition: "stroke-dashoffset 0.85s cubic-bezier(0.4,0,0.2,1)", animation: isRunning ? "ringBreathing 3s ease-in-out infinite" : "pausedPulse 2.5s ease-in-out infinite" }}
+                      />
+                      <g
+                        transform={`rotate(${Math.round((totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0) * 360)} 130 130)`}
+                        style={{ transition: "transform .85s cubic-bezier(.4,0,.2,1)", transformOrigin: "130px 130px" }}
+                      >
+                        <circle cx="242" cy="130" r="5" fill="#ffffff" stroke={isRunning ? "#4cd7f6" : "#fbbf24"} strokeWidth="2.5" style={{ animation: isRunning ? "headGlowPulse 2s ease-in-out infinite" : undefined }} />
+                        <circle cx="242" cy="130" r="9" fill={isRunning ? "#4cd7f6" : "#fbbf24"} opacity=".4" />
+                      </g>
+                    </svg>
+
+                    <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+                      <div className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-white/[0.08] px-2.5 py-0.5 backdrop-blur-md">
+                        <Clock className={cn("h-[13px] w-[13px]", isRunning ? "text-emerald-300" : "text-amber-300")} />
+                        <span className="text-[11px] font-medium text-slate-400">{Math.max(0, Math.floor((totalDuration - timeLeft) / 60))}m elapsed • {Math.round(totalDuration / 60)}m block</span>
+                      </div>
+                      <div className="font-mono text-[48px] font-extrabold leading-none tracking-tighter text-white drop-shadow-[0_0_20px_rgba(78,222,163,.35)] sm:text-[54px]">{timeFormatted}</div>
+                      <span className="mt-1 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">{isRunning ? "Remaining Target" : "Paused"}</span>
+                      <div className={cn("mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 backdrop-blur-md shadow-inner", isRunning ? "bg-[#181b25]/90" : "bg-white/[0.08]")}>
+                        <Waves className={cn("h-4 w-4", isRunning ? "text-cyan-300 animate-pulse" : "text-amber-300")} />
+                        <span className={cn("text-[11px] font-semibold", isRunning ? "text-cyan-300" : "text-amber-300")}>{isRunning ? `Cognitive Flow: ${activePlan?.efficiencyScore || generatedPlan?.efficiencyScore || 94}% Peak` : "Session Paused"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex w-full max-w-xs items-center justify-center gap-3">
+                    <button type="button" aria-label="Add 5 Minutes" onClick={() => { haptic("light"); addTime(300); }} className="flex h-12 flex-1 items-center justify-center gap-1 rounded-full bg-white/[0.07] text-xs font-semibold text-slate-200 backdrop-blur-md transition-all hover:bg-white/[0.12] active:scale-95">
+                      <Plus className="h-[18px] w-[18px] text-emerald-300" />+5m
+                    </button>
+                    <button type="button" aria-label={isRunning ? "Pause Session" : "Start Session"} onClick={() => { haptic("heavy"); togglePlay(); }} className={cn("flex h-16 w-16 shrink-0 items-center justify-center rounded-full shadow-[0_0_28px_rgba(16,185,129,.5)] transition-all active:scale-90", isRunning ? "bg-gradient-to-tr from-emerald-600 via-emerald-400 to-emerald-200 text-[#003824]" : "bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 text-stone-900 shadow-[0_0_24px_rgba(245,158,11,.4)]")}>
+                      {isRunning ? <Pause className="h-8 w-8 fill-current" /> : <Play className="h-8 w-8 fill-current" />}
+                    </button>
+                    <button type="button" aria-label="Next Interval" onClick={() => { haptic("medium"); skipTime(300); }} className="flex h-12 flex-1 items-center justify-center gap-1 rounded-full bg-white/[0.07] text-xs font-semibold text-slate-300 backdrop-blur-md transition-all hover:bg-white/[0.12] active:scale-95">
+                      <span>Skip</span><SkipForward className="h-[18px] w-[18px]" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-1 space-y-4">
+                  <section className="rounded-2xl bg-[#181b25]/75 p-4 shadow-md backdrop-blur-xl">
+                    <div className="flex items-center justify-between gap-3 pb-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-400/15 text-cyan-300"><CheckCircle2 className="h-[18px] w-[18px]" /></div>
+                        <div className="min-w-0">
+                          <h2 className="text-[18px] font-semibold leading-6 text-white">Session Objectives</h2>
+                          <span className="text-[11px] text-slate-400">{completedObjectiveCount} of {Math.max(3, objectiveList.length)} verified</span>
+                        </div>
+                      </div>
+                      <button type="button" aria-label="Add objective" onClick={() => { haptic("light"); setShowTaskInput((value) => !value); }} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-emerald-300 transition-colors hover:bg-white/[0.13]">
+                        <Plus className="h-5 w-5" />
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {objectiveList.map((objective, index) => {
+                        const done = Boolean(completedObjectives[objective]);
+                        return (
+                          <button key={objective + index} type="button" onClick={() => toggleObjective(objective)} className={cn("flex items-start gap-3 rounded-xl p-2.5 text-left transition-all", done ? "bg-white/[0.07]" : "bg-white/[0.04]")}>
+                            <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full", done ? "bg-emerald-400 text-[#003824] shadow-[0_0_8px_rgba(78,222,163,.4)]" : "bg-[#0a0e17]")}>
+                              {done ? <Check className="h-3.5 w-3.5" /> : <span className="h-2.5 w-2.5 rounded-full bg-emerald-300 animate-pulse" />}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className={cn("block truncate text-sm", done ? "text-slate-300 line-through" : "font-medium text-white")}>{objective}</span>
+                              <span className={cn("mt-1 block text-[10px]", done ? "text-emerald-300/80" : "text-slate-500")}>{done ? "Verified" : index === 0 ? "Active objective" : `Pending Phase ${Math.min(4, index + 1)}`}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {showTaskInput && (
+                      <div className="mt-2 flex items-center gap-2 rounded-full bg-white/[0.07] px-3 py-1">
+                        <input value={taskInput} onChange={(event) => setTaskInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") handleAddTask(); }} placeholder="Add micro-task..." className="w-full bg-transparent py-1 text-xs text-white outline-none placeholder:text-slate-500" />
+                        <button type="button" onClick={handleAddTask} className="rounded-full bg-emerald-300/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-300">Add</button>
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="rounded-2xl bg-[#181b25]/75 p-4 shadow-md backdrop-blur-xl">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-400/15 text-cyan-300"><Headphones className="h-[19px] w-[19px]" /></div>
+                        <div className="min-w-0">
+                          <span className="block text-[10px] uppercase tracking-[0.16em] text-slate-400">Audio Focus Environment</span>
+                          <span className="block truncate text-[18px] font-semibold text-white">{SOUNDSCAPE_OPTIONS.find((item) => item.id === soundscape)?.name || "Mute"}</span>
+                        </div>
+                      </div>
+                      {soundscape !== "none" && isRunning && <div className="flex h-6 items-end gap-1"><span className="h-5 w-1 animate-bounce rounded-full bg-cyan-300" /><span className="h-3 w-1 animate-bounce rounded-full bg-emerald-300" /><span className="h-6 w-1 animate-bounce rounded-full bg-cyan-300" /><span className="h-4 w-1 animate-bounce rounded-full bg-emerald-300" /></div>}
+                    </div>
+                    <div className="mt-3 flex items-center gap-3">
+                      <div className="relative min-w-0 flex-1">
+                        <button type="button" onClick={() => setSoundOpen((value) => !value)} className="flex h-10 w-full items-center justify-between rounded-full bg-white/[0.07] px-3 text-xs font-semibold text-white">
+                          <span className="flex min-w-0 items-center gap-1.5 truncate"><Headphones className="h-4 w-4 shrink-0 text-cyan-300" /><span className="truncate">{SOUNDSCAPE_OPTIONS.find((item) => item.id === soundscape)?.name || "Mute"}</span></span>
+                          <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+                        </button>
+                        {soundOpen && (
+                          <div className="absolute bottom-11 left-0 z-50 w-full rounded-2xl border border-white/10 bg-[#151b26] p-1.5 shadow-2xl">
+                            {SOUNDSCAPE_OPTIONS.map((option) => (
+                              <button key={option.id} type="button" onClick={() => { haptic("light"); setSoundscape(option.id); setSoundOpen(false); }} className={cn("flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs", soundscape === option.id ? "bg-emerald-300/10 text-emerald-300" : "text-slate-300 hover:bg-white/[0.06]")}>
+                                <span className="text-base">{option.icon}</span><span className="truncate">{option.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex w-32 items-center gap-2 rounded-full bg-white/[0.07] px-3 py-2">
+                        <VolumeX className="h-4 w-4 text-slate-400" />
+                        <Slider value={[soundVolume * 100]} min={0} max={100} step={5} onValueChange={(value) => setSoundVolume((value[0] || 0) / 100)} />
+                        <Volume2 className="h-4 w-4 text-slate-400" />
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="flex flex-col gap-2.5 pt-1">
+                    <button type="button" onClick={() => { haptic("heavy"); completeSession(); }} className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-300 via-emerald-500 to-cyan-300 text-sm font-bold text-[#022115] shadow-[0_0_24px_rgba(16,185,129,.35)] active:scale-[.98]">
+                      <CheckCircle2 className="h-5 w-5" />Complete &amp; Log Session
+                    </button>
+                    <button type="button" onClick={() => { haptic("medium"); switchMode("shortBreak"); }} className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white/[0.05] text-sm font-semibold text-slate-300 active:scale-[.98]">
+                      <Coffee className="h-[18px] w-[18px] text-amber-300" />Take 5m Bio Break
+                    </button>
+                  </div>
+                </div>
+              </main>
             </div>
           </div>
         )}
 
         {/* TAB 2: AI Smart Planner (Fill-in-the-Boxes Form & Accurate Result View) */}
         {activeTab === "ai_planner" && (
-          <div className="mt-3 animate-panel-in space-y-4">
+          <div className="mt-16 p-5 animate-panel-in space-y-4">
             <div className="rounded-2xl border border-purple-500/30 bg-purple-500/10 p-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-purple-300" />

@@ -171,7 +171,7 @@ export function SidebarPanel({
         </nav>
 
         <div className="flex min-h-0 flex-1 flex-col gap-2">
-          <div className="flex items-center justify-between px-3">
+          <div className="flex items-center justify-between border-t border-white/5 px-3 pb-2 pt-2">
             <span className="text-[0.60rem] font-bold uppercase tracking-[0.26em] text-muted-foreground">Collections</span>
             <button type="button" aria-label="New collection" onClick={() => setAdding(true)} className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"><Plus className="size-3.5" /></button>
           </div>

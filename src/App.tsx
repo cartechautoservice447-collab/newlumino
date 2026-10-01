@@ -108,22 +108,21 @@ function MainApp() {
   const [mobileEditorMode, setMobileEditorMode] = useState<"write" | "preview">("write");
   const [showCheatsheet, setShowCheatsheet] = useState(false);
 
-  // On phones, start closed
+  // Keep the exact NewLumino mobile navigation state in both themes.
   useEffect(() => {
     if (isMobile) {
-      setSidebarOpen(isFluidGlass);
+      setSidebarOpen(false);
     }
-  }, [isMobile, isFluidGlass]);
+  }, [isMobile]);
 
-  // Fluid Glass Studio starts its three-panel workspace with the navigation
-  // panel visible on desktop too. Keep the original layout available whenever
-  // the Old Website Theme becomes active.
+  // Desktop Fluid Glass Studio keeps its existing three-panel workspace
+  // behavior. This branch is intentionally desktop-only.
   useEffect(() => {
-    if (isFluidGlass) {
+    if (isFluidGlass && !isMobile) {
       setSidebarOpen(true);
       setListOpen(true);
     }
-  }, [isFluidGlass]);
+  }, [isFluidGlass, isMobile]);
 
   const enterFocus = () => {
     if (!n.activeCourseId && n.courses[0]) {
@@ -165,7 +164,7 @@ function MainApp() {
     n.setSelectedId(null);
     n.setQuery("");
     setView("workspace");
-    setSidebarOpen(isFluidGlass);
+    setSidebarOpen(!isMobile && isFluidGlass);
     setListOpen(true);
   };
 
@@ -213,7 +212,7 @@ function MainApp() {
   // Dashboard view
   if (view === "dashboard") {
     return (
-      <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && "p-[10px]")}>
+      <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && !isMobile && "p-[10px]")}>
         <CourseDashboard
           courses={n.courses}
           notes={n.notes}
@@ -516,7 +515,7 @@ function MainApp() {
   );
 
   return (
-    <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] flex flex-col", isFluidGlass && "p-[10px]")}>
+    <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] flex flex-col", isFluidGlass && !isMobile && "p-[10px]")}>
       <NotificationBanner />
 
       {/* Daily Goal View */}
@@ -587,7 +586,7 @@ function MainApp() {
       )}
 
       {/* Mobile Top Header (Luminous Glass Header when browsing notes list) */}
-      {isMobile && !isFluidGlass && !focusMode && !n.selectedId && view === "workspace" && (
+      {isMobile && !focusMode && !n.selectedId && view === "workspace" && (
         <div className="shrink-0 z-30 px-3 pt-3 pb-1">
           <div className="glass-panel animate-panel-in rounded-3xl p-1 shadow-2xl backdrop-blur-3xl border border-white/15">
             <MobileHeader
@@ -616,7 +615,6 @@ function MainApp() {
       {view === "workspace" && (
         <div className={cn(
           "relative mx-auto flex-1 min-h-0 w-full max-w-[1700px] flex gap-4 transition-all",
-          isFluidGlass && isMobile ? "overflow-x-auto overflow-y-hidden overscroll-x-contain" : "",
           isMobile && n.selectedId
             ? "h-full p-1.5 sm:p-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-4"
             : isMobile
@@ -624,7 +622,7 @@ function MainApp() {
               : "h-screen p-2 sm:p-4 pb-4 md:pb-4"
         )}>
         {/* Mobile Slide-in Drawer: NewLumino mobile workspace only. Fluid Glass keeps the original three-panel layout. */}
-          {isMobile && !isFluidGlass ? (
+          {isMobile ? (
             <MobileSidebarDrawer
               open={sidebarOpen}
               onOpenChange={setSidebarOpen}
@@ -663,9 +661,11 @@ function MainApp() {
           <div
             className={`shrink-0 overflow-hidden transition-all duration-500 ease-out ${
               listOpen
-                ? (isFluidGlass
-                  ? "block h-full w-[318px] min-w-[318px] shrink-0"
-                  : `w-full lg:block lg:w-[340px] ${n.selectedId ? "hidden" : "block"}`)
+                ? (isMobile
+                  ? `w-full lg:block lg:w-[340px] ${n.selectedId ? "hidden" : "block"}`
+                  : isFluidGlass
+                    ? "block h-full w-[318px] min-w-[318px] shrink-0"
+                    : `w-full lg:block lg:w-[340px] ${n.selectedId ? "hidden" : "block"}`)
                 : "hidden w-0 opacity-0"
             }`}
           >
@@ -688,9 +688,11 @@ function MainApp() {
           {/* Note Editor Column */}
           <div
             className={
-              isFluidGlass
-                ? "block h-full min-w-[280px] flex-1"
-                : `min-w-0 flex-1 lg:block ${n.selectedId || !listOpen ? "block" : "hidden"}`
+              isMobile
+                ? `min-w-0 flex-1 lg:block ${n.selectedId || !listOpen ? "block" : "hidden"}`
+                : isFluidGlass
+                  ? "block h-full min-w-[280px] flex-1"
+                  : `min-w-0 flex-1 lg:block ${n.selectedId || !listOpen ? "block" : "hidden"}`
             }
           >
             <NoteEditor
@@ -727,7 +729,7 @@ function MainApp() {
       )}
 
       {/* Mobile Formatting Accessory Bar (visible when actively writing on mobile) */}
-      {isMobile && !isFluidGlass && n.selectedId && !focusMode && view === "workspace" && (
+      {isMobile && n.selectedId && !focusMode && view === "workspace" && (
         <MobileAccessoryBar
           onInsertMarkdown={handleMobileInsertMarkdown}
           onInsertCodeBlock={handleMobileInsertCodeBlock}
@@ -736,7 +738,7 @@ function MainApp() {
       )}
 
       {/* Mobile Floating Bottom Dock (Only shown when browsing courses or note list, hidden in editor for maximum room) */}
-      {isMobile && !isFluidGlass && !n.selectedId && !focusMode && (
+      {isMobile && !n.selectedId && !focusMode && (
         <MobileBottomDock
           currentView={view}
           selectedNoteId={n.selectedId}
@@ -770,7 +772,7 @@ function MainApp() {
       )}
 
       {/* Desktop Toggle Sidebar / List buttons (Untouched) */}
-      {!sidebarOpen && !focusMode && (!isMobile || isFluidGlass) ? (
+      {!sidebarOpen && !focusMode && !isMobile ? (
         <button
           type="button"
           aria-label="Show sidebar"
@@ -781,7 +783,7 @@ function MainApp() {
         </button>
       ) : null}
 
-      {!listOpen && !focusMode && (!isMobile || isFluidGlass) ? (
+      {!listOpen && !focusMode && !isMobile ? (
         <button
           type="button"
           aria-label="Show note list"

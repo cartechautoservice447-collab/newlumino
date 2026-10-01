@@ -1,6 +1,7 @@
 import { PanelLeftClose, Plus, Search, Star, Layers, Sparkles } from "lucide-react";
 import { NoteCard } from "./note-card";
 import { useCustomization } from "@/context/customization-context";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { Collection, Note } from "@/lib/notes";
 
 type Props = {
@@ -29,10 +30,13 @@ export function NoteList({
 }: Props) {
   const { settings } = useCustomization();
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
+  const isMobile = useIsMobile();
+
+  const showFluidDesktopHeader = isFluidGlass && !isMobile;
 
   return (
     <section className="glass-panel animate-panel-in flex h-full w-full flex-col rounded-3xl shadow-xl backdrop-blur-2xl">
-      <header className={`items-center justify-between gap-2 border-b border-white/5 px-5 py-3.5 ${isFluidGlass ? "flex" : "hidden md:flex"}`}>
+      <header className={`items-center justify-between gap-2 border-b border-white/5 px-5 py-3.5 ${showFluidDesktopHeader ? "flex" : "hidden md:flex"}`}>
         <div className="flex items-center gap-2 min-w-0">
           <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">{title}</h2>
           <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[0.68rem] tabular-nums font-mono text-muted-foreground">
@@ -41,7 +45,7 @@ export function NoteList({
         </div>
         
         <div className="flex items-center gap-1.5">
-          {onCreateNote && !isFluidGlass ? (
+          {onCreateNote && (!isFluidGlass || isMobile) ? (
             <button
               type="button"
               aria-label="Create note"

@@ -22,6 +22,7 @@ import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { COURSE_ACCENTS, formatDate, type Course, type CourseAccent, type Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
+import { MobileMomentumAndActivity } from "./mobile-momentum-and-activity";
 
 const ACCENT_STYLES: Record<
   CourseAccent,
@@ -449,6 +450,15 @@ export function CourseDashboard({
             </div>
           </div>
         )}
+
+        <MobileMomentumAndActivity
+          notes={notes}
+          courses={courses}
+          todayFocusSeconds={todayFocusSeconds}
+          dailyGoalHours={dailyGoalHours}
+          onOpenNote={onOpenNote}
+          onOpenCourse={onOpenCourse}
+        />
 
         {/* Filter and Actions Bar */}
         <div id="courses-section" className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 scroll-mt-6">

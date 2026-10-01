@@ -252,63 +252,6 @@ export function usePomodoroTimer(activeContext?: {
     });
   }, []);
 
-  const addTime = useCallback((seconds = 300) => {
-    const maxDuration =
-      (mode === "focus"
-        ? settings.focusMinutes
-        : mode === "shortBreak"
-        ? settings.shortBreakMinutes
-        : settings.longBreakMinutes) * 60;
-    setTimeLeft((prev) => Math.min(maxDuration, prev + Math.max(0, seconds)));
-  }, [mode, settings]);
-
-  const skipTime = useCallback((seconds = 300) => {
-    setTimeLeft((prev) => Math.max(0, prev - Math.max(0, seconds)));
-  }, []);
-
-  const completeSession = useCallback(() => {
-    soundscapeEngine.stop();
-    soundscapeEngine.playChime();
-
-    if (mode === "focus") {
-      setIsRunning(false);
-      setCompletedSessions((count) => count + 1);
-      setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
-
-      const record: PomodoroSessionRecord = {
-        id: `sess-${Date.now()}`,
-        timestamp: Date.now(),
-        courseName: activeContext?.activeCourseName || "General Study",
-        noteTitle: activeContext?.activeNoteTitle || "Workspace Study",
-        durationMinutes: Math.max(1, Math.round(((
-        mode === "focus"
-          ? settings.focusMinutes
-          : mode === "shortBreak"
-          ? settings.shortBreakMinutes
-          : settings.longBreakMinutes
-      ) * 60 - timeLeft) / 60)),
-        efficiencyScore: activePlan ? activePlan.efficiencyScore : 95,
-        intervalsCompleted: completedSessions + 1,
-      };
-      setSessionHistory((prev) => [record, ...prev.slice(0, 49)]);
-      setMode("shortBreak");
-      setTimeLeft(settings.shortBreakMinutes * 60);
-      return;
-    }
-
-    setIsRunning(false);
-    setMode("focus");
-    setTimeLeft(settings.focusMinutes * 60);
-  }, [
-    activeContext,
-    activePlan,
-    completedSessions,
-    mode,
-    settings.focusMinutes,
-    settings.shortBreakMinutes,
-    timeLeft,
-  ]);
-
   const resetTimer = useCallback(() => {
     setIsRunning(false);
     soundscapeEngine.stop();
@@ -388,9 +331,6 @@ export function usePomodoroTimer(activeContext?: {
     setSoundscape,
     setSoundVolume,
     togglePlay,
-    addTime,
-    skipTime,
-    completeSession,
     resetTimer,
     switchMode,
     setPreset,

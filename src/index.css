@@ -845,5 +845,7 @@ html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px c
   .mobile-momentum-sheen,
   .mobile-momentum-orb,
   .mobile-momentum-icon,
-  .mobile-momentum-progress
+  .mobile-momentum-progress {
+    animation: none !important;
+  }
 }

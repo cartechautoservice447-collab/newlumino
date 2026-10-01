@@ -266,6 +266,45 @@ export function usePomodoroTimer(activeContext?: {
     setTimeLeft((prev) => Math.max(0, prev - Math.max(0, seconds)));
   }, []);
 
+  const completeSession = useCallback(() => {
+    soundscapeEngine.stop();
+    soundscapeEngine.playChime();
+
+    if (mode === "focus") {
+      const durationMinutes =
+        settings.focusMinutes;
+      setIsRunning(false);
+      setCompletedSessions((count) => count + 1);
+      setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
+
+      const record: PomodoroSessionRecord = {
+        id: "sess-" + Date.now(),
+        timestamp: Date.now(),
+        courseName: activeContext?.activeCourseName || "General Study",
+        noteTitle: activeContext?.activeNoteTitle || "Workspace Study",
+        durationMinutes,
+        efficiencyScore: activePlan ? activePlan.efficiencyScore : 95,
+        intervalsCompleted: completedSessions + 1,
+      };
+
+      setSessionHistory((prev) => [record, ...prev.slice(0, 49)]);
+      setMode("shortBreak");
+      setTimeLeft(settings.shortBreakMinutes * 60);
+      return;
+    }
+
+    setIsRunning(false);
+    setMode("focus");
+    setTimeLeft(settings.focusMinutes * 60);
+  }, [
+    activeContext,
+    activePlan,
+    completedSessions,
+    mode,
+    settings.focusMinutes,
+    settings.shortBreakMinutes,
+  ]);
+
   const resetTimer = useCallback(() => {
     setIsRunning(false);
     soundscapeEngine.stop();
@@ -347,6 +386,7 @@ export function usePomodoroTimer(activeContext?: {
     togglePlay,
     addTime,
     skipTime,
+    completeSession,
     resetTimer,
     switchMode,
     setPreset,

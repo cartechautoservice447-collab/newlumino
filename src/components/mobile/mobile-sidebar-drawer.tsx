@@ -19,10 +19,7 @@ import {
   X,
   Compass,
   Wand2,
-<<<<<<< HEAD
-=======
   Smartphone,
->>>>>>> 1231699 (Update NewLumino project)
 } from "lucide-react";
 import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
@@ -33,10 +30,7 @@ interface MobileSidebarDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onOpenSettings?: () => void;
-<<<<<<< HEAD
-=======
   onOpenAppHub?: () => void;
->>>>>>> 1231699 (Update NewLumino project)
   onOpenNewCourse?: () => void;
   onOpenPomodoro?: () => void;
   onOpenFlashcards?: () => void;
@@ -61,10 +55,7 @@ export function MobileSidebarDrawer({
   open,
   onOpenChange,
   onOpenSettings,
-<<<<<<< HEAD
-=======
   onOpenAppHub,
->>>>>>> 1231699 (Update NewLumino project)
   onOpenNewCourse,
   onOpenPomodoro,
   onOpenFlashcards,
@@ -478,8 +469,6 @@ export function MobileSidebarDrawer({
             </button>
           )}
 
-<<<<<<< HEAD
-=======
           {/* App Wrapper & Package Hub */}
           {onOpenAppHub && (
             <button
@@ -515,7 +504,6 @@ export function MobileSidebarDrawer({
             </button>
           )}
 
->>>>>>> 1231699 (Update NewLumino project)
           {/* Tool 4: Pomodoro & Soundscape */}
           {onOpenPomodoro && (
             <button

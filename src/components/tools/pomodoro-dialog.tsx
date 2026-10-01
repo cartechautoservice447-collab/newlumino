@@ -5,6 +5,9 @@ import {
   RotateCcw,
   Volume2,
   VolumeX,
+  Wand2,
+  Waves,
+
   Sparkles,
   Flame,
   CheckCircle2,
@@ -845,6 +848,7 @@ export function PomodoroDialog({
             )}
           </div>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -280,7 +280,13 @@ export function usePomodoroTimer(activeContext?: {
         timestamp: Date.now(),
         courseName: activeContext?.activeCourseName || "General Study",
         noteTitle: activeContext?.activeNoteTitle || "Workspace Study",
-        durationMinutes: Math.max(1, Math.round((totalDuration - timeLeft) / 60)),
+        durationMinutes: Math.max(1, Math.round(((
+        mode === "focus"
+          ? settings.focusMinutes
+          : mode === "shortBreak"
+          ? settings.shortBreakMinutes
+          : settings.longBreakMinutes
+      ) * 60 - timeLeft) / 60)),
         efficiencyScore: activePlan ? activePlan.efficiencyScore : 95,
         intervalsCompleted: completedSessions + 1,
       };
@@ -301,7 +307,6 @@ export function usePomodoroTimer(activeContext?: {
     settings.focusMinutes,
     settings.shortBreakMinutes,
     timeLeft,
-    totalDuration,
   ]);
 
   const resetTimer = useCallback(() => {

@@ -54,6 +54,7 @@ function MainApp() {
   const [guestMode, setGuestMode] = useState(false);
   const n = useNotes(user?.id);
   const isMobile = useIsMobile();
+  const isFluidGlass = settings.websiteTheme === "fluid-glass";
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [listOpen, setListOpen] = useState(true);
   const [focusMode, setFocusMode] = useState(false);
@@ -110,9 +111,9 @@ function MainApp() {
   // On phones, start closed
   useEffect(() => {
     if (isMobile) {
-      setSidebarOpen(false);
+      setSidebarOpen(isFluidGlass);
     }
-  }, [isMobile]);
+  }, [isMobile, isFluidGlass]);
 
   const enterFocus = () => {
     if (!n.activeCourseId && n.courses[0]) {
@@ -201,7 +202,7 @@ function MainApp() {
   // Dashboard view
   if (view === "dashboard") {
     return (
-      <ThemeStage className="h-[100dvh] min-h-[100dvh] w-full overflow-hidden">
+      <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && "p-[10px]")}>
         <CourseDashboard
           courses={n.courses}
           notes={n.notes}
@@ -504,7 +505,7 @@ function MainApp() {
   );
 
   return (
-    <ThemeStage className="h-[100dvh] min-h-[100dvh] flex flex-col">
+    <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] flex flex-col", isFluidGlass && "p-[10px]")}>
       <NotificationBanner />
 
       {/* Daily Goal View */}
@@ -575,7 +576,7 @@ function MainApp() {
       )}
 
       {/* Mobile Top Header (Luminous Glass Header when browsing notes list) */}
-      {isMobile && !focusMode && !n.selectedId && view === "workspace" && (
+      {isMobile && !isFluidGlass && !focusMode && !n.selectedId && view === "workspace" && (
         <div className="shrink-0 z-30 px-3 pt-3 pb-1">
           <div className="glass-panel animate-panel-in rounded-3xl p-1 shadow-2xl backdrop-blur-3xl border border-white/15">
             <MobileHeader
@@ -609,8 +610,8 @@ function MainApp() {
               ? "h-full p-2 sm:p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-4"
               : "h-screen p-2 sm:p-4 pb-4 md:pb-4"
         }`}>
-          {/* Mobile Slide-in Drawer: ONLY Study Tools when swiped left-to-right */}
-          {isMobile ? (
+          {/* Mobile Slide-in Drawer: NewLumino mobile workspace only. Fluid Glass keeps the original three-panel layout. */}
+          {isMobile && !isFluidGlass ? (
             <MobileSidebarDrawer
               open={sidebarOpen}
               onOpenChange={setSidebarOpen}
@@ -634,7 +635,11 @@ function MainApp() {
             /* Desktop Sidebar Panel - Exactly as original */
             <div
               className={`shrink-0 overflow-hidden transition-all duration-500 ease-out ${
-                sidebarOpen ? "w-[260px] opacity-100" : "w-0 opacity-0"
+                sidebarOpen
+                ? (isFluidGlass
+                  ? "w-[286px] min-w-[286px] opacity-100"
+                  : "w-[260px] opacity-100")
+                : "w-0 opacity-0"
               }`}
             >
               {sidebarContent}
@@ -645,7 +650,9 @@ function MainApp() {
           <div
             className={`shrink-0 overflow-hidden transition-all duration-500 ease-out ${
               listOpen
-                ? `w-full lg:block lg:w-[340px] ${n.selectedId ? "hidden" : "block"}`
+                ? (isFluidGlass
+                  ? "block h-full w-[318px] min-w-[318px] shrink-0"
+                  : `w-full lg:block lg:w-[340px] ${n.selectedId ? "hidden" : "block"}`)
                 : "hidden w-0 opacity-0"
             }`}
           >
@@ -666,7 +673,13 @@ function MainApp() {
           </div>
 
           {/* Note Editor Column */}
-          <div className={`min-w-0 flex-1 lg:block ${n.selectedId || !listOpen ? "block" : "hidden"}`}>
+          <div
+            className={
+              isFluidGlass
+                ? "block h-full min-w-[280px] flex-1"
+                : `min-w-0 flex-1 lg:block ${n.selectedId || !listOpen ? "block" : "hidden"}`
+            }
+          >
             <NoteEditor
               note={n.selected}
               collections={n.collections}
@@ -701,7 +714,7 @@ function MainApp() {
       )}
 
       {/* Mobile Formatting Accessory Bar (visible when actively writing on mobile) */}
-      {isMobile && n.selectedId && !focusMode && view === "workspace" && (
+      {isMobile && !isFluidGlass && n.selectedId && !focusMode && view === "workspace" && (
         <MobileAccessoryBar
           onInsertMarkdown={handleMobileInsertMarkdown}
           onInsertCodeBlock={handleMobileInsertCodeBlock}
@@ -710,7 +723,7 @@ function MainApp() {
       )}
 
       {/* Mobile Floating Bottom Dock (Only shown when browsing courses or note list, hidden in editor for maximum room) */}
-      {isMobile && !n.selectedId && !focusMode && (
+      {isMobile && !isFluidGlass && !n.selectedId && !focusMode && (
         <MobileBottomDock
           currentView={view}
           selectedNoteId={n.selectedId}
@@ -744,7 +757,7 @@ function MainApp() {
       )}
 
       {/* Desktop Toggle Sidebar / List buttons (Untouched) */}
-      {!sidebarOpen && !focusMode && !isMobile ? (
+      {!sidebarOpen && !focusMode && (!isMobile || isFluidGlass) ? (
         <button
           type="button"
           aria-label="Show sidebar"
@@ -755,7 +768,7 @@ function MainApp() {
         </button>
       ) : null}
 
-      {!listOpen && !focusMode && !isMobile ? (
+      {!listOpen && !focusMode && (!isMobile || isFluidGlass) ? (
         <button
           type="button"
           aria-label="Show note list"

@@ -1,22 +1,18 @@
-import { useMemo, useRef, useState, type LucideIcon } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   Bell,
   BookOpen,
-  Brain,
   Bookmark,
   ChevronRight,
-  Cloud,
   Flag,
   Flame,
-  Layers,
+  FolderOpen,
   Mic,
   PlayCircle,
   Plus,
   Search,
   Sparkles,
-  Star,
-  Terminal,
   Timer,
   Volume2,
   Wrench,
@@ -39,15 +35,6 @@ type Props = {
   todayFocusSeconds?: number;
   dailyGoalHours?: number;
   onNavigateDailyGoal?: () => void;
-};
-
-const COURSE_ICON: Record<CourseAccent, LucideIcon> = {
-  amber: Brain,
-  cyan: Terminal,
-  emerald: Cloud,
-  rose: Star,
-  sky: Terminal,
-  violet: Cloud,
 };
 
 const COURSE_ACCENT: Record<CourseAccent, { text: string; border: string; bg: string; glow: string }> = {
@@ -519,7 +506,7 @@ export function SpatialAuroraDashboard({
             {filteredCourses.length > 0 ? (
               <div className="flex flex-col gap-3">
                 {filteredCourses.map((course) => {
-                  const Icon = COURSE_ICON[course.color] ?? Terminal;
+                  const Icon = FolderOpen;
                   const accent = COURSE_ACCENT[course.color] ?? COURSE_ACCENT.sky;
                   const noteCount = noteCountByCourse.get(course.id) ?? 0;
                   const latest = latestNoteByCourse.get(course.id);
@@ -600,7 +587,7 @@ export function SpatialAuroraDashboard({
         <div className="pointer-events-auto flex h-16 w-full max-w-[420px] items-center justify-between rounded-full border border-white/[0.09] bg-[#0a0f18]/85 px-3 shadow-[0_20px_48px_-8px_rgba(0,0,0,.85)] backdrop-blur-2xl">
           <button
             type="button"
-            onClick={() => document.querySelector(".spatial-aurora-dashboard main")?.scrollTo({ top: 0, behavior: "smooth" })}
+            onClick={() => (document.querySelector(".spatial-aurora-dashboard main") as HTMLElement | null)?.scrollTo({ top: 0, behavior: "smooth" })}
             className="flex h-full flex-1 flex-col items-center justify-center text-emerald-300"
           >
             <BookOpen className="h-[22px] w-[22px]" />

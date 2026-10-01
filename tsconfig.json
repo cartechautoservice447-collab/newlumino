@@ -4,11 +4,7 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "module": "ESNext",
-<<<<<<< HEAD
-    "types": ["vite/client"],
-=======
     "types": ["vite/client", "vite-plugin-pwa/client"],
->>>>>>> 1231699 (Update NewLumino project)
     "lib": [
       "ES2022",
       "DOM",

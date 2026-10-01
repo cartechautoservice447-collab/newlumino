@@ -51,7 +51,7 @@ export function MobileMomentumAndActivity({
 
   return (
     <>
-      <section className="sm:hidden relative mt-2 mb-2 overflow-hidden mobile-momentum-card rounded-[26px] border border-white/[0.08] bg-[linear-gradient(135deg,rgba(26,34,51,.72),rgba(10,15,24,.9))] p-6 shadow-[0_16px_42px_-16px_rgba(0,0,0,.7)] backdrop-blur-[28px]">
+      <section className="sm:hidden relative mt-2 mb-2 overflow-hidden glass-panel rounded-[26px] p-6">
         <div className="relative z-10">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2">

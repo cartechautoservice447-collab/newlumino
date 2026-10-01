@@ -113,7 +113,7 @@ function NoteCard({
           </button>
 
           {/* Mobile-only quick context menu trigger */}
-          {onOpenMobileMenu ? (
+          {onOpenMobileMenu && !isFluidGlass ? (
             <button
               type="button"
               aria-label="Note options"

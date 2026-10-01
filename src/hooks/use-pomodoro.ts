@@ -252,6 +252,16 @@ export function usePomodoroTimer(activeContext?: {
     });
   }, []);
 
+  const addTime = useCallback((seconds = 300) => {
+    const maxDuration =
+      (mode === "focus"
+        ? settings.focusMinutes
+        : mode === "shortBreak"
+        ? settings.shortBreakMinutes
+        : settings.longBreakMinutes) * 60;
+    setTimeLeft((prev) => Math.min(maxDuration, prev + Math.max(0, seconds)));
+  }, [mode, settings]);
+
   const resetTimer = useCallback(() => {
     setIsRunning(false);
     soundscapeEngine.stop();
@@ -331,6 +341,7 @@ export function usePomodoroTimer(activeContext?: {
     setSoundscape,
     setSoundVolume,
     togglePlay,
+    addTime,
     resetTimer,
     switchMode,
     setPreset,

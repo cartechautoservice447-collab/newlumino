@@ -34,12 +34,9 @@ import { AiExamSimulatorDialog } from "@/components/tools/ai-exam-simulator-dial
 import { AiNotePolisherDialog } from "@/components/tools/ai-note-polisher-dialog";
 import { NotificationBanner } from "@/components/ui/notification-banner";
 import { ZenFocusBar } from "@/components/zen/zen-focus-bar";
-<<<<<<< HEAD
-=======
 import { AppWrapperHubDialog } from "@/components/pwa/app-wrapper-hub-dialog";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
 import { PWAInstallButton } from "@/components/pwa/pwa-install-button";
->>>>>>> 1231699 (Update NewLumino project)
 import type { Note } from "@/lib/notes";
 
 export default function App() {
@@ -111,8 +108,6 @@ function AuthenticatedApp({
   const [autoAIGenerateCards, setAutoAIGenerateCards] = useState(false);
   const [examSimulatorOpen, setExamSimulatorOpen] = useState(false);
   const [notePolisherOpen, setNotePolisherOpen] = useState(false);
-<<<<<<< HEAD
-=======
   const [appWrapperHubOpen, setAppWrapperHubOpen] = useState(false);
 
   // Native PWA Shortcut and Performance boost initialization
@@ -132,7 +127,6 @@ function AuthenticatedApp({
     const perfBoost = localStorage.getItem("newlumino_perf_boost") === "true";
     document.documentElement.setAttribute("data-perf-boost", perfBoost ? "true" : "false");
   }, []);
->>>>>>> 1231699 (Update NewLumino project)
 
   // Listen for Pomodoro focus session completion
   useEffect(() => {
@@ -323,10 +317,7 @@ function AuthenticatedApp({
               });
             }}
             onOpenSettings={() => setSettingsOpen(true)}
-<<<<<<< HEAD
-=======
             onOpenAppHub={() => setAppWrapperHubOpen(true)}
->>>>>>> 1231699 (Update NewLumino project)
             onOpenMenu={() => setSidebarOpen(true)}
             onQuickNewNote={() => setMobileDraftOpen(true)}
             onOpenNote={(noteId, courseId) => {
@@ -469,10 +460,7 @@ function AuthenticatedApp({
           open={mobileToolsOpen}
           onOpenChange={setMobileToolsOpen}
           onOpenSettings={() => setSettingsOpen(true)}
-<<<<<<< HEAD
-=======
           onOpenAppHub={() => setAppWrapperHubOpen(true)}
->>>>>>> 1231699 (Update NewLumino project)
           onOpenNewCourse={() => {
             const name = prompt("Course Name:");
             if (name?.trim()) {
@@ -544,18 +532,13 @@ function AuthenticatedApp({
           isSyncing={n.isSyncing}
           onRefresh={() => void n.refreshFromCloud()}
           onOpenAuth={onOpenAuth}
-<<<<<<< HEAD
-=======
           onOpenAppHub={() => setAppWrapperHubOpen(true)}
->>>>>>> 1231699 (Update NewLumino project)
           noteTitle={n.selected?.title || n.notes[0]?.title}
           activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
           focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
           dailyGoalHours={pomodoro.dailyGoalHours}
         />
 
-<<<<<<< HEAD
-=======
         <AppWrapperHubDialog
           open={appWrapperHubOpen}
           onOpenChange={setAppWrapperHubOpen}
@@ -563,7 +546,6 @@ function AuthenticatedApp({
 
         <OfflineBanner />
 
->>>>>>> 1231699 (Update NewLumino project)
         <AiExamSimulatorDialog
           open={examSimulatorOpen}
           onOpenChange={setExamSimulatorOpen}
@@ -601,10 +583,7 @@ function AuthenticatedApp({
       onCollapse={() => setSidebarOpen(false)}
       onBackToCourses={backToCourses}
       onOpenSettings={() => setSettingsOpen(true)}
-<<<<<<< HEAD
-=======
       onOpenAppHub={() => setAppWrapperHubOpen(true)}
->>>>>>> 1231699 (Update NewLumino project)
       onOpenPomodoro={() => setPomodoroDialogOpen(true)}
       onOpenFlashcards={() => {
         setFlashcardTargetNote(n.selected);
@@ -714,10 +693,7 @@ function AuthenticatedApp({
               showBack={false}
               onOpenSidebar={() => setSidebarOpen(true)}
               onOpenSettings={() => setSettingsOpen(true)}
-<<<<<<< HEAD
-=======
               onOpenAppHub={() => setAppWrapperHubOpen(true)}
->>>>>>> 1231699 (Update NewLumino project)
               showSearch={mobileSearchOpen}
               onToggleSearch={() => setMobileSearchOpen(!mobileSearchOpen)}
               searchQuery={n.query}
@@ -750,10 +726,7 @@ function AuthenticatedApp({
               open={sidebarOpen}
               onOpenChange={setSidebarOpen}
               onOpenSettings={() => setSettingsOpen(true)}
-<<<<<<< HEAD
-=======
               onOpenAppHub={() => setAppWrapperHubOpen(true)}
->>>>>>> 1231699 (Update NewLumino project)
               onOpenNewCourse={() => setNewCourseModalOpen(true)}
               onOpenPomodoro={() => setPomodoroDialogOpen(true)}
               onOpenFlashcards={() => {
@@ -959,10 +932,7 @@ function AuthenticatedApp({
         onDeleteCollection={n.deleteCollection}
         onBackToCourses={backToCourses}
         onOpenSettings={() => setSettingsOpen(true)}
-<<<<<<< HEAD
-=======
         onOpenAppHub={() => setAppWrapperHubOpen(true)}
->>>>>>> 1231699 (Update NewLumino project)
         onOpenNewCourse={() => setNewCourseModalOpen(true)}
         onOpenPomodoro={() => setPomodoroDialogOpen(true)}
         onOpenFlashcards={() => {
@@ -1049,18 +1019,13 @@ function AuthenticatedApp({
         isSyncing={n.isSyncing}
         onRefresh={() => void n.refreshFromCloud()}
         onOpenAuth={onOpenAuth}
-<<<<<<< HEAD
-=======
         onOpenAppHub={() => setAppWrapperHubOpen(true)}
->>>>>>> 1231699 (Update NewLumino project)
         noteTitle={n.selected?.title || n.visibleNotes[0]?.title}
         activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
         focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
         dailyGoalHours={pomodoro.dailyGoalHours}
       />
 
-<<<<<<< HEAD
-=======
       <AppWrapperHubDialog
         open={appWrapperHubOpen}
         onOpenChange={setAppWrapperHubOpen}
@@ -1068,7 +1033,6 @@ function AuthenticatedApp({
 
       <OfflineBanner />
 
->>>>>>> 1231699 (Update NewLumino project)
       <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />
 
       <AiExamSimulatorDialog

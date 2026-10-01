@@ -25,6 +25,10 @@ import {
   Moon,
   Sparkles,
   Wand2,
+<<<<<<< HEAD
+=======
+  Smartphone,
+>>>>>>> 1231699 (Update NewLumino project)
 } from "lucide-react";
 import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
@@ -47,6 +51,10 @@ type Props = {
   onBackToCourses?: () => void;
   // Tool options
   onOpenSettings: () => void;
+<<<<<<< HEAD
+=======
+  onOpenAppHub?: () => void;
+>>>>>>> 1231699 (Update NewLumino project)
   onOpenNewCourse: () => void;
   onOpenPomodoro: () => void;
   onOpenFlashcards: () => void;
@@ -79,6 +87,10 @@ export function MobileMoreOptionsSheet({
   onDeleteCollection,
   onBackToCourses,
   onOpenSettings,
+<<<<<<< HEAD
+=======
+  onOpenAppHub,
+>>>>>>> 1231699 (Update NewLumino project)
   onOpenNewCourse,
   onOpenPomodoro,
   onOpenFlashcards,
@@ -643,6 +655,42 @@ export function MobileMoreOptionsSheet({
                 <ChevronRight className="h-3.5 w-3.5 text-purple-300/70 transition-transform group-active:translate-x-1 shrink-0" />
               </button>
 
+<<<<<<< HEAD
+=======
+              {/* Option: Native App Wrapper & Offline Hub */}
+              {onOpenAppHub && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic("medium");
+                    handleClose();
+                    onOpenAppHub();
+                  }}
+                  className="glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-3 text-left transition-all duration-200 ease-out cursor-pointer hover:border-emerald-500/50 hover:bg-emerald-500/20 active:scale-[0.96]"
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/20 text-emerald-300">
+                      <Smartphone className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="text-xs font-bold text-foreground truncate">
+                          Native App Wrapper &amp; Offline
+                        </h4>
+                        <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-emerald-300">
+                          iOS / Android
+                        </span>
+                      </div>
+                      <p className="text-[0.68rem] text-muted-foreground truncate">
+                        Download wrapper, push alerts &amp; 100% offline study
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-3.5 w-3.5 text-emerald-300/70 transition-transform group-active:translate-x-1 shrink-0" />
+                </button>
+              )}
+
+>>>>>>> 1231699 (Update NewLumino project)
               {/* Option 3: Zen Focus Mode */}
               {onToggleFocus && (
                 <button

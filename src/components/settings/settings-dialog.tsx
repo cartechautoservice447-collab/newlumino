@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+<<<<<<< HEAD
 import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud, Moon, Sun, Droplets, Zap } from "lucide-react";
+=======
+import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud, Moon, Sun, Droplets, Zap, Smartphone, Download } from "lucide-react";
+>>>>>>> 1231699 (Update NewLumino project)
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -145,12 +149,20 @@ function SettingsContent({
   activeCourseName,
   focusMinutes,
   dailyGoalHours,
+<<<<<<< HEAD
+=======
+  onOpenAppHub,
+>>>>>>> 1231699 (Update NewLumino project)
 }: {
   realtimeStatus?: "connected" | "connecting" | "offline";
   isSyncing?: boolean;
   onRefresh?: () => void;
   onOpenAuth?: () => void;
   onClose?: () => void;
+<<<<<<< HEAD
+=======
+  onOpenAppHub?: () => void;
+>>>>>>> 1231699 (Update NewLumino project)
   noteTitle?: string;
   activeCourseName?: string;
   focusMinutes?: number;
@@ -238,6 +250,46 @@ function SettingsContent({
         </div>
       </Section>
 
+<<<<<<< HEAD
+=======
+      {/* Native App Wrapper, iOS/Android Packaging & Offline Section */}
+      <Section
+        title="Native App Wrapper & Mobile Packaging"
+        hint="Download original app wrapper package for iOS & Android with native push notifications and offline caching."
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3.5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+              <Smartphone className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-foreground">
+                iOS &amp; Android App Packages
+              </p>
+              <p className="text-[0.68rem] text-muted-foreground mt-0.5">
+                Standalone PWA, TWA / APK configs, Apple .mobileconfig, 100% offline cache &amp; lag fix.
+              </p>
+            </div>
+          </div>
+
+          {onOpenAppHub && (
+            <button
+              type="button"
+              onClick={() => {
+                haptic("medium");
+                if (onClose) onClose();
+                onOpenAppHub();
+              }}
+              className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 active:scale-95 transition cursor-pointer shrink-0 shadow-sm"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span>Open App Hub</span>
+            </button>
+          )}
+        </div>
+      </Section>
+
+>>>>>>> 1231699 (Update NewLumino project)
       {/* AI-Integrated Notification System Section */}
       <AiNotificationSection
         noteTitle={noteTitle}
@@ -1257,6 +1309,10 @@ export function SettingsDialog({
   activeCourseName,
   focusMinutes,
   dailyGoalHours,
+<<<<<<< HEAD
+=======
+  onOpenAppHub,
+>>>>>>> 1231699 (Update NewLumino project)
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1264,6 +1320,10 @@ export function SettingsDialog({
   isSyncing?: boolean;
   onRefresh?: () => void;
   onOpenAuth?: () => void;
+<<<<<<< HEAD
+=======
+  onOpenAppHub?: () => void;
+>>>>>>> 1231699 (Update NewLumino project)
   noteTitle?: string;
   activeCourseName?: string;
   focusMinutes?: number;
@@ -1281,6 +1341,10 @@ export function SettingsDialog({
           onRefresh={onRefresh}
           onOpenAuth={onOpenAuth}
           onClose={() => onOpenChange(false)}
+<<<<<<< HEAD
+=======
+          onOpenAppHub={onOpenAppHub}
+>>>>>>> 1231699 (Update NewLumino project)
           noteTitle={noteTitle}
           activeCourseName={activeCourseName}
           focusMinutes={focusMinutes}
@@ -1312,6 +1376,10 @@ export function SettingsDialog({
           onRefresh={onRefresh}
           onOpenAuth={onOpenAuth}
           onClose={() => onOpenChange(false)}
+<<<<<<< HEAD
+=======
+          onOpenAppHub={onOpenAppHub}
+>>>>>>> 1231699 (Update NewLumino project)
           noteTitle={noteTitle}
           activeCourseName={activeCourseName}
           focusMinutes={focusMinutes}

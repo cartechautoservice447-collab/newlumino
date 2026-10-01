@@ -3,6 +3,10 @@ import { GoogleGenAI, Type } from "@google/genai";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+<<<<<<< HEAD
+=======
+import JSZip from "jszip";
+>>>>>>> 1231699 (Update NewLumino project)
 
 dotenv.config();
 
@@ -939,6 +943,509 @@ Formatting Rules:
   });
 });
 
+<<<<<<< HEAD
+=======
+// ============================================================================
+// DIRECT NATIVE APP WRAPPER DOWNLOAD ENDPOINTS
+// ============================================================================
+
+app.use("/release", express.static(path.resolve(__dirname, "release")));
+
+// 1. Android Native Wrapper Package (.ZIP)
+app.get("/api/download/android-wrapper", async (req, res) => {
+  try {
+    const origin = `${req.protocol}://${req.get("host") || "localhost:3000"}`;
+    const zip = new JSZip();
+
+    zip.file(
+      "AndroidManifest.xml",
+      `<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.newlumino.studio">
+
+    <!-- Permissions for Offline Sync, Vibration & Native Push -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="NewLumino"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Design.NoActionBar"
+        android:hardwareAccelerated="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Design.NoActionBar"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Deep Linking for Active Recall & Notes -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="${req.get("host") || "localhost:3000"}" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>`
+    );
+
+    zip.file(
+      "capacitor.config.json",
+      JSON.stringify(
+        {
+          appId: "com.newlumino.studio",
+          appName: "NewLumino",
+          webDir: "dist",
+          server: {
+            url: origin,
+            cleartext: false,
+            androidScheme: "https",
+          },
+          plugins: {
+            SplashScreen: {
+              launchShowDuration: 1500,
+              backgroundColor: "#090d16",
+              showSpinner: false,
+            },
+            PushNotifications: {
+              presentationOptions: ["badge", "sound", "alert"],
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    zip.file(
+      "build.gradle",
+      `apply plugin: 'com.android.application'
+
+android {
+    namespace "com.newlumino.studio"
+    compileSdkVersion 34
+    defaultConfig {
+        applicationId "com.newlumino.studio"
+        minSdkVersion 22
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+}`
+    );
+
+    zip.file(
+      "README-ANDROID.md",
+      `# NewLumino Android App Wrapper
+
+Target URL: ${origin}
+
+## Build Instructions:
+1. Open this directory or initialize Capacitor:
+   \`npx @capacitor/cli init "NewLumino" "com.newlumino.studio" --web-dir dist\`
+2. Add android target:
+   \`npx cap add android\`
+3. Replace the generated files with this wrapper's AndroidManifest.xml and capacitor.config.json.
+4. Run in Android Studio or build release APK:
+   \`npx cap run android\` or \`./gradlew assembleRelease\`
+`
+    );
+
+    const buffer = await zip.generateAsync({ type: "nodebuffer" });
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", 'attachment; filename="newlumino-android-wrapper.zip"');
+    res.send(buffer);
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to generate Android wrapper", details: err?.message });
+  }
+});
+
+// 2. iOS Native Wrapper Package (.ZIP)
+app.get("/api/download/ios-wrapper", async (req, res) => {
+  try {
+    const origin = `${req.protocol}://${req.get("host") || "localhost:3000"}`;
+    const zip = new JSZip();
+
+    zip.file(
+      "ViewController.swift",
+      `//
+//  ViewController.swift
+//  NewLumino — Liquid Glass Study Studio
+//
+
+import UIKit
+import WebKit
+
+class ViewController: UIViewController, WKUIDelegate, WKNavigationDelegate {
+
+    var webView: WKWebView!
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let configuration = WKWebViewConfiguration()
+        configuration.allowsInlineMediaPlayback = true
+        configuration.mediaTypesRequiringUserActionForPlayback = []
+        
+        // Enable persistent offline data storage
+        configuration.websiteDataStore = WKWebsiteDataStore.default()
+
+        webView = WKWebView(frame: view.bounds, configuration: configuration)
+        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        webView.uiDelegate = self
+        webView.navigationDelegate = self
+        webView.isOpaque = false
+        webView.backgroundColor = UIColor(red: 9/255, green: 13/255, blue: 22/255, alpha: 1.0)
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+
+        view.addSubview(webView)
+
+        if let targetURL = URL(string: "${origin}") {
+            let request = URLRequest(url: targetURL, cachePolicy: .returnCacheDataElseLoad)
+            webView.load(request)
+        }
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+}`
+    );
+
+    zip.file(
+      "Info.plist",
+      `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>NewLumino</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.newlumino.studio</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+    </dict>
+    <key>UIStatusBarStyle</key>
+    <string>UIStatusBarStyleLightContent</string>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <true/>
+</dict>
+</plist>`
+    );
+
+    zip.file(
+      "Podfile",
+      `platform :ios, '15.0'
+use_frameworks!
+
+target 'NewLumino' do
+  # Pods for NewLumino
+end`
+    );
+
+    zip.file(
+      "README-IOS.md",
+      `# NewLumino iOS Native App Wrapper
+
+Target URL: ${origin}
+
+## Build Instructions (Xcode):
+1. Create a new "App" project in Xcode named "NewLumino".
+2. Replace \`ViewController.swift\` with the provided file.
+3. Update \`Info.plist\` with the provided keys.
+4. Set Signing & Capabilities -> Select your Apple Developer Account.
+5. Build and run on your iPhone / iPad or simulator!
+`
+    );
+
+    const buffer = await zip.generateAsync({ type: "nodebuffer" });
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", 'attachment; filename="newlumino-ios-wrapper.zip"');
+    res.send(buffer);
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to generate iOS wrapper", details: err?.message });
+  }
+});
+
+// 3. Apple .mobileconfig Direct Profile Download
+app.get("/api/download/apple-profile", (req, res) => {
+  const origin = `${req.protocol}://${req.get("host") || "localhost:3000"}`;
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>FullScreen</key>
+            <true/>
+            <key>Icon</key>
+            <data></data>
+            <key>IsRemovable</key>
+            <true/>
+            <key>Label</key>
+            <string>NewLumino</string>
+            <key>PayloadDescription</key>
+            <string>Adds NewLumino standalone active recall study studio to home screen.</string>
+            <key>PayloadDisplayName</key>
+            <string>NewLumino WebClip</string>
+            <key>PayloadIdentifier</key>
+            <string>com.newlumino.webclip</string>
+            <key>PayloadType</key>
+            <string>com.apple.webClip.managed</string>
+            <key>PayloadUUID</key>
+            <string>B1A990D2-E40B-4DCE-9F40-10C4BB3D0192</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>Precomposed</key>
+            <true/>
+            <key>URL</key>
+            <string>${origin}</string>
+        </dict>
+    </array>
+    <key>PayloadDisplayName</key>
+    <string>NewLumino Studio</string>
+    <key>PayloadIdentifier</key>
+    <string>com.newlumino.profile</string>
+    <key>PayloadOrganization</key>
+    <string>NewLumino Systems</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>4B6E14B2-7935-4315-985B-5B20B37FEFE9</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>`;
+
+  res.setHeader("Content-Type", "application/x-apple-aspen-config; charset=utf-8");
+  res.setHeader("Content-Disposition", 'attachment; filename="newlumino.mobileconfig"');
+  res.send(xml);
+});
+
+// 4. Download Landing Page
+app.get("/download", (req, res) => {
+  const origin = `${req.protocol}://${req.get("host") || "localhost:3000"}`;
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Download NewLumino — iOS & Android App Wrapper</title>
+  <meta name="theme-color" content="#090d16" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #090d16 radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.15), transparent 70%);
+      color: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 520px;
+      width: 100%;
+      background: rgba(18, 25, 40, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px;
+      padding: 32px 28px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #10b981;
+      color: #022c22;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+    }
+    .btn-primary:hover {
+      background: #34d399;
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+      transform: translateY(-2px);
+    }
+    .steps {
+      text-align: left;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 20px;
+      margin-top: 10px;
+    }
+    .steps h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .step-num {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .footer-link {
+      margin-top: 16px;
+      display: inline-block;
+      font-size: 12px;
+      color: #34d399;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Official App Downloads</div>
+    <h1>Download NewLumino</h1>
+    <p class="subtitle">Install the standalone app on your home screen or download the original native iOS & Android source wrappers.</p>
+
+    <div class="btn-group">
+      <a class="btn btn-primary" href="${origin}">
+        🚀 Open &amp; 1-Click Install NewLumino App
+      </a>
+      <a class="btn btn-secondary" href="https://github.com/cartechautoservice447-collab/newlumino/releases" target="_blank" rel="noopener noreferrer">
+        📦 GitHub Releases Page (Assets &amp; Changelog)
+      </a>
+      <a class="btn btn-secondary" href="/release/NewLumino-Android-Wrapper-v1.0.0.zip">
+        🤖 Download Android Package (v1.0.0 ZIP)
+      </a>
+      <a class="btn btn-secondary" href="/release/NewLumino-iOS-Home-Screen.mobileconfig">
+        🍎 Download iOS Profile (.mobileconfig)
+      </a>
+      <a class="btn btn-secondary" href="/release/NewLumino-iOS-Wrapper-v1.0.0.zip">
+        📱 Download iOS Xcode Wrapper (v1.0.0 ZIP)
+      </a>
+    </div>
+
+    <div class="steps">
+      <h3>Quick 10-Second Home Screen Install:</h3>
+      <div class="step-item">
+        <span class="step-num">1</span>
+        <span><strong>iPhone / iPad:</strong> Open in Safari &rarr; Tap Share button &rarr; Tap <strong>Add to Home Screen</strong>.</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">2</span>
+        <span><strong>Android Phone:</strong> Open in Chrome &rarr; Tap top <strong>Install App</strong> button or 3-dot menu &rarr; <strong>Install</strong>.</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">3</span>
+        <span><strong>Mac / Windows:</strong> Click the glowing <strong>Install App</strong> pill in the top header.</span>
+      </div>
+    </div>
+
+    <a class="footer-link" href="${origin}">Return to NewLumino Workspace &rarr;</a>
+  </div>
+</body>
+</html>`);
+});
+
+>>>>>>> 1231699 (Update NewLumino project)
 // Health check endpoint
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", aiConfigured: Boolean(process.env.GEMINI_API_KEY) });
@@ -949,7 +1456,11 @@ async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
+<<<<<<< HEAD
       server: { middlewareMode: true },
+=======
+      server: { middlewareMode: true, hmr: false },
+>>>>>>> 1231699 (Update NewLumino project)
       appType: "spa",
     });
     app.use(vite.middlewares);

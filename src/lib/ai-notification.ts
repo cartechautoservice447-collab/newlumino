@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+import { sendNativeNotification } from "./push-notifications";
+
+>>>>>>> 1231699 (Update NewLumino project)
 export type AiNotificationPersona = "coach" | "professor" | "zen" | "hacker";
 
 export type AiNotificationCategory =
@@ -111,6 +116,14 @@ export async function generateAiNotification(options: {
     const data = await res.json();
     if (data.notification) {
       recordNotificationHistory(data.notification);
+<<<<<<< HEAD
+=======
+      // Dispatch to native system notification tray
+      sendNativeNotification(data.notification.title, {
+        body: data.notification.message,
+        tag: "ai-study-" + Date.now(),
+      }).catch(() => {});
+>>>>>>> 1231699 (Update NewLumino project)
       return data.notification;
     }
   } catch (err) {
@@ -127,5 +140,12 @@ export async function generateAiNotification(options: {
   };
 
   recordNotificationHistory(localFallback);
+<<<<<<< HEAD
+=======
+  sendNativeNotification(localFallback.title, {
+    body: localFallback.message,
+    tag: "ai-study-" + Date.now(),
+  }).catch(() => {});
+>>>>>>> 1231699 (Update NewLumino project)
   return localFallback;
 }

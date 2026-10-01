@@ -6,3 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
+<<<<<<< HEAD
+=======
+.gradle/
+android/.gradle/
+android/app/build/
+android/build/
+release/NewLumino-Android-*.apk
+>>>>>>> 1231699 (Update NewLumino project)

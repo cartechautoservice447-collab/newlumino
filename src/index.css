@@ -759,3 +759,71 @@ html[data-ui-text-clarity="punchy"] .text-foreground { color: #fff !important; t
 html[data-ui-text-clarity="punchy"] .text-muted-foreground { color: oklch(0.94 0.01 250) !important; text-shadow: 0 0 0.28px currentColor; }
 html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px currentColor; }
 
+<<<<<<< HEAD
+=======
+/* ==========================================================================
+   MOBILE APP WRAPPER & 120HZ LAG-FREE ENGINE
+   Hardware acceleration, touch optimization, safe-area insets & performance mode
+   ========================================================================== */
+
+/* Eliminate 300ms mobile touch delay */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, input, textarea, select, [role="button"], [role="tab"], .clickable {
+  touch-action: manipulation;
+}
+
+/* GPU Hardware Compositing for fluid 60fps/120fps transitions */
+.glass-panel,
+.liquid-surface,
+[data-radix-popper-content-wrapper],
+[role="dialog"] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Mobile Momentum Scrolling */
+.overflow-y-auto,
+.overflow-x-auto,
+[data-scroll-container] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Safe Area Insets for iOS Notch / Dynamic Island & Android Navigation Bar */
+.safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+}
+
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Mobile GPU Refraction Throttle: Disables costly SVG displacement map on phones */
+@media (max-width: 768px), (pointer: coarse) {
+  [data-liquid-glass="on"] .glass-panel::before,
+  [data-theme="fluid-glass"] .glass-panel::after {
+    filter: none !important;
+  }
+  .liquid-surface {
+    filter: none !important;
+  }
+}
+
+/* Ultra-Smooth Performance / Lag Reducer Mode */
+[data-perf-boost="true"] .glass-panel,
+[data-perf-boost="true"] .liquid-surface {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  filter: none !important;
+}
+
+[data-perf-boost="true"] * {
+  transition-duration: 180ms !important;
+}
+
+
+>>>>>>> 1231699 (Update NewLumino project)

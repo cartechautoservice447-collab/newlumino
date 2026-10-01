@@ -1,0 +1,73 @@
+name: Build & Release Android App (.APK)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release Version Tag (e.g. v1.0.0)'
+        required: false
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17 (JDK)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Build Web Application
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+          cd ..
+          mkdir -p release
+          cp android/app/build/outputs/apk/debug/app-debug.apk release/NewLumino-Android-${{ github.event.inputs.version || github.ref_name || 'v1.0.0' }}.apk
+          echo "APK successfully built: release/NewLumino-Android-${{ github.event.inputs.version || github.ref_name || 'v1.0.0' }}.apk"
+
+      - name: Package Native Release Assets
+        run: node scripts/package-release.js
+
+      - name: Create GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "NewLumino ${{ github.event.inputs.version || github.ref_name || 'v1.0.0' }}"
+          tag_name: ${{ github.event.inputs.version || github.ref_name || 'v1.0.0' }}
+          body_path: release/RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          files: |
+            release/NewLumino-Android-*.apk
+            release/NewLumino-Android-Wrapper-v1.0.0.zip
+            release/NewLumino-iOS-Wrapper-v1.0.0.zip
+            release/NewLumino-iOS-Home-Screen.mobileconfig
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -17,7 +17,13 @@ import {
   Clock,
   Flame,
   Zap,
+<<<<<<< HEAD
 } from "lucide-react";
+=======
+  Smartphone,
+} from "lucide-react";
+import { PWAInstallButton } from "@/components/pwa/pwa-install-button";
+>>>>>>> 1231699 (Update NewLumino project)
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { COURSE_ACCENTS, formatDate, type Course, type CourseAccent, type Note } from "@/lib/notes";
@@ -79,6 +85,10 @@ type Props = {
   onAddCourse: (name: string, description?: string, color?: CourseAccent, category?: string) => void;
   onDeleteCourse: (id: string) => void;
   onOpenSettings: () => void;
+<<<<<<< HEAD
+=======
+  onOpenAppHub?: () => void;
+>>>>>>> 1231699 (Update NewLumino project)
   onOpenMenu?: () => void;
   onQuickNewNote?: () => void;
   onOpenNote?: (noteId: string, courseId?: string) => void;
@@ -100,6 +110,10 @@ export function CourseDashboard({
   onAddCourse,
   onDeleteCourse,
   onOpenSettings,
+<<<<<<< HEAD
+=======
+  onOpenAppHub,
+>>>>>>> 1231699 (Update NewLumino project)
   onOpenMenu,
   onOpenNote,
   onOpenAllNotes,
@@ -245,6 +259,27 @@ export function CourseDashboard({
 
           {/* Action Buttons: Settings Gear Icon on Mobile & Desktop */}
           <div className="flex items-center gap-2 shrink-0">
+<<<<<<< HEAD
+=======
+            {onOpenAppHub && (
+              <PWAInstallButton
+                variant="pill"
+                onOpenHub={onOpenAppHub}
+              />
+            )}
+            {onOpenAppHub && (
+              <button
+                type="button"
+                aria-label="App Hub & Mobile Packaging"
+                onClick={onOpenAppHub}
+                className="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5 sm:px-3 sm:py-2.5 text-xs sm:text-sm font-medium text-emerald-300 transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-500/20 active:scale-95 cursor-pointer shadow-sm"
+                title="iOS & Android App Wrapper, Offline & Push"
+              >
+                <Smartphone className="h-4 w-4 text-emerald-400" />
+                <span className="hidden sm:inline">App Hub</span>
+              </button>
+            )}
+>>>>>>> 1231699 (Update NewLumino project)
             <button
               type="button"
               aria-label="Settings"

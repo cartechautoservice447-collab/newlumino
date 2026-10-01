@@ -1,0 +1,14 @@
+{
+  "appId": "com.newlumino.studio",
+  "appName": "NewLumino",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#090d16"
+    }
+  }
+}

@@ -19,6 +19,10 @@ import {
   Maximize2,
   FileText,
   Bell,
+<<<<<<< HEAD
+=======
+  Smartphone,
+>>>>>>> 1231699 (Update NewLumino project)
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
@@ -39,6 +43,10 @@ type Props = {
   onDeleteCollection: (id: string) => void;
   onCollapse: () => void;
   onOpenSettings: () => void;
+<<<<<<< HEAD
+=======
+  onOpenAppHub?: () => void;
+>>>>>>> 1231699 (Update NewLumino project)
   onBackToCourses: () => void;
   onOpenPomodoro?: () => void;
   onOpenFlashcards?: () => void;
@@ -117,6 +125,10 @@ export function SidebarPanel({
   onDeleteCollection,
   onCollapse,
   onOpenSettings,
+<<<<<<< HEAD
+=======
+  onOpenAppHub,
+>>>>>>> 1231699 (Update NewLumino project)
   onBackToCourses,
   onOpenPomodoro,
   onOpenFlashcards,
@@ -130,6 +142,10 @@ export function SidebarPanel({
   todayFocusSeconds = 0,
   dailyGoalHours = 2,
 }: Props) {
+<<<<<<< HEAD
+=======
+  const { user, signOut } = useAuth();
+>>>>>>> 1231699 (Update NewLumino project)
   const { settings } = useCustomization();
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
   const isMobile = useIsMobile();
@@ -355,6 +371,20 @@ export function SidebarPanel({
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {onOpenAppHub && (
+        <button
+          type="button"
+          onClick={onOpenAppHub}
+          className="flex items-center gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:text-emerald-200 hover:bg-emerald-500/20 cursor-pointer"
+        >
+          <Smartphone className="h-4 w-4 text-emerald-400" />
+          App Wrapper &amp; Package Hub
+        </button>
+      )}
+
+>>>>>>> 1231699 (Update NewLumino project)
       <button
         type="button"
         onClick={onOpenSettings}

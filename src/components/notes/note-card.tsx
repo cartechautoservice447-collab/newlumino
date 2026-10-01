@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { formatDate, snippet, type Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
 import { useCustomization } from "@/context/customization-context";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Props = {
   note: Note;
@@ -39,6 +40,8 @@ export function NoteCard({
 }: Props) {
   const { settings } = useCustomization();
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
+  const isMobile = useIsMobile();
+  const useFluidStudioCard = isFluidGlass && !isMobile;
 
   return (
     <div
@@ -58,7 +61,7 @@ export function NoteCard({
       style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
       className={cn(
         "group liquid-surface animate-card-in relative w-full cursor-pointer rounded-2xl border p-4 text-left transition-all duration-300 select-none overflow-hidden",
-        isFluidGlass
+        useFluidStudioCard
           ? cn(
               "cursor-pointer !p-4 transition-all will-change-transform",
               active && "ring-2 ring-emerald-400/70",
@@ -70,7 +73,7 @@ export function NoteCard({
             )
       )}
     >
-      {isFluidGlass && (
+      {useFluidStudioCard && (
         <>
           <span
             aria-hidden
@@ -113,7 +116,7 @@ export function NoteCard({
           </button>
 
           {/* Mobile-only quick context menu trigger */}
-          {onOpenMobileMenu && !isFluidGlass ? (
+          {onOpenMobileMenu && (!isFluidGlass || isMobile) ? (
             <button
               type="button"
               aria-label="Note options"
@@ -136,9 +139,9 @@ export function NoteCard({
 
       <div className={cn(
         "mt-2 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-muted-foreground",
-        !isFluidGlass && "mt-3.5 flex items-center justify-between"
+        !useFluidStudioCard && "mt-3.5 flex items-center justify-between"
       )}>
-        {isFluidGlass ? oldRelativeDate(note.updatedAt) : (
+        {useFluidStudioCard ? oldRelativeDate(note.updatedAt) : (
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
               <span>{formatDate(note.updatedAt)}</span>

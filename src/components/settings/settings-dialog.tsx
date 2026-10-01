@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
-import { liquidSpringParams, type MotionLevel, type ThemeBase, type UiFont, type WebsiteTheme } from "@/lib/customization";
+import { liquidSpringParams, type DashboardDesign, type MotionLevel, type ThemeBase, type UiFont, type WebsiteTheme } from "@/lib/customization";
 import { haptic } from "@/lib/haptics";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AiNotificationSection } from "./ai-notification-section";
@@ -283,6 +283,90 @@ function SettingsContent({
               </div>
               <span className="text-[11px] leading-tight text-muted-foreground/80 font-normal">
                 {t.desc}
+              </span>
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      <Section
+        title="Dashboard Design"
+        hint="Choose the dashboard presentation independently from the website theme."
+      >
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {([
+            {
+              value: "newlumino" as DashboardDesign,
+              label: "Default NewLumino",
+              desc: "Current existing dashboard — unchanged default experience.",
+            },
+            {
+              value: "spatial-aurora-bento" as DashboardDesign,
+              label: "Spatial Aurora & Organic Bento",
+              desc: "Aurora glass dashboard based on the supplied mobile visual reference.",
+            },
+          ]).map((design) => (
+            <button
+              key={design.value}
+              type="button"
+              onClick={() => {
+                haptic("light");
+                update({ dashboardDesign: design.value });
+              }}
+              aria-pressed={settings.dashboardDesign === design.value}
+              className={cn(
+                "flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-all touch-manipulation cursor-pointer",
+                settings.dashboardDesign === design.value
+                  ? "border-primary/50 bg-white/[0.12] text-foreground font-semibold shadow-md ring-1 ring-primary/40"
+                  : "border-white/5 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
+              )}
+            >
+              <div className="flex w-full items-center justify-between gap-2">
+                <span className="text-xs font-bold text-foreground">{design.label}</span>
+                {settings.dashboardDesign === design.value ? (
+                  <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary">
+                    Active
+                  </span>
+                ) : null}
+              </div>
+
+              <div
+                className={cn(
+                  "h-20 w-full overflow-hidden rounded-xl border",
+                  settings.dashboardDesign === design.value
+                    ? "border-primary/25 bg-[#0b0f17]"
+                    : "border-white/5 bg-white/[0.025]",
+                )}
+                aria-hidden
+              >
+                {design.value === "newlumino" ? (
+                  <div className="h-full w-full p-2">
+                    <div className="h-4 rounded-lg bg-white/[0.09]" />
+                    <div className="mt-2 grid grid-cols-3 gap-1.5">
+                      <div className="h-7 rounded-md bg-white/[0.08]" />
+                      <div className="h-7 rounded-md bg-white/[0.08]" />
+                      <div className="h-7 rounded-md bg-white/[0.08]" />
+                    </div>
+                    <div className="mt-2 h-6 rounded-md bg-white/[0.06]" />
+                    <div className="mt-1 h-6 rounded-md bg-white/[0.05]" />
+                  </div>
+                ) : (
+                  <div className="relative h-full w-full bg-[#070a10] p-2">
+                    <div className="absolute -top-5 left-1/2 h-16 w-24 -translate-x-1/2 rounded-full bg-emerald-400/20 blur-xl" />
+                    <div className="relative h-3 rounded-lg bg-white/[0.08]" />
+                    <div className="relative mt-1.5 h-8 rounded-lg border border-emerald-300/15 bg-gradient-to-br from-emerald-300/10 via-cyan-300/10 to-violet-300/10" />
+                    <div className="relative mt-1.5 grid grid-cols-3 gap-1">
+                      <div className="h-5 rounded-md bg-emerald-300/10" />
+                      <div className="h-5 rounded-md bg-cyan-300/10" />
+                      <div className="h-5 rounded-md bg-violet-300/10" />
+                    </div>
+                    <div className="absolute bottom-1.5 left-2 right-2 h-3 rounded-full border border-white/10 bg-white/[0.06]" />
+                  </div>
+                )}
+              </div>
+
+              <span className="text-[11px] leading-tight text-muted-foreground/80 font-normal">
+                {design.desc}
               </span>
             </button>
           ))}

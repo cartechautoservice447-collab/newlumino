@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
 import { useCustomization } from "@/context/customization-context";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { Collection } from "@/lib/notes";
 import type { Filter } from "@/hooks/use-notes";
 
@@ -131,6 +132,8 @@ export function SidebarPanel({
 }: Props) {
   const { settings } = useCustomization();
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
+  const isMobile = useIsMobile();
+  const useFluidStudioUi = isFluidGlass && !isMobile;
 
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
@@ -144,7 +147,7 @@ export function SidebarPanel({
     setAdding(false);
   };
 
-  if (isFluidGlass) {
+  if (useFluidStudioUi) {
     return (
       <aside className="glass-panel animate-panel-in relative flex h-full min-h-0 w-full flex-col gap-5 rounded-[28px] p-4 shadow-2xl backdrop-blur-2xl">
         <div className="flex min-h-10 items-center justify-between gap-3 px-1 pt-1">
@@ -220,7 +223,7 @@ export function SidebarPanel({
           </div>
           <div>
             <p className="text-[0.65rem] uppercase tracking-[0.28em] text-muted-foreground/70 font-semibold">
-              {isFluidGlass ? "Liquid Glass" : "NewLumino"}
+              {useFluidStudioUi ? "Liquid Glass" : "NewLumino"}
             </p>
             <h1 className="text-base font-bold tracking-tight text-foreground">Glass Notes</h1>
           </div>
@@ -249,7 +252,7 @@ export function SidebarPanel({
         onClick={onCreateNote}
         className={cn(
           "flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98]",
-          isFluidGlass
+          useFluidStudioUi
             ? "notes-pulse-glow bg-emerald-500 text-slate-950 shadow-[0_0_28px_rgba(16,185,129,0.62),0_10px_28px_rgba(5,150,105,0.42)] ring-1 ring-emerald-300/55 hover:scale-[1.015] hover:bg-emerald-400 py-2.5 px-4"
             : "animate-pulse-glow border border-white/10 bg-primary px-3.5 py-2.5 text-primary-foreground shadow-lg hover:scale-[1.02]"
         )}

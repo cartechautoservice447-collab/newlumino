@@ -1,6 +1,6 @@
 import { PanelLeftClose, Plus, Search, Star, Layers, Sparkles } from "lucide-react";
-import { useCustomization } from "@/context/customization-context";
 import { NoteCard } from "./note-card";
+import { useCustomization } from "@/context/customization-context";
 import type { Collection, Note } from "@/lib/notes";
 
 type Props = {
@@ -31,8 +31,8 @@ export function NoteList({
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
 
   return (
-    <section className={cn("glass-panel animate-panel-in flex h-full w-full flex-col rounded-3xl shadow-xl backdrop-blur-2xl", isFluidGlass && "min-w-0")}>
-      <header className={cn("items-center justify-between gap-2 border-b border-white/5 px-5 py-3.5", isFluidGlass ? "flex" : "hidden md:flex")}>
+    <section className="glass-panel animate-panel-in flex h-full w-full flex-col rounded-3xl shadow-xl backdrop-blur-2xl">
+      <header className={`items-center justify-between gap-2 border-b border-white/5 px-5 py-3.5 ${isFluidGlass ? "flex" : "hidden md:flex"}`}>
         <div className="flex items-center gap-2 min-w-0">
           <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">{title}</h2>
           <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[0.68rem] tabular-nums font-mono text-muted-foreground">

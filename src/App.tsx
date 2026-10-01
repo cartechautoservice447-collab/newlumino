@@ -683,7 +683,7 @@ function AuthenticatedApp({
           isMobile && n.selectedId
             ? "h-full p-1.5 sm:p-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-4"
             : isMobile
-              ? "h-full p-2 sm:p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-4"
+              ? "h-full p-2 sm:p-4 md:pb-4"
               : "h-screen p-2 sm:p-4 pb-4 md:pb-4"
         )}>
         {/* Mobile Slide-in Drawer: NewLumino mobile workspace only. Fluid Glass keeps the original three-panel layout. */}

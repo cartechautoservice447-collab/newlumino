@@ -525,11 +525,39 @@
 
 /* Dynamic Liquid Veil */
 .liquid-veil {
+  background: rgb(255 255 255 / var(--liquid-veil-alpha, 0.16));
+}
+
+.dark .liquid-veil {
   background: rgb(6 10 26 / var(--liquid-dark-veil-alpha, 0.28));
 }
 
-[data-fluid-appearance="light"] .liquid-veil {
-  background: rgb(255 255 255 / var(--liquid-veil-alpha, 0.16));
+/* Fluid Glass Studio panel text/stage tokens */
+[data-theme="fluid-glass"] .liquid-panel {
+  --panel-fg: var(--foreground);
+  --panel-fg-muted: var(--muted-foreground);
+  --panel-fg-accent: var(--accent-foreground);
+  color: var(--panel-fg);
+}
+
+[data-theme="fluid-glass"] .liquid-panel .text-foreground {
+  color: var(--panel-fg);
+}
+
+[data-theme="fluid-glass"] .liquid-panel .text-muted-foreground {
+  color: var(--panel-fg-muted);
+}
+
+[data-theme="fluid-glass"] .liquid-panel .text-accent-foreground {
+  color: var(--panel-fg-accent);
+}
+
+[data-theme="fluid-glass"] .on-stage {
+  color: oklch(0.98 0.01 250) !important;
+}
+
+[data-theme="fluid-glass"] .on-stage-muted {
+  color: oklch(0.9 0.03 250) !important;
 }
 
 /* Glowing New Note Pulse Button (Exact Fluid Glass Studio) */

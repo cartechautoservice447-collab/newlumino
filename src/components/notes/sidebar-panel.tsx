@@ -19,10 +19,7 @@ import {
   Maximize2,
   FileText,
   Bell,
-<<<<<<< HEAD
-=======
   Smartphone,
->>>>>>> 1231699 (Update NewLumino project)
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
@@ -43,10 +40,7 @@ type Props = {
   onDeleteCollection: (id: string) => void;
   onCollapse: () => void;
   onOpenSettings: () => void;
-<<<<<<< HEAD
-=======
   onOpenAppHub?: () => void;
->>>>>>> 1231699 (Update NewLumino project)
   onBackToCourses: () => void;
   onOpenPomodoro?: () => void;
   onOpenFlashcards?: () => void;
@@ -125,10 +119,7 @@ export function SidebarPanel({
   onDeleteCollection,
   onCollapse,
   onOpenSettings,
-<<<<<<< HEAD
-=======
   onOpenAppHub,
->>>>>>> 1231699 (Update NewLumino project)
   onBackToCourses,
   onOpenPomodoro,
   onOpenFlashcards,
@@ -142,10 +133,7 @@ export function SidebarPanel({
   todayFocusSeconds = 0,
   dailyGoalHours = 2,
 }: Props) {
-<<<<<<< HEAD
-=======
   const { user, signOut } = useAuth();
->>>>>>> 1231699 (Update NewLumino project)
   const { settings } = useCustomization();
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
   const isMobile = useIsMobile();
@@ -371,8 +359,6 @@ export function SidebarPanel({
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
       {onOpenAppHub && (
         <button
           type="button"
@@ -384,7 +370,6 @@ export function SidebarPanel({
         </button>
       )}
 
->>>>>>> 1231699 (Update NewLumino project)
       <button
         type="button"
         onClick={onOpenSettings}

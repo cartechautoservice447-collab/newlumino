@@ -326,7 +326,7 @@ export function CourseDashboard({
         </div>
 
         {/* Mobile-Only Feature 2: Daily Focus Progress Ring & Study Streak Widget */}
-        <div className="sm:hidden mt-6 glass-panel rounded-[1.75rem] p-4 border border-primary/25 bg-gradient-to-br from-primary/10 via-white/[0.02] to-amber-500/10 shadow-lg">
+        <div className="sm:hidden mt-7 glass-panel rounded-[1.75rem] p-4 border border-primary/25 bg-gradient-to-br from-primary/10 via-white/[0.02] to-amber-500/10 shadow-lg">
           <div className="flex items-center justify-between gap-3">
             {/* Left: Progress Ring & Focus Minutes */}
             <div className="flex items-center gap-3 min-w-0">
@@ -451,14 +451,13 @@ export function CourseDashboard({
           </div>
         )}
 
-        <MobileMomentumAndActivity
-          notes={notes}
-          courses={courses}
-          todayFocusSeconds={todayFocusSeconds}
-          dailyGoalHours={dailyGoalHours}
-          onOpenNote={onOpenNote}
-          onOpenCourse={onOpenCourse}
-        />
+        <div className="sm:hidden mt-9 mb-3">
+          <MobileMomentumAndActivity
+            notes={notes}
+            todayFocusSeconds={todayFocusSeconds}
+            dailyGoalHours={dailyGoalHours}
+          />
+        </div>
 
         {/* Filter and Actions Bar */}
         <div id="courses-section" className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 scroll-mt-6">

@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-<<<<<<< HEAD
-import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud, Moon, Sun, Droplets, Zap } from "lucide-react";
-=======
 import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud, Moon, Sun, Droplets, Zap, Smartphone, Download } from "lucide-react";
->>>>>>> 1231699 (Update NewLumino project)
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -149,20 +145,14 @@ function SettingsContent({
   activeCourseName,
   focusMinutes,
   dailyGoalHours,
-<<<<<<< HEAD
-=======
   onOpenAppHub,
->>>>>>> 1231699 (Update NewLumino project)
 }: {
   realtimeStatus?: "connected" | "connecting" | "offline";
   isSyncing?: boolean;
   onRefresh?: () => void;
   onOpenAuth?: () => void;
   onClose?: () => void;
-<<<<<<< HEAD
-=======
   onOpenAppHub?: () => void;
->>>>>>> 1231699 (Update NewLumino project)
   noteTitle?: string;
   activeCourseName?: string;
   focusMinutes?: number;
@@ -250,8 +240,6 @@ function SettingsContent({
         </div>
       </Section>
 
-<<<<<<< HEAD
-=======
       {/* Native App Wrapper, iOS/Android Packaging & Offline Section */}
       <Section
         title="Native App Wrapper & Mobile Packaging"
@@ -289,7 +277,6 @@ function SettingsContent({
         </div>
       </Section>
 
->>>>>>> 1231699 (Update NewLumino project)
       {/* AI-Integrated Notification System Section */}
       <AiNotificationSection
         noteTitle={noteTitle}
@@ -1309,10 +1296,7 @@ export function SettingsDialog({
   activeCourseName,
   focusMinutes,
   dailyGoalHours,
-<<<<<<< HEAD
-=======
   onOpenAppHub,
->>>>>>> 1231699 (Update NewLumino project)
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1320,10 +1304,7 @@ export function SettingsDialog({
   isSyncing?: boolean;
   onRefresh?: () => void;
   onOpenAuth?: () => void;
-<<<<<<< HEAD
-=======
   onOpenAppHub?: () => void;
->>>>>>> 1231699 (Update NewLumino project)
   noteTitle?: string;
   activeCourseName?: string;
   focusMinutes?: number;
@@ -1341,10 +1322,7 @@ export function SettingsDialog({
           onRefresh={onRefresh}
           onOpenAuth={onOpenAuth}
           onClose={() => onOpenChange(false)}
-<<<<<<< HEAD
-=======
           onOpenAppHub={onOpenAppHub}
->>>>>>> 1231699 (Update NewLumino project)
           noteTitle={noteTitle}
           activeCourseName={activeCourseName}
           focusMinutes={focusMinutes}
@@ -1376,10 +1354,7 @@ export function SettingsDialog({
           onRefresh={onRefresh}
           onOpenAuth={onOpenAuth}
           onClose={() => onOpenChange(false)}
-<<<<<<< HEAD
-=======
           onOpenAppHub={onOpenAppHub}
->>>>>>> 1231699 (Update NewLumino project)
           noteTitle={noteTitle}
           activeCourseName={activeCourseName}
           focusMinutes={focusMinutes}

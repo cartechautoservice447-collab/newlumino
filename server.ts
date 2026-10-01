@@ -3,10 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-<<<<<<< HEAD
-=======
 import JSZip from "jszip";
->>>>>>> 1231699 (Update NewLumino project)
 
 dotenv.config();
 
@@ -943,8 +940,6 @@ Formatting Rules:
   });
 });
 
-<<<<<<< HEAD
-=======
 // ============================================================================
 // DIRECT NATIVE APP WRAPPER DOWNLOAD ENDPOINTS
 // ============================================================================
@@ -1445,7 +1440,6 @@ app.get("/download", (req, res) => {
 </html>`);
 });
 
->>>>>>> 1231699 (Update NewLumino project)
 // Health check endpoint
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", aiConfigured: Boolean(process.env.GEMINI_API_KEY) });
@@ -1456,11 +1450,7 @@ async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
-<<<<<<< HEAD
-      server: { middlewareMode: true },
-=======
       server: { middlewareMode: true, hmr: false },
->>>>>>> 1231699 (Update NewLumino project)
       appType: "spa",
     });
     app.use(vite.middlewares);

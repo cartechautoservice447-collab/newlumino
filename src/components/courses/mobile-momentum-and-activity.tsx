@@ -51,9 +51,7 @@ export function MobileMomentumAndActivity({
 
   return (
     <>
-      <section className="sm:hidden relative mt-2 mb-2 overflow-hidden rounded-[26px] border border-white/[0.08] bg-[linear-gradient(135deg,rgba(26,34,51,.72),rgba(10,15,24,.9))] p-6 shadow-[0_16px_42px_-16px_rgba(0,0,0,.7)] backdrop-blur-[28px] mobile-momentum-breathe">
-        <div className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-18deg] bg-gradient-to-r from-transparent via-white/[0.09] to-transparent mobile-momentum-sheen" />
-        <div className="pointer-events-none absolute -right-16 -top-24 h-48 w-48 rounded-full bg-emerald-300/15 blur-3xl mobile-momentum-orb" />
+      <section className="sm:hidden relative mt-2 mb-2 overflow-hidden mobile-momentum-card rounded-[26px] border border-white/[0.08] bg-[linear-gradient(135deg,rgba(26,34,51,.72),rgba(10,15,24,.9))] p-6 shadow-[0_16px_42px_-16px_rgba(0,0,0,.7)] backdrop-blur-[28px]">
         <div className="relative z-10">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2">
@@ -86,7 +84,7 @@ export function MobileMomentumAndActivity({
                 {focusProgress >= 100 ? (
                   <CheckCircle2 className="h-5 w-5 text-emerald-300" />
                 ) : (
-                  <Sparkles className="h-5 w-5 text-cyan-300 mobile-momentum-icon" />
+                  <Sparkles className="h-5 w-5 text-cyan-300" />
                 )}
               </div>
             </div>
@@ -94,7 +92,7 @@ export function MobileMomentumAndActivity({
 
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.06]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300 transition-[width] duration-700 ease-out mobile-momentum-progress"
+              className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300"
               style={{ width: `${focusProgress}%` }}
             />
           </div>

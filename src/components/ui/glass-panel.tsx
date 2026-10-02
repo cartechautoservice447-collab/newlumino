@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useCustomization } from "@/context/customization-context";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,7 @@ type GlassPanelProps = {
   draggable?: boolean;
   interactive?: boolean;
   onClick?: () => void;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 };
 
 /**

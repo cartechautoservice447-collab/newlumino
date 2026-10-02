@@ -15,7 +15,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      RELEASE_TAG: v1.0.2
+      RELEASE_TAG: v1.0.3
       CAPACITOR_VERSION: 8.5.2
 
     steps:
@@ -63,20 +63,20 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Prepare Android release asset
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk NewLumino-Android-v1.0.2.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk NewLumino-Android-v1.0.3.apk
 
       - name: Package web release asset
         run: |
           cd dist
-          zip -r ../NewLumino-Web-v1.0.2.zip .
+          zip -r ../NewLumino-Web-v1.0.3.zip .
           cd ..
 
-      - name: Create NewLumino v1.0.2 release
+      - name: Create NewLumino v1.0.3 release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$RELEASE_TAG" \
-            --title "NewLumino v1.0.2" \
-            --notes "NewLumino v1.0.2 with the latest performance and smooth-interaction changes. Production web build and Android APK verified by GitHub Actions." \
-            NewLumino-Android-v1.0.2.apk \
-            NewLumino-Web-v1.0.2.zip
+            --title "NewLumino v1.0.3" \
+            --notes "NewLumino v1.0.3 with the latest performance and smooth-interaction changes. Production web build and Android APK verified by GitHub Actions." \
+            NewLumino-Android-v1.0.3.apk \
+            NewLumino-Web-v1.0.3.zip

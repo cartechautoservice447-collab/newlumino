@@ -824,3 +824,13 @@ button, a, input, textarea, select, [role="button"], [role="tab"], .clickable {
 }
 
 
+
+
+/* Skip paint/layout work for off-screen mobile list cards while preserving
+   intrinsic space for stable scrolling. */
+@media (max-width: 767px) {
+  .mobile-scroll-content-visibility {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 170px;
+  }
+}

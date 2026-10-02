@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 
-import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
+import { PanelLeftOpen, PanelRightOpen } from "lucide-react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { CustomizationProvider, useCustomization } from "@/context/customization-context";
 import { AuthProvider, useAuth } from "@/context/auth-context";
@@ -13,7 +13,6 @@ import { SidebarPanel } from "@/components/notes/sidebar-panel";
 import { NoteList } from "@/components/notes/note-list";
 import { NoteEditor } from "@/components/notes/note-editor";
 import { CourseDashboard } from "@/components/courses/course-dashboard";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { MobileSidebarDrawer } from "@/components/mobile/mobile-sidebar-drawer";
 import { MobileBottomDock } from "@/components/mobile/mobile-bottom-dock";
 import { MobileHeader } from "@/components/mobile/mobile-header";
@@ -403,10 +402,6 @@ function AuthenticatedApp({
             isSyncing={n.isSyncing}
             onRefresh={() => void n.refreshFromCloud()}
             onOpenAuth={onOpenAuth}
-            noteTitle={n.selected?.title || n.notes[0]?.title}
-            activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-            focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
-            dailyGoalHours={pomodoro.dailyGoalHours}
           />
 
           
@@ -788,11 +783,7 @@ function AuthenticatedApp({
           realtimeStatus={n.realtimeStatus}
           isSyncing={n.isSyncing}
           onRefresh={() => void n.refreshFromCloud()}
-          onOpenAuth={onOpenAuth}
-          noteTitle={n.selected?.title || n.visibleNotes[0]?.title}
-          activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-          focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
-          dailyGoalHours={pomodoro.dailyGoalHours}
+            onOpenAuth={onOpenAuth}
         />
 
         

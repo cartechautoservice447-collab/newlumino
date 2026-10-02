@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { Check, Copy } from "lucide-react";
+
+const LazySyntaxHighlighter = lazy(() => import("react-syntax-highlighter").then((module) => ({ default: module.Prism })));
 
 const ghStyle: Record<string, React.CSSProperties> = {
   'code[class*="language-"]': {
@@ -190,14 +191,22 @@ export function MarkdownPreview({
             return (
               <div className="gh-code my-4 overflow-hidden rounded-2xl border border-white/10 bg-[#0d1117] shadow-2xl">
                 <CodeBlockHeader lang={match[1]} code={text} />
-                <SyntaxHighlighter
-                  language={match[1]}
-                  style={ghStyle}
-                  PreTag="div"
-                  customStyle={{ background: "#0d1117", margin: 0, padding: "1rem" }}
+                <Suspense
+                  fallback={
+                    <pre className="overflow-x-auto whitespace-pre-wrap bg-[#0d1117] p-4 text-xs text-code-fg">
+                      {text}
+                    </pre>
+                  }
                 >
-                  {text}
-                </SyntaxHighlighter>
+                  <LazySyntaxHighlighter
+                    language={match[1]}
+                    style={ghStyle}
+                    PreTag="div"
+                    customStyle={{ background: "#0d1117", margin: 0, padding: "1rem" }}
+                  >
+                    {text}
+                  </LazySyntaxHighlighter>
+                </Suspense>
               </div>
             );
           },

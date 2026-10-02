@@ -60,7 +60,7 @@ const MODES: { id: PolishMode; label: string; desc: string; icon: React.ElementT
   },
 ];
 
-export function AiNotePolisherDialog({
+export const AiNotePolisherDialog = React.memo(function AiNotePolisherDialog({
   open,
   onOpenChange,
   notes,
@@ -340,4 +340,10 @@ export function AiNotePolisherDialog({
       </DialogContent>
     </Dialog>
   );
+}, AiNotePolisherDialogPropsAreEqual);
+
+function AiNotePolisherDialogPropsAreEqual(prev: Props, next: Props) {
+  return (prev.open === next.open &&
+    prev.notes === next.notes &&
+    prev.selectedNote === next.selectedNote);
 }

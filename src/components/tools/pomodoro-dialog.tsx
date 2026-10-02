@@ -577,6 +577,8 @@ export function PomodoroDialog({
                 </div>
               </div>
 
+            </div>
+
             {/* Generate Button */}
             <button
               type="button"

@@ -918,7 +918,6 @@ function areCourseDashboardPropsEqual(
     prev.dailyGoalHours === next.dailyGoalHours &&
     Math.floor((prev.todayFocusSeconds ?? 0) / 60) === Math.floor((next.todayFocusSeconds ?? 0) / 60) &&
     prev.realtimeStatus === next.realtimeStatus &&
-    prev.isSyncing === next.isSyncing &&
-    prev.onOpenCourse === next.onOpenCourse
+    prev.isSyncing === next.isSyncing
   );
 }

@@ -231,7 +231,7 @@ export const CourseDashboard = memo(function CourseDashboard({
         {/* Header Bar with Feature 7: Time-of-Day Contextual Dynamic Greeting */}
         <header className="glass-panel animate-panel-in flex flex-wrap items-center justify-between gap-3.5 sm:gap-5 rounded-[2rem] p-5 sm:p-8 min-h-[96px] sm:min-h-[116px] shadow-2xl backdrop-blur-2xl">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            {/* Brand Logo Icon Button: Clicking opens Study Tools (Zen Focus, MD Cheatsheet, Flashcards, Pomodoro) */}
+            {/* Brand Logo Icon Button: Opens the study tools menu */}
             <button
               type="button"
               aria-label="Open study tools"
@@ -240,7 +240,7 @@ export const CourseDashboard = memo(function CourseDashboard({
                 onOpenMenu?.();
               }}
               className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-2xl border border-primary/35 bg-gradient-to-br from-primary/25 to-emerald-500/20 text-primary shadow-[0_0_24px_-4px_hsl(var(--primary)/0.7)] shrink-0 active:scale-90 hover:scale-105 hover:border-primary transition-all duration-200 cursor-pointer"
-              title="Open Study Tools (Zen Focus, MD Cheatsheet, Flashcards, Pomodoro)"
+              title="Open Study Tools"
             >
               <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary animate-pulse" />
             </button>

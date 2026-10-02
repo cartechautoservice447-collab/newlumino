@@ -1,6 +1,5 @@
-import { useState } from "react";
 import confetti from "canvas-confetti";
-import { Sparkles, Brain, Coffee, ArrowRight, X, Clock, Flame } from "lucide-react";
+import { Sparkles, Coffee, X, Clock, Flame } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
@@ -10,7 +9,6 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   activeNote: Note | null;
   completedSessions: number;
-  onStartAIFlashcards: () => void;
   onStartBreak: () => void;
 }
 
@@ -19,22 +17,11 @@ export function PomodoroSessionCompleteDialog({
   onOpenChange,
   activeNote,
   completedSessions,
-  onStartAIFlashcards,
   onStartBreak,
 }: Props) {
   const [loading, setLoading] = useState(false);
 
-  const handleAIGenerate = async () => {
-    haptic("heavy");
-    setLoading(true);
-    try {
-      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-      onStartAIFlashcards();
-      onOpenChange(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   return (
     <Dialog
@@ -63,7 +50,7 @@ export function PomodoroSessionCompleteDialog({
               Focus Session Hit!
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-xs mx-auto">
-              Ready to lock in what you just learned? Let Gemini AI generate active recall questions from your notes.
+              Great work. Take a short break before continuing.
             </p>
           </div>
 
@@ -84,16 +71,7 @@ export function PomodoroSessionCompleteDialog({
 
           {/* Action Buttons */}
           <div className="space-y-2 pt-2">
-            <button
-              type="button"
-              disabled={loading}
-              onClick={handleAIGenerate}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-purple-500/40 bg-gradient-to-r from-purple-600 via-primary to-emerald-500 p-3.5 text-xs sm:text-sm font-bold text-white shadow-[0_0_24px_-4px_rgba(168,85,247,0.7)] transition-all active:scale-[0.98] hover:opacity-95 touch-manipulation cursor-pointer"
-            >
-              <Brain className="h-4 w-4" />
-              <span>✨ AI Generate Session Flashcards</span>
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </button>
+
 
             <button
               type="button"

@@ -62,8 +62,8 @@ export const MobileSidebarDrawer = React.memo(function MobileSidebarDrawer({
   const { settings, update } = useCustomization();
   const { user, signOut } = useAuth();
 
-  // Tap-open drawer only. Edge-swipe and drag-to-close gestures are removed so
-  // dashboard scrolling never competes with global touchmove listeners.
+  // Tap-open drawer only. Edge-swipe and drag-to-close gestures are intentionally disabled
+  // so dashboard scrolling remains on the browser compositor path.
   const [mounted, setMounted] = useState(open);
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export const MobileSidebarDrawer = React.memo(function MobileSidebarDrawer({
 
   return createPortal(
     <div className="fixed inset-0 z-50 select-none md:hidden overflow-hidden pointer-events-auto">
-      {/* Lightweight backdrop; no touchmove handler */}
+      {/* Lightweight backdrop; no gesture handler */}
       <div
         onClick={handleClose}
         className={cn(

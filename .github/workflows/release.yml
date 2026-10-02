@@ -15,7 +15,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      RELEASE_TAG: v1.0.1
+      RELEASE_TAG: v1.0.2
       CAPACITOR_VERSION: 8.5.2
 
     steps:
@@ -63,9 +63,9 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Prepare Android release asset
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk NewLumino-Android-v1.0.1.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk NewLumino-Android-v1.0.2.apk
 
-      - name: Upload APK to existing release
+      - name: Create/upload NewLumino v1.0.2 release assets
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$RELEASE_TAG" NewLumino-Android-v1.0.1.apk --clobber
+        run: gh release upload "$RELEASE_TAG" NewLumino-Android-v1.0.2.apk --clobber

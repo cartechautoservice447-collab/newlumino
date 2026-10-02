@@ -1,6 +1,6 @@
 {
   "name": "NewLumino — Liquid Glass Study Studio",
-  "description": "Modern active-recall notes and study studio with real-time synchronized courses, liquid glass aesthetics, and AI flashcards.",
+  "description": "Modern study notes and study studio with real-time synchronized courses, liquid glass aesthetics, and AI study.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

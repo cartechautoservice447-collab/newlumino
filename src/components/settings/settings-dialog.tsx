@@ -1,6 +1,4 @@
 import React from "react";
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
 import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud, Moon, Sun, Droplets, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
@@ -10,7 +8,6 @@ import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
 import { liquidSpringParams, type MotionLevel, type ThemeBase, type UiFont, type WebsiteTheme } from "@/lib/customization";
 import { haptic } from "@/lib/haptics";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 function Section({ title, hint, children }: { title: string; hint?: string | undefined; children: React.ReactNode }) {
   return (
@@ -1161,24 +1158,6 @@ export const SettingsDialog = React.memo(function SettingsDialog({
   onRefresh?: () => void;
   onOpenAuth?: () => void;
 }) {
-  const isMobile = useIsMobile();
-
-  // On Mobile: Render the interactive real-time swipeable bottom-to-top sheet
-  if (isMobile) {
-    return (
-      <MobileSwipeableSettingsSheet open={open} onOpenChange={onOpenChange}>
-        <SettingsContent
-          realtimeStatus={realtimeStatus}
-          isSyncing={isSyncing}
-          onRefresh={onRefresh}
-          onOpenAuth={onOpenAuth}
-          onClose={() => onOpenChange(false)}
-        />
-      </MobileSwipeableSettingsSheet>
-    );
-  }
-
-  // On Desktop / Laptop: Render the elegant centered glass modal dialog
   return (
     <Dialog
       open={open}
@@ -1187,7 +1166,7 @@ export const SettingsDialog = React.memo(function SettingsDialog({
         onOpenChange(val);
       }}
     >
-      <DialogContent className="glass-panel scroll-sleek max-h-[85vh] overflow-y-auto border-white/10 sm:max-w-[560px]">
+      <DialogContent className="glass-panel scroll-sleek w-[calc(100vw-0.75rem)] max-w-none max-h-[calc(100dvh-0.75rem)] overflow-y-auto border-white/10 rounded-3xl p-4 sm:w-full sm:max-w-[560px] sm:max-h-[85vh] sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold tracking-tight">
             Engine Customization
@@ -1206,11 +1185,6 @@ export const SettingsDialog = React.memo(function SettingsDialog({
   );
 }, SettingsDialogPropsAreEqual);
 
-function SettingsDialogPropsAreEqual(prev: Props, next: Props) {
-  return (prev.open === next.open &&
-    prev.realtimeStatus === next.realtimeStatus &&
-    prev.isSyncing === next.isSyncing &&
-    prev.open === next.open &&
-    prev.realtimeStatus === next.realtimeStatus);
+function SettingsDialogPropsAreEqual(prev: { open: boolean; realtimeStatus?: string; isSyncing?: boolean }, next: { open: boolean; realtimeStatus?: string; isSyncing?: boolean }) {
+  return prev.open === next.open && prev.realtimeStatus === next.realtimeStatus && prev.isSyncing === next.isSyncing;
 }
-

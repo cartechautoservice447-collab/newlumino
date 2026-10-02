@@ -59,7 +59,7 @@ const ARCHETYPES: { id: FlashcardArchetype; label: string; icon: React.ElementTy
   { id: "practical", label: "Practical Scenarios", icon: Zap, desc: "Real-world engineering problems & edge cases" },
 ];
 
-export function FlashcardsDialog({
+export const FlashcardsDialog = React.memo(function FlashcardsDialog({
   open,
   onOpenChange,
   notes,
@@ -813,4 +813,12 @@ export function FlashcardsDialog({
       </DialogContent>
     </Dialog>
   );
+}, FlashcardsDialogPropsAreEqual);
+
+function FlashcardsDialogPropsAreEqual(prev: Props, next: Props) {
+  return (prev.open === next.open &&
+    prev.notes === next.notes &&
+    prev.selectedNote === next.selectedNote &&
+    prev.activeCourseName === next.activeCourseName &&
+    prev.autoAIGenerate === next.autoAIGenerate);
 }

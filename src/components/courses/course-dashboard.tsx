@@ -648,10 +648,9 @@ export function CourseDashboard({
         {/* DESKTOP VIEW: Original 3-Column Grid */}
         <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 w-full">
           {filteredCourses.map((c, i) => {
-            const courseNotes = notes.filter((n) => n.courseId === c.id);
-            const last = courseNotes.length > 0
-              ? Math.max(...courseNotes.map((n) => n.updatedAt))
-              : c.updatedAt || c.createdAt;
+            const stats = courseStats.get(c.id);
+            const noteCount = stats?.count ?? 0;
+            const last = stats?.latest || c.updatedAt || c.createdAt;
             const style = ACCENT_STYLES[c.color] ?? ACCENT_STYLES.sky;
 
             return (

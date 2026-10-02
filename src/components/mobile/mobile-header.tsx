@@ -1,4 +1,5 @@
 import { Sparkles, Menu, ArrowLeft, Settings, Search, X, Smartphone } from "lucide-react";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 
@@ -14,7 +15,7 @@ type Props = {
   onSearchChange?: (q: string) => void;
   showSearch?: boolean;
   onToggleSearch?: () => void;
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
 
 export function MobileHeader({

@@ -5,7 +5,6 @@ import {
   Award,
   BarChart3,
   BookOpen,
-  Brain,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -42,7 +41,6 @@ import {
   type PomodoroDifficulty,
   type PomodoroBreakPref,
   type PomodoroRhythm,
-  type PomodoroRecallStrategy,
 } from "@/lib/pomodoro-ai";
 import type { Course, Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
@@ -55,7 +53,6 @@ interface Props {
   activeCourse?: Course | null;
   notes?: Note[];
   selectedNote?: Note | null;
-  onOpenFlashcards?: (note: Note) => void;
 }
 
 export function PomodoroDialog({
@@ -66,7 +63,6 @@ export function PomodoroDialog({
   activeCourse,
   notes = [],
   selectedNote,
-  onOpenFlashcards,
 }: Props) {
   const {
     mode,
@@ -107,7 +103,6 @@ export function PomodoroDialog({
     selectedNote ? `Master "${selectedNote.title}" and practical exercises` : "Complete core study milestones"
   );
   const [rhythm, setRhythm] = useState<PomodoroRhythm>("ai_adaptive");
-  const [activeRecallStrategy, setActiveRecallStrategy] = useState<PomodoroRecallStrategy>("session_end");
 
   // AI Generation State
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
@@ -163,7 +158,6 @@ export function PomodoroDialog({
         difficulty,
         sessionGoal,
         rhythm,
-        activeRecallStrategy,
         noteTitle: selectedNote?.title,
         noteSnippet: selectedNote?.body?.slice(0, 300),
       });
@@ -582,35 +576,6 @@ export function PomodoroDialog({
                 </div>
               </div>
 
-              {/* Box 7: Active Recall Integration */}
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 space-y-1.5">
-                <span className="text-xs font-bold text-foreground">7. Active Recall Flashcards Strategy</span>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {[
-                    { id: "session_end", label: "End of Session Drill" },
-                    { id: "cycle_end", label: "After Every Cycle" },
-                    { id: "none", label: "Manual Only" },
-                  ].map((a) => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => {
-                        haptic("light");
-                        setActiveRecallStrategy(a.id as PomodoroRecallStrategy);
-                      }}
-                      className={cn(
-                        "rounded-xl border py-1.5 text-center text-xs font-semibold transition-all active:scale-95 touch-manipulation cursor-pointer",
-                        activeRecallStrategy === a.id
-                          ? "border-purple-500/50 bg-purple-600 text-white font-bold"
-                          : "border-white/10 bg-white/[0.02] text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      {a.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
 
             {/* Generate Button */}
             <button

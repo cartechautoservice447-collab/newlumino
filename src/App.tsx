@@ -1,3 +1,4 @@
+
 import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { CustomizationProvider, useCustomization } from "@/context/customization-context";
@@ -124,7 +125,7 @@ function AuthenticatedApp({
     }
   }, [pomodoro.sessionCompletedSignal]);
 
- Math.floor(pomodoro.timeLeft / 60);
+  const pomodoroMins = Math.floor(pomodoro.timeLeft / 60);
   const pomodoroSecs = pomodoro.timeLeft % 60;
   const pomodoroTimeFormatted = `${String(pomodoroMins).padStart(2, "0")}:${String(pomodoroSecs).padStart(2, "0")}`;
 
@@ -154,7 +155,7 @@ function AuthenticatedApp({
     }
   }, [isFluidGlass, isMobile]);
 
- (id: string) => {
+  const openCourse = (id: string) => {
     n.setActiveCourseId(id);
     n.setFilter({ kind: "all" });
     n.setSelectedId(null);
@@ -201,7 +202,7 @@ function AuthenticatedApp({
   if (view === "dashboard") {
     return (
       <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && !isMobile && "p-[10px]")}>
-        <CourseDashboard
+                  <CourseDashboard
             courses={n.courses}
             notes={n.notes}
             onOpenCourse={openCourse}
@@ -255,6 +256,7 @@ function AuthenticatedApp({
                 n.setActiveCourseId(n.courses[0].id);
               }
               setView("workspace");
+              enterFocus();
               if (!pomodoro.isRunning) {
                 pomodoro.togglePlay();
               }
@@ -382,8 +384,7 @@ function AuthenticatedApp({
           />
         </Suspense>
 
-        <Suspense fallback={null}>
-          <PomodoroSessionCompleteDialog
+        <PomodoroSessionCompleteDialog
             open={sessionCompleteModalOpen}
             onOpenChange={setSessionCompleteModalOpen}
             activeNote={n.selected || n.visibleNotes[0] || null}
@@ -400,6 +401,10 @@ function AuthenticatedApp({
             isSyncing={n.isSyncing}
             onRefresh={() => void n.refreshFromCloud()}
             onOpenAuth={onOpenAuth}
+            noteTitle={n.selected?.title || n.notes[0]?.title}
+            activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
+            focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
+            dailyGoalHours={pomodoro.dailyGoalHours}
           />
 
           <AiExamSimulatorDialog
@@ -485,7 +490,7 @@ function AuthenticatedApp({
         </div>
       )}
 
- (Luminous Glass Header when browsing notes list) */}
+      {/* Mobile Top Header (Luminous Glass Header when browsing notes list) */}
       {isMobile && !n.selectedId && view === "workspace" && (
         <div className="shrink-0 z-30 px-3 pt-3 pb-1">
           <div className="glass-panel animate-panel-in rounded-3xl p-1 shadow-2xl backdrop-blur-3xl border border-white/15">
@@ -763,6 +768,13 @@ function AuthenticatedApp({
       </Suspense>
 
       <Suspense fallback={null}>
+          onOpenChange={(val) => {
+            if (!val) setAutoAIGenerateCards(false);
+          }}
+          notes={n.visibleNotes.length > 0 ? n.visibleNotes : n.notes}
+          activeCourseName={n.activeCourse?.name}
+          autoAIGenerate={autoAIGenerateCards}
+        />
 
         <PomodoroSessionCompleteDialog
           open={sessionCompleteModalOpen}
@@ -779,6 +791,12 @@ function AuthenticatedApp({
           isSyncing={n.isSyncing}
           onRefresh={() => void n.refreshFromCloud()}
           onOpenAuth={onOpenAuth}
+          noteTitle={n.selected?.title || n.visibleNotes[0]?.title}
+          activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
+          focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
+          dailyGoalHours={pomodoro.dailyGoalHours}
+        />
+
         />
 
         <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />

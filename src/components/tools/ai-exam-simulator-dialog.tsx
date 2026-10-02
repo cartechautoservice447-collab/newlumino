@@ -43,7 +43,7 @@ interface Props {
   onStartFlashcards?: (note: Note) => void;
 }
 
-export function AiExamSimulatorDialog({
+export const AiExamSimulatorDialog = React.memo(function AiExamSimulatorDialog({
   open,
   onOpenChange,
   notes,
@@ -564,4 +564,11 @@ export function AiExamSimulatorDialog({
       </DialogContent>
     </Dialog>
   );
+}, AiExamSimulatorDialogPropsAreEqual);
+
+function AiExamSimulatorDialogPropsAreEqual(prev: Props, next: Props) {
+  return (prev.open === next.open &&
+    prev.notes === next.notes &&
+    prev.selectedNote === next.selectedNote &&
+    prev.activeCourseName === next.activeCourseName);
 }

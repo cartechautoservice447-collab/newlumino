@@ -16,11 +16,6 @@ import {
   LogOut,
   Sparkles,
   Clock,
-  Brain,
-  Maximize2,
-  FileText,
-  Bell,
-  Smartphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
@@ -41,15 +36,10 @@ type Props = {
   onDeleteCollection: (id: string) => void;
   onCollapse: () => void;
   onOpenSettings: () => void;
-  onOpenAppHub?: () => void;
   onBackToCourses: () => void;
   onOpenPomodoro?: () => void;
-  onOpenFlashcards?: () => void;
   onNavigateDailyGoal?: () => void;
-  onToggleFocus?: () => void;
   onOpenCheatsheet?: () => void;
-  onOpenNotifications?: () => void;
-  focusMode?: boolean;
   pomodoroRunning?: boolean;
   pomodoroTimeFormatted?: string;
   todayFocusSeconds?: number;
@@ -120,15 +110,10 @@ export function SidebarPanel({
   onDeleteCollection,
   onCollapse,
   onOpenSettings,
-  onOpenAppHub,
   onBackToCourses,
   onOpenPomodoro,
-  onOpenFlashcards,
   onNavigateDailyGoal,
-  onToggleFocus,
   onOpenCheatsheet,
-  onOpenNotifications,
-  focusMode,
   pomodoroRunning,
   pomodoroTimeFormatted,
   todayFocusSeconds = 0,
@@ -359,17 +344,6 @@ export function SidebarPanel({
           ) : null}
         </div>
       </div>
-
-      {onOpenAppHub && (
-        <button
-          type="button"
-          onClick={onOpenAppHub}
-          className="flex items-center gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2.5 text-sm font-medium text-emerald-300 transition-colors hover:text-emerald-200 hover:bg-emerald-500/20 cursor-pointer"
-        >
-          <Smartphone className="h-4 w-4 text-emerald-400" />
-          App Wrapper &amp; Package Hub
-        </button>
-      )}
 
       <button
         type="button"

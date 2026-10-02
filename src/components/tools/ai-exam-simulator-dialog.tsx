@@ -40,7 +40,6 @@ interface Props {
   notes: Note[];
   selectedNote: Note | null;
   activeCourseName?: string | null;
-  onStartFlashcards?: (note: Note) => void;
 }
 
 export const AiExamSimulatorDialog = React.memo(function AiExamSimulatorDialog({
@@ -49,7 +48,6 @@ export const AiExamSimulatorDialog = React.memo(function AiExamSimulatorDialog({
   notes,
   selectedNote,
   activeCourseName,
-  onStartFlashcards,
 }: Props) {
   const { showNotification } = useNotifications();
 
@@ -545,19 +543,6 @@ export const AiExamSimulatorDialog = React.memo(function AiExamSimulatorDialog({
                 <span>Retake / New Drill</span>
               </button>
 
-              {onStartFlashcards && targetNote && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onOpenChange(false);
-                    onStartFlashcards(targetNote);
-                  }}
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-primary py-2.5 text-xs font-bold text-white transition cursor-pointer"
-                >
-                  <Brain className="h-3.5 w-3.5" />
-                  <span>Review Flashcards</span>
-                </button>
-              )}
             </div>
           </div>
         )}

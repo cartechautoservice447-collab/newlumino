@@ -143,6 +143,17 @@
   }
 }
 
+/* Smooth-scroll parity with start-1: native browser scrolling is used rather than
+   a JavaScript wheel/inertia engine, preserving touch physics and reducing main-thread work. */
+html,
+body,
+.scroll-sleek,
+[data-scroll-container],
+.overflow-y-auto,
+.overflow-x-auto {
+  scroll-behavior: smooth;
+}
+
 .glass-panel {
   background: linear-gradient(
     155deg,

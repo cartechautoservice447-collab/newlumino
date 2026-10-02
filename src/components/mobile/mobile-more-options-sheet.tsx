@@ -115,6 +115,8 @@ export function MobileMoreOptionsSheet({
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
   const touchStartTime = useRef(0);
+  const dragFrameRef = useRef<number | null>(null);
+  const pendingDragYRef = useRef(0);
 
   // Sync viewport height
   useEffect(() => {
@@ -178,12 +180,22 @@ export function MobileMoreOptionsSheet({
     const isAtTop = !scrollRef.current || scrollRef.current.scrollTop <= 0;
 
     if (deltaY > 0 && deltaY > deltaX && isAtTop) {
-      setIsDragging(true);
-      setDragY(deltaY);
+      if (!isDragging) setIsDragging(true);
+      pendingDragYRef.current = deltaY;
+      if (dragFrameRef.current === null) {
+        dragFrameRef.current = requestAnimationFrame(() => {
+          dragFrameRef.current = null;
+          setDragY(pendingDragYRef.current);
+        });
+      }
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (dragFrameRef.current !== null) {
+      cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
     if (!isDragging) return;
     const touch = e.changedTouches[0];
     const deltaY = touch.clientY - touchStartY.current;
@@ -203,6 +215,12 @@ export function MobileMoreOptionsSheet({
       setDragY(0);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
+    };
+  }, []);
 
   if (!mounted) return null;
 

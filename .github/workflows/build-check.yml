@@ -25,5 +25,8 @@ jobs:
       - name: Install Dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Typecheck Application and Serverless API
+        run: npm run lint
+
       - name: Build Web Application
         run: npm run build

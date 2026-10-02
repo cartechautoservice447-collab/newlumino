@@ -17,9 +17,7 @@ import {
   Clock,
   Flame,
   Zap,
-  Smartphone,
 } from "lucide-react";
-import { PWAInstallButton } from "@/components/pwa/pwa-install-button";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { COURSE_ACCENTS, formatDate, type Course, type CourseAccent, type Note } from "@/lib/notes";
@@ -81,7 +79,6 @@ type Props = {
   onAddCourse: (name: string, description?: string, color?: CourseAccent, category?: string) => void;
   onDeleteCourse: (id: string) => void;
   onOpenSettings: () => void;
-  onOpenAppHub?: () => void;
   onOpenMenu?: () => void;
   onQuickNewNote?: () => void;
   onOpenNote?: (noteId: string, courseId?: string) => void;
@@ -103,7 +100,6 @@ export const CourseDashboard = memo(function CourseDashboard({
   onAddCourse,
   onDeleteCourse,
   onOpenSettings,
-  onOpenAppHub,
   onOpenMenu,
   onOpenNote,
   onOpenAllNotes,
@@ -149,7 +145,7 @@ export const CourseDashboard = memo(function CourseDashboard({
     if (hour >= 17 && hour < 22) {
       return {
         greeting: `Good Evening, ${name}!`,
-        subtitle: "Review your key takeaways and active recall.",
+        subtitle: "Review your key takeaways.",
         pill: "Evening Review 🌙",
       };
     }
@@ -266,24 +262,6 @@ export const CourseDashboard = memo(function CourseDashboard({
 
           {/* Action Buttons: Settings Gear Icon on Mobile & Desktop */}
           <div className="flex items-center gap-2 shrink-0">
-            {onOpenAppHub && (
-              <PWAInstallButton
-                variant="pill"
-                onOpenHub={onOpenAppHub}
-              />
-            )}
-            {onOpenAppHub && (
-              <button
-                type="button"
-                aria-label="App Hub & Mobile Packaging"
-                onClick={onOpenAppHub}
-                className="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5 sm:px-3 sm:py-2.5 text-xs sm:text-sm font-medium text-emerald-300 transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-500/20 active:scale-95 cursor-pointer shadow-sm"
-                title="iOS & Android App Wrapper, Offline & Push"
-              >
-                <Smartphone className="h-4 w-4 text-emerald-400" />
-                <span className="hidden sm:inline">App Hub</span>
-              </button>
-            )}
             <button
               type="button"
               aria-label="Settings"
@@ -804,7 +782,7 @@ export const CourseDashboard = memo(function CourseDashboard({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && submit()}
-                  placeholder="e.g. Programming in Python, lectures, and active recall notes"
+                  placeholder="e.g. Programming in Python, lectures, and course notes"
                   className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary/50 focus:outline-none"
                 />
               </div>

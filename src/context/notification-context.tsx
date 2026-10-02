@@ -1,3 +1,4 @@
+import React from "react";
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { haptic } from "@/lib/haptics";
 

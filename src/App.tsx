@@ -1,4 +1,3 @@
-import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { CustomizationProvider, useCustomization } from "@/context/customization-context";
@@ -22,21 +21,16 @@ import { MobileNoteSheet } from "@/components/mobile/mobile-note-sheet";
 import { MobileMoreOptionsSheet } from "@/components/mobile/mobile-more-options-sheet";
 import { MobileQuickDraftSheet } from "@/components/mobile/mobile-quick-draft-sheet";
 import { usePomodoroTimer } from "@/hooks/use-pomodoro";
-import { FlashcardsDialog } from "@/components/tools/flashcards-dialog";
 const SettingsDialog = lazy(() => import("@/components/settings/settings-dialog").then((m) => ({ default: m.SettingsDialog })));
-const SpatialAuroraDashboard = lazy(() => import("@/components/courses/spatial-aurora-dashboard").then((m) => ({ default: m.SpatialAuroraDashboard })));
 const DailyGoalView = lazy(() => import("@/components/tools/daily-goal-view").then((m) => ({ default: m.DailyGoalView })));
 const MarkdownCheatsheet = lazy(() => import("@/components/tools/markdown-cheatsheet").then((m) => ({ default: m.MarkdownCheatsheet })));
 const AiExamSimulatorDialog = lazy(() => import("@/components/tools/ai-exam-simulator-dialog").then((m) => ({ default: m.AiExamSimulatorDialog })));
 const AiNotePolisherDialog = lazy(() => import("@/components/tools/ai-note-polisher-dialog").then((m) => ({ default: m.AiNotePolisherDialog })));
-const ZenFocusBar = lazy(() => import("@/components/zen/zen-focus-bar").then((m) => ({ default: m.ZenFocusBar })));
-const AppWrapperHubDialog = lazy(() => import("@/components/pwa/app-wrapper-hub-dialog").then((m) => ({ default: m.AppWrapperHubDialog })));
 const PomodoroFloatingPill = lazy(() => import("@/components/tools/pomodoro-floating-pill").then((module) => ({ default: module.PomodoroFloatingPill })));
 const PomodoroDialog = lazy(() => import("@/components/tools/pomodoro-dialog").then((module) => ({ default: module.PomodoroDialog })));
 const PomodoroSessionCompleteDialog = lazy(() => import("@/components/tools/pomodoro-session-complete-dialog").then((module) => ({ default: module.PomodoroSessionCompleteDialog })));
 import { NotificationBanner } from "@/components/ui/notification-banner";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
-import { PWAInstallButton } from "@/components/pwa/pwa-install-button";
 import type { Note } from "@/lib/notes";
 
 export default function App() {
@@ -91,24 +85,18 @@ function AuthenticatedApp({
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [listOpen, setListOpen] = useState(true);
-  const [focusMode, setFocusMode] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [view, setView] = useState<"dashboard" | "workspace" | "daily-goal">("dashboard");
 
-  // Pomodoro & Flashcard Tools State
   const pomodoro = usePomodoroTimer({
     activeNoteId: n.selectedId,
     activeNoteTitle: n.selected?.title,
     activeCourseName: n.activeCourse?.name,
   });
   const [pomodoroDialogOpen, setPomodoroDialogOpen] = useState(false);
-  const [flashcardsDialogOpen, setFlashcardsDialogOpen] = useState(false);
-  const [flashcardTargetNote, setFlashcardTargetNote] = useState<Note | null>(null);
   const [sessionCompleteModalOpen, setSessionCompleteModalOpen] = useState(false);
-  const [autoAIGenerateCards, setAutoAIGenerateCards] = useState(false);
   const [examSimulatorOpen, setExamSimulatorOpen] = useState(false);
   const [notePolisherOpen, setNotePolisherOpen] = useState(false);
-  const [appWrapperHubOpen, setAppWrapperHubOpen] = useState(false);
 
   // Native PWA Shortcut and Performance boost initialization
   useEffect(() => {
@@ -118,10 +106,6 @@ function AuthenticatedApp({
       setMobileDraftOpen(true);
     } else if (action === "pomodoro") {
       setPomodoroDialogOpen(true);
-    } else if (action === "flashcards") {
-      setFlashcardsDialogOpen(true);
-    } else if (action === "app-hub" || action === "install") {
-      setAppWrapperHubOpen(true);
     }
 
     const perfBoost = localStorage.getItem("newlumino_perf_boost") === "true";
@@ -141,13 +125,7 @@ function AuthenticatedApp({
     }
   }, [pomodoro.sessionCompletedSignal]);
 
-  const handleStartSessionAIFlashcards = () => {
-    setFlashcardTargetNote(n.selected || n.visibleNotes[0] || null);
-    setAutoAIGenerateCards(true);
-    setFlashcardsDialogOpen(true);
-  };
-
-  const pomodoroMins = Math.floor(pomodoro.timeLeft / 60);
+ Math.floor(pomodoro.timeLeft / 60);
   const pomodoroSecs = pomodoro.timeLeft % 60;
   const pomodoroTimeFormatted = `${String(pomodoroMins).padStart(2, "0")}:${String(pomodoroSecs).padStart(2, "0")}`;
 
@@ -177,41 +155,7 @@ function AuthenticatedApp({
     }
   }, [isFluidGlass, isMobile]);
 
-  const enterFocus = () => {
-    if (!n.activeCourseId && n.courses[0]) {
-      n.setActiveCourseId(n.courses[0].id);
-    }
-    const targetCourseId = n.activeCourseId || (n.courses[0] ? n.courses[0].id : null);
-    if (targetCourseId) {
-      const isCurrentNoteInCourse = n.selected && (
-        n.selected.courseId === targetCourseId ||
-        (n.selected.collectionId && n.collections.some(c => (c.courseId === targetCourseId || c.parentId === targetCourseId) && c.id === n.selected?.collectionId))
-      );
-      if (!isCurrentNoteInCourse) {
-        const courseNote = n.notes.find(
-          (note) => note.courseId === targetCourseId || (note.collectionId && n.collections.some(c => (c.courseId === targetCourseId || c.parentId === targetCourseId) && c.id === note.collectionId))
-        );
-        if (courseNote) {
-          n.setSelectedId(courseNote.id);
-        } else {
-          const newId = n.createNote("Untitled note", "", null);
-          n.setSelectedId(newId);
-        }
-      }
-    }
-    setFocusMode(true);
-    setSidebarOpen(false);
-    setListOpen(false);
-  };
-
-  const exitFocus = () => {
-    setFocusMode(false);
-    if (!isMobile) setSidebarOpen(true);
-    else setSidebarOpen(false);
-    setListOpen(true);
-  };
-
-  const openCourse = (id: string) => {
+ (id: string) => {
     n.setActiveCourseId(id);
     n.setFilter({ kind: "all" });
     n.setSelectedId(null);
@@ -258,44 +202,7 @@ function AuthenticatedApp({
   if (view === "dashboard") {
     return (
       <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && !isMobile && "p-[10px]")}>
-        {settings.dashboardDesign === "spatial-aurora-bento" ? (
-          <Suspense fallback={null}>
-          <SpatialAuroraDashboard
-            courses={n.courses}
-            notes={n.notes}
-            onOpenCourse={openCourse}
-            onOpenMenu={() => setSidebarOpen(true)}
-            onQuickNewNote={() => setMobileDraftOpen(true)}
-            onOpenNote={(noteId, courseId) => {
-              if (courseId) n.setActiveCourseId(courseId);
-              n.setSelectedId(noteId);
-              setView("workspace");
-            }}
-            onOpenAllNotes={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
-              n.setFilter({ kind: "all" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onOpenFavorites={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
-              n.setFilter({ kind: "favorites" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onStartFocus={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
-              setView("workspace");
-              enterFocus();
-              if (!pomodoro.isRunning) pomodoro.togglePlay();
-            }}
-            todayFocusSeconds={pomodoro.todayFocusSeconds}
-            dailyGoalHours={pomodoro.dailyGoalHours}
-            onNavigateDailyGoal={navigateToDailyGoal}
-          />
-          </Suspense>
-        ) : (
-          <CourseDashboard
+        <CourseDashboard
             courses={n.courses}
             notes={n.notes}
             onOpenCourse={openCourse}
@@ -319,7 +226,6 @@ function AuthenticatedApp({
               });
             }}
             onOpenSettings={() => setSettingsOpen(true)}
-            onOpenAppHub={() => setAppWrapperHubOpen(true)}
             onOpenMenu={() => setSidebarOpen(true)}
             onQuickNewNote={() => setMobileDraftOpen(true)}
             onOpenNote={(noteId, courseId) => {
@@ -350,7 +256,6 @@ function AuthenticatedApp({
                 n.setActiveCourseId(n.courses[0].id);
               }
               setView("workspace");
-              enterFocus();
               if (!pomodoro.isRunning) {
                 pomodoro.togglePlay();
               }
@@ -362,7 +267,6 @@ function AuthenticatedApp({
             onRefresh={() => void n.refreshFromCloud()}
             onOpenAuth={onOpenAuth}
           />
-        )}
 
         {/* Mobile Slide-in Drawer: Study Tools when swiped or hamburger clicked on Dashboard */}
         {isMobile && (
@@ -372,24 +276,12 @@ function AuthenticatedApp({
             onOpenSettings={() => setSettingsOpen(true)}
             onOpenNewCourse={() => setNewCourseModalOpen(true)}
             onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-            onOpenFlashcards={() => {
-              setFlashcardTargetNote(n.selected || n.visibleNotes[0] || null);
-              setFlashcardsDialogOpen(true);
-            }}
             onOpenCheatsheet={() => setShowCheatsheet(true)}
             onNavigateDailyGoal={navigateToDailyGoal}
             onOpenExamSimulator={() => setExamSimulatorOpen(true)}
             onOpenNotePolisher={() => setNotePolisherOpen(true)}
             pomodoroRunning={pomodoro.isRunning}
             pomodoroTimeFormatted={pomodoroTimeFormatted}
-            onToggleFocus={() => {
-              if (!n.activeCourseId && n.courses[0]) {
-                n.setActiveCourseId(n.courses[0].id);
-              }
-              setView("workspace");
-              enterFocus();
-            }}
-            focusMode={focusMode}
             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
           />
@@ -462,7 +354,6 @@ function AuthenticatedApp({
           open={mobileToolsOpen}
           onOpenChange={setMobileToolsOpen}
           onOpenSettings={() => setSettingsOpen(true)}
-          onOpenAppHub={() => setAppWrapperHubOpen(true)}
           onOpenNewCourse={() => {
             const name = prompt("Course Name:");
             if (name?.trim()) {
@@ -470,21 +361,9 @@ function AuthenticatedApp({
             }
           }}
           onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-          onOpenFlashcards={() => {
-            setFlashcardTargetNote(null);
-            setFlashcardsDialogOpen(true);
-          }}
           onOpenCheatsheet={() => setShowCheatsheet(true)}
           pomodoroRunning={pomodoro.isRunning}
           pomodoroTimeFormatted={pomodoroTimeFormatted}
-          onToggleFocus={() => {
-            if (!n.activeCourseId && n.courses[0]) {
-              n.setActiveCourseId(n.courses[0].id);
-            }
-            setView("workspace");
-            enterFocus();
-          }}
-          focusMode={focusMode}
         />
 
         {/* Unobtrusive Floating Pomodoro Pill */}
@@ -504,25 +383,12 @@ function AuthenticatedApp({
           />
         </Suspense>
 
-        <FlashcardsDialog
-          open={flashcardsDialogOpen}
-          onOpenChange={(val) => {
-            setFlashcardsDialogOpen(val);
-            if (!val) setAutoAIGenerateCards(false);
-          }}
-          notes={n.notes}
-          selectedNote={flashcardTargetNote}
-          activeCourseName={n.activeCourse?.name}
-          autoAIGenerate={autoAIGenerateCards}
-        />
-
         <Suspense fallback={null}>
           <PomodoroSessionCompleteDialog
             open={sessionCompleteModalOpen}
             onOpenChange={setSessionCompleteModalOpen}
             activeNote={n.selected || n.visibleNotes[0] || null}
             completedSessions={pomodoro.completedSessions}
-            onStartAIFlashcards={handleStartSessionAIFlashcards}
             onStartBreak={() => pomodoro.switchMode("shortBreak")}
           />
         </Suspense>
@@ -535,16 +401,10 @@ function AuthenticatedApp({
             isSyncing={n.isSyncing}
             onRefresh={() => void n.refreshFromCloud()}
             onOpenAuth={onOpenAuth}
-            onOpenAppHub={() => setAppWrapperHubOpen(true)}
             noteTitle={n.selected?.title || n.notes[0]?.title}
             activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
             focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
             dailyGoalHours={pomodoro.dailyGoalHours}
-          />
-
-          <AppWrapperHubDialog
-            open={appWrapperHubOpen}
-            onOpenChange={setAppWrapperHubOpen}
           />
 
           <AiExamSimulatorDialog
@@ -553,10 +413,6 @@ function AuthenticatedApp({
             notes={n.notes}
             selectedNote={n.selected || n.notes[0] || null}
             activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-            onStartFlashcards={(note) => {
-              setFlashcardTargetNote(note);
-              setFlashcardsDialogOpen(true);
-            }}
           />
 
           <AiNotePolisherDialog
@@ -587,16 +443,9 @@ function AuthenticatedApp({
       onCollapse={() => setSidebarOpen(false)}
       onBackToCourses={backToCourses}
       onOpenSettings={() => setSettingsOpen(true)}
-      onOpenAppHub={() => setAppWrapperHubOpen(true)}
       onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-      onOpenFlashcards={() => {
-        setFlashcardTargetNote(n.selected);
-        setFlashcardsDialogOpen(true);
-      }}
       onNavigateDailyGoal={navigateToDailyGoal}
-      onToggleFocus={focusMode ? exitFocus : enterFocus}
       onOpenCheatsheet={() => setShowCheatsheet(true)}
-      focusMode={focusMode}
       pomodoroRunning={pomodoro.isRunning}
       pomodoroTimeFormatted={pomodoroTimeFormatted}
       todayFocusSeconds={pomodoro.todayFocusSeconds}
@@ -643,56 +492,8 @@ function AuthenticatedApp({
         </div>
       )}
 
-      {/* Zen Focus Mode Top Bar (Scoped to active course with collections and notes drawer) */}
-      {focusMode && (
-        <Suspense fallback={null}>
-        <ZenFocusBar
-          courses={n.courses}
-          activeCourse={n.activeCourse}
-          activeCourseId={n.activeCourseId}
-          onSelectCourse={(courseId) => {
-            n.setActiveCourseId(courseId);
-            n.setFilter({ kind: "all" });
-            const childColIds = new Set(
-              n.collections
-                .filter((c) => c.courseId === courseId || c.parentId === courseId)
-                .map((c) => c.id)
-            );
-            const courseNote = n.notes.find(
-              (note) => note.courseId === courseId || (note.collectionId && childColIds.has(note.collectionId))
-            );
-            if (courseNote) {
-              n.setSelectedId(courseNote.id);
-            }
-          }}
-          collections={n.collections}
-          notes={n.notes}
-          selectedNoteId={n.selectedId}
-          onSelectNote={(noteId) => n.setSelectedId(noteId)}
-          onCreateNote={(title, body, colId) => {
-            const id = n.createNote(title, body, colId);
-            n.setSelectedId(id);
-          }}
-          onAddCollection={(name, category) => {
-            n.addCollection(name, category, n.activeCourseId);
-          }}
-          onToggleFavorite={n.toggleFavorite}
-          onExitFocus={exitFocus}
-          editorMode={mobileEditorMode}
-          onModeChange={setMobileEditorMode}
-          onOpenFlashcards={(note) => {
-            setFlashcardTargetNote(note);
-            setFlashcardsDialogOpen(true);
-          }}
-          onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-          pomodoroRunning={pomodoro.isRunning}
-          pomodoroTimeFormatted={pomodoroTimeFormatted}
-        />
-        </Suspense>
-      )}
-
-      {/* Mobile Top Header (Luminous Glass Header when browsing notes list) */}
-      {isMobile && !focusMode && !n.selectedId && view === "workspace" && (
+ (Luminous Glass Header when browsing notes list) */}
+      {isMobile && !n.selectedId && view === "workspace" && (
         <div className="shrink-0 z-30 px-3 pt-3 pb-1">
           <div className="glass-panel animate-panel-in rounded-3xl p-1 shadow-2xl backdrop-blur-3xl border border-white/15">
             <MobileHeader
@@ -701,7 +502,6 @@ function AuthenticatedApp({
               showBack={false}
               onOpenSidebar={() => setSidebarOpen(true)}
               onOpenSettings={() => setSettingsOpen(true)}
-              onOpenAppHub={() => setAppWrapperHubOpen(true)}
               showSearch={mobileSearchOpen}
               onToggleSearch={() => setMobileSearchOpen(!mobileSearchOpen)}
               searchQuery={n.query}
@@ -734,19 +534,12 @@ function AuthenticatedApp({
               open={sidebarOpen}
               onOpenChange={setSidebarOpen}
               onOpenSettings={() => setSettingsOpen(true)}
-              onOpenAppHub={() => setAppWrapperHubOpen(true)}
               onOpenNewCourse={() => setNewCourseModalOpen(true)}
               onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-              onOpenFlashcards={() => {
-                setFlashcardTargetNote(n.selected || n.visibleNotes[0] || null);
-                setFlashcardsDialogOpen(true);
-              }}
               onOpenCheatsheet={() => setShowCheatsheet(true)}
               onNavigateDailyGoal={navigateToDailyGoal}
               pomodoroRunning={pomodoro.isRunning}
               pomodoroTimeFormatted={pomodoroTimeFormatted}
-              onToggleFocus={focusMode ? exitFocus : enterFocus}
-              focusMode={focusMode}
               todayFocusSeconds={pomodoro.todayFocusSeconds}
               dailyGoalHours={pomodoro.dailyGoalHours}
             />
@@ -822,13 +615,7 @@ function AuthenticatedApp({
               onToggleFavorite={() => n.selected && n.toggleFavorite(n.selected.id)}
               onCreateNote={() => n.createNote()}
               onBack={() => n.setSelectedId(null)}
-              focusMode={focusMode}
-              onToggleFocus={() => (focusMode ? exitFocus() : enterFocus())}
               onOpenMobileSheet={handleMobileOpenNoteSheet}
-              onOpenFlashcards={(note) => {
-                setFlashcardTargetNote(note);
-                setFlashcardsDialogOpen(true);
-              }}
               externalMode={mobileEditorMode}
               onModeChange={setMobileEditorMode}
             />
@@ -837,7 +624,7 @@ function AuthenticatedApp({
       )}
 
       {/* Mobile Formatting Accessory Bar (visible when actively writing on mobile) */}
-      {isMobile && n.selectedId && !focusMode && view === "workspace" && (
+      {isMobile && n.selectedId && view === "workspace" && (
         <MobileAccessoryBar
           onInsertMarkdown={handleMobileInsertMarkdown}
           onInsertCodeBlock={handleMobileInsertCodeBlock}
@@ -846,7 +633,7 @@ function AuthenticatedApp({
       )}
 
       {/* Mobile Floating Bottom Dock (Only shown when browsing courses or note list, hidden in editor for maximum room) */}
-      {isMobile && !n.selectedId && !focusMode && (
+      {isMobile && !n.selectedId && (
         <MobileBottomDock
           currentView={view}
           selectedNoteId={n.selectedId}
@@ -880,7 +667,7 @@ function AuthenticatedApp({
       )}
 
       {/* Desktop Toggle Sidebar / List buttons (Untouched) */}
-      {!sidebarOpen && !focusMode && !isMobile ? (
+      {!sidebarOpen && !isMobile ? (
         <button
           type="button"
           aria-label="Show sidebar"
@@ -891,7 +678,7 @@ function AuthenticatedApp({
         </button>
       ) : null}
 
-      {!listOpen && !focusMode && !isMobile ? (
+      {!listOpen && !isMobile ? (
         <button
           type="button"
           aria-label="Show note list"
@@ -921,10 +708,6 @@ function AuthenticatedApp({
         }}
         onMoveCollection={(id, colId) => n.updateNote(id, { collectionId: colId })}
         onDelete={n.deleteNote}
-        onOpenFlashcards={(note) => {
-          setFlashcardTargetNote(note);
-          setFlashcardsDialogOpen(true);
-        }}
       />
 
       {/* Mobile Tools & Navigation Sheet: Tool Option contains the Navigation Interface */}
@@ -940,13 +723,8 @@ function AuthenticatedApp({
         onDeleteCollection={n.deleteCollection}
         onBackToCourses={backToCourses}
         onOpenSettings={() => setSettingsOpen(true)}
-        onOpenAppHub={() => setAppWrapperHubOpen(true)}
         onOpenNewCourse={() => setNewCourseModalOpen(true)}
         onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-        onOpenFlashcards={() => {
-          setFlashcardTargetNote(n.selected || n.visibleNotes[0] || null);
-          setFlashcardsDialogOpen(true);
-        }}
         onOpenCheatsheet={() => setShowCheatsheet(true)}
         onNavigateDailyGoal={navigateToDailyGoal}
         onOpenExamSimulator={() => setExamSimulatorOpen(true)}
@@ -955,8 +733,6 @@ function AuthenticatedApp({
         pomodoroTimeFormatted={pomodoroTimeFormatted}
         todayFocusSeconds={pomodoro.todayFocusSeconds}
         dailyGoalHours={pomodoro.dailyGoalHours}
-        onToggleFocus={enterFocus}
-        focusMode={focusMode}
       />
 
       {/* Mobile Quick Draft Capture Sheet */}
@@ -990,32 +766,16 @@ function AuthenticatedApp({
           activeCourse={n.activeCourse}
           notes={n.notes}
           selectedNote={n.selected}
-          onOpenFlashcards={(note) => {
-            setFlashcardTargetNote(note);
-            setFlashcardsDialogOpen(true);
-          }}
         />
       </Suspense>
 
       <Suspense fallback={null}>
-        <FlashcardsDialog
-          open={flashcardsDialogOpen}
-          onOpenChange={(val) => {
-            setFlashcardsDialogOpen(val);
-            if (!val) setAutoAIGenerateCards(false);
-          }}
-          notes={n.visibleNotes.length > 0 ? n.visibleNotes : n.notes}
-          selectedNote={flashcardTargetNote || n.selected}
-          activeCourseName={n.activeCourse?.name}
-          autoAIGenerate={autoAIGenerateCards}
-        />
 
         <PomodoroSessionCompleteDialog
           open={sessionCompleteModalOpen}
           onOpenChange={setSessionCompleteModalOpen}
           activeNote={n.selected || n.visibleNotes[0] || null}
           completedSessions={pomodoro.completedSessions}
-          onStartAIFlashcards={handleStartSessionAIFlashcards}
           onStartBreak={() => pomodoro.switchMode("shortBreak")}
         />
 
@@ -1026,16 +786,10 @@ function AuthenticatedApp({
           isSyncing={n.isSyncing}
           onRefresh={() => void n.refreshFromCloud()}
           onOpenAuth={onOpenAuth}
-          onOpenAppHub={() => setAppWrapperHubOpen(true)}
           noteTitle={n.selected?.title || n.visibleNotes[0]?.title}
           activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
           focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
           dailyGoalHours={pomodoro.dailyGoalHours}
-        />
-
-        <AppWrapperHubDialog
-          open={appWrapperHubOpen}
-          onOpenChange={setAppWrapperHubOpen}
         />
 
         <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />
@@ -1046,10 +800,6 @@ function AuthenticatedApp({
           notes={n.notes}
           selectedNote={n.selected || n.notes[0] || null}
           activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-          onStartFlashcards={(note) => {
-            setFlashcardTargetNote(note);
-            setFlashcardsDialogOpen(true);
-          }}
         />
 
         <AiNotePolisherDialog

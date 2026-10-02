@@ -10,7 +10,6 @@ import {
   Check,
   X,
   FileText,
-  Brain,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatDate, type Collection, type Note } from "@/lib/notes";
@@ -27,7 +26,6 @@ type Props = {
   onMoveCollection: (id: string, collectionId: string | null) => void;
   onDelete: (id: string) => void;
   onOpenInEditor?: (id: string) => void;
-  onOpenFlashcards?: (note: Note) => void;
 };
 
 export function MobileNoteSheet({
@@ -40,7 +38,6 @@ export function MobileNoteSheet({
   onMoveCollection,
   onDelete,
   onOpenInEditor,
-  onOpenFlashcards,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const [moving, setMoving] = useState(false);
@@ -274,22 +271,6 @@ export function MobileNoteSheet({
               <Download className="h-4 w-4 text-emerald-400" />
               <span>Export .md</span>
             </button>
-
-            {/* Action 7: Study with Flashcards */}
-            {onOpenFlashcards && (
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  onOpenChange(false);
-                  onOpenFlashcards(note);
-                }}
-                className="col-span-2 flex items-center justify-center gap-2 rounded-2xl border border-purple-500/30 bg-purple-500/10 p-3 text-xs font-bold text-purple-300 transition-transform active:scale-95 hover:bg-purple-500/20 touch-manipulation cursor-pointer"
-              >
-                <Brain className="h-4 w-4" />
-                <span>Study with Flashcards</span>
-              </button>
-            )}
 
             {/* Action 8: Delete (Full width) */}
             <button

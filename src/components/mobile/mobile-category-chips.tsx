@@ -11,7 +11,7 @@ type Props = {
   counts: { all: number; favorites: number; byCollection: Record<string, number> };
 };
 
-const T = "transition-[transform,background-color,border-color,color,box-shadow,opacity]";
+const T = "transition-[transform,translate,scale,background-color,border-color,color,box-shadow,opacity]";
 const INACTIVE =
   "border border-white/10 bg-white/[0.04] text-muted-foreground hover:text-foreground hover:bg-white/[0.08]";
 

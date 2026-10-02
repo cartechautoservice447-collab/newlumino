@@ -121,7 +121,7 @@ export function AuthModal({ onGuestAccess }: { onGuestAccess?: () => void }) {
               password,
               options: {
                 data: { username: username.trim() },
-                emailRedirectTo: window.location.origin,
+                emailRedirectTo: getAuthRedirectUrl(),
               },
             })
           : await supabase.auth.signInWithPassword({ email, password });

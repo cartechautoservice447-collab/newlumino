@@ -16,7 +16,6 @@ type Props = {
   onNavigateDailyGoal: () => void;
   onCreateNote: () => void;
   onOpenMoreSheet: () => void;
-  onOpenSettings?: () => void;
 };
 
 export const MobileBottomDock = memo(function MobileBottomDock({
@@ -32,7 +31,6 @@ export const MobileBottomDock = memo(function MobileBottomDock({
   onNavigateDailyGoal,
   onCreateNote,
   onOpenMoreSheet,
-  onOpenSettings,
 }: Props) {
   const isDashboard = currentView === "dashboard";
   const isDailyGoal = currentView === "daily-goal";
@@ -43,19 +41,8 @@ export const MobileBottomDock = memo(function MobileBottomDock({
   const progressPct = Math.min(100, Math.round((todayFocusSeconds / goalSeconds) * 100));
 
   return (
-    <div className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] inset-x-3 z-40 md:hidden select-none">
-      <nav className="glass-panel relative flex items-center justify-around rounded-3xl border border-white/15 bg-black/60 px-2 py-2 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10">
-        {/* Interactive Top Pull / Swipe-Up Handle for Settings */}
-        <div
-          onClick={() => {
-            haptic("medium");
-            if (onOpenSettings) onOpenSettings();
-          }}
-          className="absolute -top-3.5 inset-x-0 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none py-1 group pointer-events-auto"
-          title="Swipe up for Settings"
-        >
-          <div className="h-1.5 w-12 rounded-full bg-white/35 transition-all duration-300 group-hover:bg-primary group-hover:w-16 group-active:w-20 group-active:bg-primary shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
-        </div>
+    <div className="fixed bottom-[calc(0.3rem+env(safe-area-inset-bottom,0px))] inset-x-2 z-40 md:hidden select-none">
+      <nav className="glass-panel relative grid grid-cols-5 items-center rounded-3xl border border-white/15 bg-black/60 px-2 py-2 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10">
         {/* Tab 1: Courses */}
         <button
           type="button"
@@ -108,7 +95,7 @@ export const MobileBottomDock = memo(function MobileBottomDock({
         </button>
 
         {/* Center: FAB New Note */}
-        <div className="relative -top-3">
+        <div className="flex items-center justify-center">
           <button
             type="button"
             aria-label="Create note"
@@ -116,7 +103,7 @@ export const MobileBottomDock = memo(function MobileBottomDock({
               haptic("heavy");
               onCreateNote();
             }}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-emerald-400 text-primary-foreground shadow-[0_8px_25px_-4px_hsl(var(--primary)/0.8)] ring-4 ring-background transition-transform duration-200 hover:scale-105 active:scale-90 touch-manipulation cursor-pointer"
+            className="flex h-12 w-12 items-center justify-center justify-self-center rounded-full bg-gradient-to-tr from-primary to-emerald-400 text-primary-foreground shadow-[0_8px_25px_-4px_hsl(var(--primary)/0.8)] ring-4 ring-background transition-transform duration-200 hover:scale-105 active:scale-90 touch-manipulation cursor-pointer"
           >
             <Plus className="h-6 w-6 stroke-[2.5]" />
           </button>

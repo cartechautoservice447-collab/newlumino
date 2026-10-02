@@ -5,6 +5,7 @@ import {
   Award,
   BarChart3,
   BookOpen,
+  Brain,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -575,7 +576,6 @@ export function PomodoroDialog({
                   ))}
                 </div>
               </div>
-
 
             {/* Generate Button */}
             <button

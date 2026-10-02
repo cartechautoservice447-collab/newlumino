@@ -69,7 +69,7 @@ type Props = {
  * Contains the Navigation Interface (Courses, Collections, All Notes, Starred, Folders)
  * as well as quick tool utilities.
  */
-export function MobileMoreOptionsSheet({
+export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet({
   open,
   onOpenChange,
   collections = [],
@@ -1060,4 +1060,17 @@ export function MobileMoreOptionsSheet({
     </div>,
     document.body
   );
+}, MobileMoreOptionsSheetPropsAreEqual);
+
+function MobileMoreOptionsSheetPropsAreEqual(prev: MobileMoreOptionsSheetProps, next: MobileMoreOptionsSheetProps) {
+  return prev.open === next.open &&
+  prev.collections === next.collections &&
+  prev.activeCourse === next.activeCourse &&
+  prev.filter === next.filter &&
+  prev.counts === next.counts &&
+  prev.pomodoroRunning === next.pomodoroRunning &&
+  prev.pomodoroTimeFormatted === next.pomodoroTimeFormatted &&
+  prev.focusMode === next.focusMode &&
+  Math.floor((prev.todayFocusSeconds ?? 0) / 60) === Math.floor((next.todayFocusSeconds ?? 0) / 60) &&
+  prev.dailyGoalHours === next.dailyGoalHours;
 }

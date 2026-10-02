@@ -688,6 +688,7 @@ export function PomodoroDialog({
           </div>
         )}
 
+        {/* Build-safe planner view: retired flashcard block removed. */}
         {/* TAB 3: Time Monitoring & Note Analytics */}
         {activeTab === "analytics" && (
           <div className="mt-3 animate-panel-in space-y-4">

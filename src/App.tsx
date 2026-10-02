@@ -997,19 +997,19 @@ function AuthenticatedApp({
         />
       </Suspense>
 
-      <FlashcardsDialog
-        open={flashcardsDialogOpen}
-        onOpenChange={(val) => {
-          setFlashcardsDialogOpen(val);
-          if (!val) setAutoAIGenerateCards(false);
-        }}
-        notes={n.visibleNotes.length > 0 ? n.visibleNotes : n.notes}
-        selectedNote={flashcardTargetNote || n.selected}
-        activeCourseName={n.activeCourse?.name}
-        autoAIGenerate={autoAIGenerateCards}
-      />
-
       <Suspense fallback={null}>
+        <FlashcardsDialog
+          open={flashcardsDialogOpen}
+          onOpenChange={(val) => {
+            setFlashcardsDialogOpen(val);
+            if (!val) setAutoAIGenerateCards(false);
+          }}
+          notes={n.visibleNotes.length > 0 ? n.visibleNotes : n.notes}
+          selectedNote={flashcardTargetNote || n.selected}
+          activeCourseName={n.activeCourse?.name}
+          autoAIGenerate={autoAIGenerateCards}
+        />
+
         <PomodoroSessionCompleteDialog
           open={sessionCompleteModalOpen}
           onOpenChange={setSessionCompleteModalOpen}
@@ -1018,57 +1018,47 @@ function AuthenticatedApp({
           onStartAIFlashcards={handleStartSessionAIFlashcards}
           onStartBreak={() => pomodoro.switchMode("shortBreak")}
         />
-      </Suspense>
 
-      <SettingsDialog
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        realtimeStatus={n.realtimeStatus}
-        isSyncing={n.isSyncing}
-        onRefresh={() => void n.refreshFromCloud()}
-        onOpenAuth={onOpenAuth}
-        onOpenAppHub={() => setAppWrapperHubOpen(true)}
-        noteTitle={n.selected?.title || n.visibleNotes[0]?.title}
-        activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-        focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
-        dailyGoalHours={pomodoro.dailyGoalHours}
-      />
-      </Suspense>
+        <SettingsDialog
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          realtimeStatus={n.realtimeStatus}
+          isSyncing={n.isSyncing}
+          onRefresh={() => void n.refreshFromCloud()}
+          onOpenAuth={onOpenAuth}
+          onOpenAppHub={() => setAppWrapperHubOpen(true)}
+          noteTitle={n.selected?.title || n.visibleNotes[0]?.title}
+          activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
+          focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
+          dailyGoalHours={pomodoro.dailyGoalHours}
+        />
 
-      <Suspense fallback={null}>
-      <AppWrapperHubDialog
-        open={appWrapperHubOpen}
-        onOpenChange={setAppWrapperHubOpen}
-      />
-      </Suspense>
+        <AppWrapperHubDialog
+          open={appWrapperHubOpen}
+          onOpenChange={setAppWrapperHubOpen}
+        />
 
-      <OfflineBanner />
-
-      <Suspense fallback={null}>
         <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />
-      </Suspense>
 
-      <AiExamSimulatorDialog
-        open={examSimulatorOpen}
-        onOpenChange={setExamSimulatorOpen}
-        notes={n.notes}
-        selectedNote={n.selected || n.visibleNotes[0] || null}
-        activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-        onStartFlashcards={(note) => {
-          setFlashcardTargetNote(note);
-          setFlashcardsDialogOpen(true);
-        }}
-      />
-      </Suspense>
+        <AiExamSimulatorDialog
+          open={examSimulatorOpen}
+          onOpenChange={setExamSimulatorOpen}
+          notes={n.notes}
+          selectedNote={n.selected || n.notes[0] || null}
+          activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
+          onStartFlashcards={(note) => {
+            setFlashcardTargetNote(note);
+            setFlashcardsDialogOpen(true);
+          }}
+        />
 
-      <Suspense fallback={null}>
-      <AiNotePolisherDialog
-        open={notePolisherOpen}
-        onOpenChange={setNotePolisherOpen}
-        notes={n.notes}
-        selectedNote={n.selected || n.visibleNotes[0] || null}
-        onUpdateNote={n.updateNote}
-      />
+        <AiNotePolisherDialog
+          open={notePolisherOpen}
+          onOpenChange={setNotePolisherOpen}
+          notes={n.notes}
+          selectedNote={n.selected || n.notes[0] || null}
+          onUpdateNote={n.updateNote}
+        />
       </Suspense>
     </ThemeStage>
   );

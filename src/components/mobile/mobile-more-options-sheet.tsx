@@ -918,7 +918,7 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
   );
 }, MobileMoreOptionsSheetPropsAreEqual);
 
-function MobileMoreOptionsSheetPropsAreEqual(prev: MobileMoreOptionsSheetProps, next: MobileMoreOptionsSheetProps) {
+function MobileMoreOptionsSheetPropsAreEqual(prev: Props, next: Props) {
   return prev.open === next.open &&
   prev.collections === next.collections &&
   prev.activeCourse === next.activeCourse &&

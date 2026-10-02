@@ -182,9 +182,9 @@ export const SpatialAuroraDashboard = memo(function SpatialAuroraDashboard({
         course.name.toLowerCase().includes(q) ||
         course.description.toLowerCase().includes(q) ||
         (course.category || "").toLowerCase().includes(q) ||
-        notesByCourse.get(course.id)?.some(
+        (notesByCourse.get(course.id)?.some(
           (note) => note.title.toLowerCase().includes(q) || note.body.toLowerCase().includes(q),
-        ) ?? false
+        ) ?? false)
       );
     });
   }, [category, courses, notesByCourse, query]);

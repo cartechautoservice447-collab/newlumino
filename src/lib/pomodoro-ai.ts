@@ -45,11 +45,13 @@ export interface PomodoroSessionRecord {
   intervalsCompleted: number;
 }
 
+import { fetchApi } from "@/lib/api";
+
 export async function requestAIPomodoroPlan(
   req: PomodoroPlanRequest
 ): Promise<PomodoroPlanResult> {
   try {
-    const res = await fetch("/api/ai/pomodoro-plan", {
+    const res = await fetchApi("/api/ai/pomodoro-plan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(req),

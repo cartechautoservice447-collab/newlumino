@@ -141,6 +141,33 @@ export function SpatialAuroraDashboard({
   );
   const favoriteCount = useMemo(() => notes.filter((note) => note.favorite).length, [notes]);
 
+  // Precompute note lookup data once so search and workspace cards do not
+  // repeatedly scan the entire note library.
+  const notesByCourse = useMemo(() => {
+    const grouped = new Map<string, Note[]>();
+    for (const note of notes) {
+      if (!note.courseId) continue;
+      const list = grouped.get(note.courseId);
+      if (list) list.push(note);
+      else grouped.set(note.courseId, [note]);
+    }
+    return grouped;
+  }, [notes]);
+
+  const courseStats = useMemo(() => {
+    const stats = new Map<string, { count: number; latest: number }>();
+    for (const note of notes) {
+      if (!note.courseId) continue;
+      const current = stats.get(note.courseId);
+      if (!current) stats.set(note.courseId, { count: 1, latest: note.updatedAt });
+      else {
+        current.count += 1;
+        current.latest = Math.max(current.latest, note.updatedAt);
+      }
+    }
+    return stats;
+  }, [notes]);
+
   const goalSeconds = Math.max(60, dailyGoalHours * 3600);
   const progress = Math.min(100, Math.round((todayFocusSeconds / goalSeconds) * 100));
   const focusMinutes = Math.floor(todayFocusSeconds / 60);
@@ -155,14 +182,12 @@ export function SpatialAuroraDashboard({
         course.name.toLowerCase().includes(q) ||
         course.description.toLowerCase().includes(q) ||
         (course.category || "").toLowerCase().includes(q) ||
-        notes.some(
-          (note) =>
-            note.courseId === course.id &&
-            (note.title.toLowerCase().includes(q) || note.body.toLowerCase().includes(q)),
-        )
+        notesByCourse.get(course.id)?.some(
+          (note) => note.title.toLowerCase().includes(q) || note.body.toLowerCase().includes(q),
+        ) ?? false
       );
     });
-  }, [category, courses, notes, query]);
+  }, [category, courses, notesByCourse, query]);
 
   return (
     <div className="relative h-full min-h-0 w-full overflow-hidden bg-[#070a10] text-[#dfe2ef]">
@@ -322,8 +347,9 @@ export function SpatialAuroraDashboard({
             <div className="flex items-center justify-between px-1"><div className="flex items-center gap-2"><Layers className="h-[18px] w-[18px] text-violet-300" /><h2 className="text-xs font-bold uppercase tracking-wider text-white">Active Workspaces</h2></div><span className="text-xs text-slate-400">{filteredCourses.length} active domains</span></div>
             <div className="flex flex-col gap-3">
               {filteredCourses.map((course) => {
-                const courseNotes = notes.filter((note) => note.courseId === course.id);
-                const latest = [...courseNotes].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+                const stats = courseStats.get(course.id);
+                const noteCount = stats?.count ?? 0;
+                const latest = stats?.latest ?? course.updatedAt ?? course.createdAt;
                 const accent = accentClasses[course.color];
                 return (
                   <article key={course.id} className={cn("rounded-2xl border p-4 backdrop-blur-xl", accent)}>
@@ -332,10 +358,10 @@ export function SpatialAuroraDashboard({
                         <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", accent)}><BookOpen className="h-5 w-5" /></div>
                         <div className="min-w-0"><h3 className="truncate text-[15px] font-bold text-white">{course.name}</h3><p className="mt-0.5 line-clamp-1 text-xs text-slate-400">{course.description || "Workspace for saved study materials"}</p></div>
                       </div>
-                      <span className="shrink-0 rounded-full border border-white/[0.06] bg-white/[0.06] px-2.5 py-0.5 text-[11px] font-semibold text-slate-400">{courseNotes.length} {courseNotes.length === 1 ? "note" : "notes"}</span>
+                      <span className="shrink-0 rounded-full border border-white/[0.06] bg-white/[0.06] px-2.5 py-0.5 text-[11px] font-semibold text-slate-400">{noteCount} {noteCount === 1 ? "note" : "notes"}</span>
                     </button>
-                    <div className="mt-3.5 flex flex-wrap items-center gap-2"><span className="rounded-md bg-white/[0.04] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">{course.category || "General"}</span><span className="rounded-md bg-white/[0.04] px-2 py-0.5 text-[10px] text-slate-400">{latest ? "Updated " + age(latest.updatedAt) : "No notes yet"}</span></div>
-                    <div className="mt-3 flex items-center justify-between border-t border-white/[0.05] pt-2.5"><span className="text-xs text-slate-400">{latest ? "Edited " + age(latest.updatedAt) : "Created " + age(course.createdAt)}</span><button type="button" onClick={() => onOpenCourse(course.id)} className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300 active:scale-95">Open Workspace <ArrowRight className="h-3.5 w-3.5" /></button></div>
+                    <div className="mt-3.5 flex flex-wrap items-center gap-2"><span className="rounded-md bg-white/[0.04] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">{course.category || "General"}</span><span className="rounded-md bg-white/[0.04] px-2 py-0.5 text-[10px] text-slate-400">{stats ? "Updated " + age(latest) : "No notes yet"}</span></div>
+                    <div className="mt-3 flex items-center justify-between border-t border-white/[0.05] pt-2.5"><span className="text-xs text-slate-400">{stats ? "Edited " + age(latest) : "Created " + age(course.createdAt)}</span><button type="button" onClick={() => onOpenCourse(course.id)} className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300 active:scale-95">Open Workspace <ArrowRight className="h-3.5 w-3.5" /></button></div>
                   </article>
                 );
               })}

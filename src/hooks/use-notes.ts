@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import {
   type Collection,
   type Course,
@@ -19,6 +19,7 @@ import {
   saveRemoteCourse,
   saveRemoteNote,
   subscribeToRealtimeSharedBackend,
+  toCollection,
   toCourse,
   toNote,
 } from "@/lib/notesApi";
@@ -46,12 +47,82 @@ export function useNotes(userId?: string | null) {
     setHydrated(true);
   }, []);
 
-  // Save to local cache on any change
+  // Keep the latest state in a ref so persistence can be batched without
+  // writing synchronously on every keystroke.
+  const stateRef = useRef(state);
+  const localSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const remoteNoteTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
   useEffect(() => {
-    if (hydrated) {
-      saveState(state);
-    }
+    stateRef.current = state;
+  }, [state]);
+
+  // Save to the local cache in a short batch window instead of blocking the
+  // main thread with JSON.stringify/localStorage on every state update.
+  useEffect(() => {
+    if (!hydrated) return;
+    if (localSaveTimerRef.current) clearTimeout(localSaveTimerRef.current);
+    localSaveTimerRef.current = setTimeout(() => {
+      saveState(stateRef.current);
+      localSaveTimerRef.current = null;
+    }, 250);
+
+    return () => {
+      if (localSaveTimerRef.current) {
+        clearTimeout(localSaveTimerRef.current);
+        localSaveTimerRef.current = null;
+      }
+    };
   }, [state, hydrated]);
+
+  // Flush pending local data when the page is backgrounded/unloaded.
+  useEffect(() => {
+    const flush = () => saveState(stateRef.current);
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
+
+  const scheduleRemoteNoteSave = useCallback((noteId: string) => {
+    if (!userId) return;
+    const timers = remoteNoteTimersRef.current;
+    const existing = timers.get(noteId);
+    if (existing) clearTimeout(existing);
+
+    const timer = setTimeout(() => {
+      const latest = stateRef.current.notes.find((note) => note.id === noteId);
+      if (latest) {
+        void saveRemoteNote(latest, userId);
+      }
+      timers.delete(noteId);
+    }, 650);
+
+    timers.set(noteId, timer);
+  }, [userId]);
+
+  const cancelRemoteNoteSave = useCallback((noteId: string) => {
+    const timer = remoteNoteTimersRef.current.get(noteId);
+    if (timer) {
+      clearTimeout(timer);
+      remoteNoteTimersRef.current.delete(noteId);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (localSaveTimerRef.current) clearTimeout(localSaveTimerRef.current);
+      for (const timer of remoteNoteTimersRef.current.values()) {
+        clearTimeout(timer);
+      }
+      remoteNoteTimersRef.current.clear();
+    };
+  }, []);
 
   // Synchronize with remote Supabase backend whenever userId is present
   const refreshFromCloud = useCallback(async () => {
@@ -85,7 +156,6 @@ export function useNotes(userId?: string | null) {
 
     const unsubscribe = subscribeToRealtimeSharedBackend(userId, {
       onCoursesChange: (payload) => {
-        console.log("[useNotes Realtime] courses update:", payload.eventType, payload.new);
         if (payload.eventType === "INSERT" && payload.new) {
           const freshCourse = toCourse(payload.new as any);
           setState((prev) => {
@@ -99,10 +169,15 @@ export function useNotes(userId?: string | null) {
           });
         } else if (payload.eventType === "UPDATE" && payload.new) {
           const updated = toCourse(payload.new as any);
-          setState((prev) => ({
-            ...prev,
-            courses: prev.courses.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
-          }));
+          setState((prev) => {
+            let changed = false;
+            const courses = prev.courses.map((course) => {
+              if (course.id !== updated.id) return course;
+              changed = true;
+              return { ...course, ...updated };
+            });
+            return changed ? { ...prev, courses } : prev;
+          });
         } else if (payload.eventType === "DELETE" && payload.old) {
           const deletedId = (payload.old as any).id;
           setState((prev) => ({
@@ -121,7 +196,6 @@ export function useNotes(userId?: string | null) {
         }
       },
       onNotesChange: (payload) => {
-        console.log("[useNotes Realtime] notes update:", payload.eventType);
         if (payload.eventType === "INSERT" && payload.new) {
           const freshNote = toNote(payload.new as any);
           setState((prev) => {
@@ -130,10 +204,15 @@ export function useNotes(userId?: string | null) {
           });
         } else if (payload.eventType === "UPDATE" && payload.new) {
           const updated = toNote(payload.new as any);
-          setState((prev) => ({
-            ...prev,
-            notes: prev.notes.map((n) => (n.id === updated.id ? { ...n, ...updated } : n)),
-          }));
+          setState((prev) => {
+            let changed = false;
+            const notes = prev.notes.map((note) => {
+              if (note.id !== updated.id) return note;
+              changed = true;
+              return { ...note, ...updated };
+            });
+            return changed ? { ...prev, notes } : prev;
+          });
         } else if (payload.eventType === "DELETE" && payload.old) {
           const deletedId = (payload.old as any).id;
           setState((prev) => ({
@@ -142,9 +221,31 @@ export function useNotes(userId?: string | null) {
           }));
         }
       },
-      onCollectionsChange: () => {
-        if (userId) {
-          void refreshFromCloud();
+      onCollectionsChange: (payload) => {
+        if (payload.eventType === "INSERT" && payload.new) {
+          const freshCollection = toCollection(payload.new as any);
+          setState((prev) => {
+            if (prev.collections.some((c) => c.id === freshCollection.id)) return prev;
+            return { ...prev, collections: [...prev.collections, freshCollection] };
+          });
+        } else if (payload.eventType === "UPDATE" && payload.new) {
+          const updated = toCollection(payload.new as any);
+          setState((prev) => ({
+            ...prev,
+            collections: prev.collections.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
+          }));
+        } else if (payload.eventType === "DELETE" && payload.old) {
+          const deletedId = (payload.old as any).id;
+          setState((prev) => ({
+            ...prev,
+            collections: prev.collections.filter((c) => c.id !== deletedId),
+            notes: prev.notes.map((note) =>
+              note.collectionId === deletedId ? { ...note, collectionId: null } : note,
+            ),
+          }));
+          setFilter((current) =>
+            current.kind === "collection" && current.id === deletedId ? { kind: "all" } : current,
+          );
         }
       },
       onStatusChange: (status) => {
@@ -187,8 +288,11 @@ export function useNotes(userId?: string | null) {
     );
   }, [state.notes, state.collections, activeCourseId]);
 
+  // Keep search input responsive when the library is large.
+  const deferredQuery = useDeferredValue(query);
+
   const visibleNotes = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     return scopedNotes
       .filter((n) => {
         if (filter.kind === "favorites" && !n.favorite) return false;
@@ -199,7 +303,7 @@ export function useNotes(userId?: string | null) {
         );
       })
       .sort((a, b) => b.updatedAt - a.updatedAt);
-  }, [scopedNotes, filter, query]);
+  }, [scopedNotes, filter, deferredQuery]);
 
   const selected = useMemo(
     () => state.notes.find((n) => n.id === selectedId) ?? null,
@@ -334,7 +438,7 @@ export function useNotes(userId?: string | null) {
       setQuery("");
 
       if (userId && activeCourseId) {
-        void saveRemoteNote(note, userId);
+        scheduleRemoteNoteSave(note.id);
       }
 
       return note.id;
@@ -357,7 +461,7 @@ export function useNotes(userId?: string | null) {
       setSelectedId(duplicated.id);
 
       if (userId && duplicated.courseId) {
-        void saveRemoteNote(duplicated, userId);
+        scheduleRemoteNoteSave(duplicated.id);
       }
 
       return duplicated.id;
@@ -368,27 +472,19 @@ export function useNotes(userId?: string | null) {
   const updateNote = useCallback(
     (id: string, patch: Partial<Note>) => {
       setState((s) => {
-        let updatedNote: Note | null = null;
-        const newNotes = s.notes.map((n) => {
-          if (n.id === id) {
-            updatedNote = { ...n, ...patch, updatedAt: Date.now() };
-            return updatedNote;
-          }
-          return n;
-        });
-
-        if (userId && updatedNote) {
-          void saveRemoteNote(updatedNote, userId);
-        }
-
+        const newNotes = s.notes.map((note) =>
+          note.id === id ? { ...note, ...patch, updatedAt: Date.now() } : note,
+        );
         return { ...s, notes: newNotes };
       });
+      scheduleRemoteNoteSave(id);
     },
-    [userId],
+    [scheduleRemoteNoteSave],
   );
 
   const deleteNote = useCallback(
     (id: string) => {
+      cancelRemoteNoteSave(id);
       setState((s) => ({ ...s, notes: s.notes.filter((n) => n.id !== id) }));
       setSelectedId((cur) => (cur === id ? null : cur));
 
@@ -396,7 +492,7 @@ export function useNotes(userId?: string | null) {
         void deleteRemoteNote(id, userId);
       }
     },
-    [userId],
+    [cancelRemoteNoteSave, userId],
   );
 
   const toggleFavorite = useCallback(
@@ -411,14 +507,11 @@ export function useNotes(userId?: string | null) {
           return n;
         });
 
-        if (userId && updatedNote) {
-          void saveRemoteNote(updatedNote, userId);
-        }
-
         return { ...s, notes: newNotes };
       });
+      scheduleRemoteNoteSave(id);
     },
-    [userId],
+    [scheduleRemoteNoteSave],
   );
 
   /**

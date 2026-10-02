@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { memo, useState, useMemo } from "react";
 import {
   FolderOpen,
   Plus,
@@ -96,7 +96,7 @@ type Props = {
   onOpenAuth?: () => void;
 };
 
-export function CourseDashboard({
+export const CourseDashboard = memo(function CourseDashboard({
   courses,
   notes,
   onOpenCourse,
@@ -905,5 +905,20 @@ export function CourseDashboard({
         </div>
       ) : null}
     </div>
+  );
+}, areCourseDashboardPropsEqual);
+
+function areCourseDashboardPropsEqual(
+  prev: Props,
+  next: Props,
+) {
+  return (
+    prev.courses === next.courses &&
+    prev.notes === next.notes &&
+    prev.dailyGoalHours === next.dailyGoalHours &&
+    Math.floor((prev.todayFocusSeconds ?? 0) / 60) === Math.floor((next.todayFocusSeconds ?? 0) / 60) &&
+    prev.realtimeStatus === next.realtimeStatus &&
+    prev.isSyncing === next.isSyncing &&
+    prev.onOpenCourse === next.onOpenCourse
   );
 }

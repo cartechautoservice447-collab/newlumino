@@ -100,7 +100,7 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   ...FLUID_GLASS_DEFAULTS,
 };
 
-const KEY = "glass-notes:customization:v1";
+const KEY = "glass-notes:customization:v2";
 
 export function loadCustomization(): Customization {
   if (typeof window === "undefined") return DEFAULT_CUSTOMIZATION;

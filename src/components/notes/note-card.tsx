@@ -13,7 +13,7 @@ type Props = {
   collectionName?: string | undefined;
   onSelect: (id: string) => void;
   onToggleFavorite: (id: string) => void;
-  onOpenMobileMenu?: (note: Note, e: React.MouseEvent) => void;
+  onOpenMobileMenu?: (note: Note) => void;
 };
 
 function oldRelativeDate(timestamp: number) {
@@ -54,7 +54,7 @@ export const NoteCard = memo(function NoteCard({
       tabIndex={0}
       onClick={() => {
         haptic("light");
-        onSelect();
+        onSelect(note.id);
       }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -128,7 +128,7 @@ export const NoteCard = memo(function NoteCard({
               onClick={(e) => {
                 e.stopPropagation();
                 haptic("medium");
-                onOpenMobileMenu(note, e);
+                onOpenMobileMenu(note);
               }}
               className="md:hidden flex h-9 w-9 items-center justify-center shrink-0 rounded-xl text-muted-foreground hover:bg-white/[0.08] hover:text-foreground active:scale-90 touch-manipulation cursor-pointer"
             >

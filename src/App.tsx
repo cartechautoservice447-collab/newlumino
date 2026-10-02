@@ -325,7 +325,6 @@ function AuthenticatedApp({
               setMobileDraftOpen(true);
             }}
             onOpenMoreSheet={() => setMobileToolsOpen(true)}
-            onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
 
@@ -651,7 +650,6 @@ function AuthenticatedApp({
             n.createNote();
           }}
           onOpenMoreSheet={() => setMobileToolsOpen(true)}
-          onOpenSettings={() => setSettingsOpen(true)}
         />
       )}
 

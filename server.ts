@@ -228,14 +228,14 @@ app.post("/api/ai/exam-simulate", async (req, res) => {
         id: `q-${idx}`,
         question: `Which fundamental principle of "${noteTitle}" is most critical for long-term retention?`,
         options: [
-          "Consistent active recall and testing without referencing source material immediately",
+          "Consistent retrieval practice and testing without referencing source material immediately",
           "Passive re-reading of highlight passages without self-explanation",
           "Memorizing exact syntax without understanding underlying control flow",
           "Skipping problem edge cases to maximize reading velocity",
         ],
         correctIndex: 0,
-        explanation: "Active recall and deliberate retrieval practice are proven to maximize retention and conceptual mastery.",
-        topicTag: "Active Recall",
+        explanation: "Deliberate retrieval practice is designed to improve retention and conceptual mastery.",
+        topicTag: "Retrieval Practice",
       });
     }
 
@@ -369,13 +369,13 @@ app.post("/api/ai/note-polish", async (req, res) => {
     const summary: string[] = [];
 
     if (mode === "study_guide") {
-      result = `# ${noteTitle}\n\n> 🎯 **Executive Summary**: Core concepts and high-yield principles for active study.\n\n${noteBody}\n\n## 💡 Key Takeaways\n- Master foundational definitions and terminology\n- Test retention through active recall practice\n- Review code edge cases and practical implementations`;
+      result = `# ${noteTitle}\n\n> 🎯 **Executive Summary**: Core concepts and high-yield principles for active study.\n\n${noteBody}\n\n## 💡 Key Takeaways\n- Master foundational definitions and terminology\n- Test retention through retrieval practice\n- Review code edge cases and practical implementations`;
       summary.push("Added Executive Summary block", "Structured headings and bullet formatting", "Added Key Takeaways section");
     } else if (mode === "code_debug") {
       result = `${noteBody}\n\n### ⚡ Code Verification & Edge-Case Audit\n- ✅ Syntax validated against standard conventions\n- ⚠️ Ensure bounds checking and null safety on inputs\n- 💡 Recommended: add unit test coverage for edge values`;
       summary.push("Audited code blocks for safety", "Added edge-case checklist", "Validated syntax consistency");
     } else if (mode === "mnemonics") {
-      result = `${noteBody}\n\n### 🧠 Active Memory Pegs & Mnemonics\n- **P-A-C-E**: **P**rinciples, **A**pplication, **C**onstraints, **E**dge-cases\n- **Visual Anchor**: Picture the architectural flow from left to right as data pipelines`;
+      result = `${noteBody}\n\n### 🧠 Memory Pegs & Mnemonics\n- **P-A-C-E**: **P**rinciples, **A**pplication, **C**onstraints, **E**dge-cases\n- **Visual Anchor**: Picture the architectural flow from left to right as data pipelines`;
       summary.push("Generated mnemonic memory pegs", "Added visual spatial retention anchor");
     } else {
       result = `${noteBody}\n\n### 📌 High-Yield Takeaways\n- Foundational definition verified\n- Spaced repetition drill recommended within 24 hours`;
@@ -404,7 +404,7 @@ app.post("/api/ai/note-polish", async (req, res) => {
 - Add a bold 1-2 sentence '> 🎯 **Executive Summary**' callout at the top
 - Structure definitions using bold terms with clear explanations
 - Turn tabular data or comparisons into clean Markdown tables
-- Add a '## 💡 Key Takeaways & Active Recall Checks' section at the end
+- Add a '## 💡 Key Takeaways & Retention Checks' section at the end
 - Preserve all existing factual knowledge and code snippets accurately!`;
   } else if (mode === "code_debug") {
     modeInstruction = `Perform a comprehensive Code Audit & Debugging check on all code snippets in this note:
@@ -413,12 +413,12 @@ app.post("/api/ai/note-polish", async (req, res) => {
 - Add a '### ⚡ Code Analysis & Terminal Output Prediction' section explaining expected inputs, outputs, and time/space complexity
 - If no code is present, generate clean, illustrative TypeScript/Python code demonstrating the core concepts.`;
   } else if (mode === "mnemonics") {
-    modeInstruction = `Generate powerful Active Memory Pegs and Mnemonics for this note:
+    modeInstruction = `Generate powerful Memory Pegs and Mnemonics for this note:
 - Create memorable acronyms for lists, steps, and procedures in the note
 - Form vivid mental imagery and spatial visual anchors
 - Include quick self-test memory prompts to lock in long-term retention.`;
   } else {
-    modeInstruction = `Extract the essential High-Yield Takeaways and active recall summary from this note.`;
+    modeInstruction = `Extract the essential High-Yield Takeaways and retention summary from this note.`;
   }
 
   const prompt = `You are NewLumino's Elite Academic Editor & Code Specialist.

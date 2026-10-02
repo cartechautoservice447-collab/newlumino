@@ -1,3 +1,4 @@
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNotifications, type NotificationType } from "@/context/notification-context";
 import { CheckCircle2, AlertCircle, Info, AlertTriangle, Trash2, Bell } from "lucide-react";

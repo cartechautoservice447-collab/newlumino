@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { FolderOpen, Layers, Target, Plus, MoreHorizontal, Sparkles, Settings, Flame, ChevronUp } from "lucide-react";
+import { FolderOpen, Layers, Target, Plus, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 

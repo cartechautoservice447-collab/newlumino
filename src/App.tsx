@@ -1,4 +1,4 @@
-
+import { lazy, Suspense, useEffect, useState } from "react";
 import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { CustomizationProvider, useCustomization } from "@/context/customization-context";

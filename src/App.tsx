@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
-import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { CustomizationProvider, useCustomization } from "@/context/customization-context";
 import { AuthProvider, useAuth } from "@/context/auth-context";
@@ -13,7 +12,6 @@ import { SidebarPanel } from "@/components/notes/sidebar-panel";
 import { NoteList } from "@/components/notes/note-list";
 import { NoteEditor } from "@/components/notes/note-editor";
 import { CourseDashboard } from "@/components/courses/course-dashboard";
-import { SpatialAuroraDashboard } from "@/components/courses/spatial-aurora-dashboard";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { MobileSidebarDrawer } from "@/components/mobile/mobile-sidebar-drawer";
 import { MobileBottomDock } from "@/components/mobile/mobile-bottom-dock";
@@ -25,16 +23,18 @@ import { MobileMoreOptionsSheet } from "@/components/mobile/mobile-more-options-
 import { MobileQuickDraftSheet } from "@/components/mobile/mobile-quick-draft-sheet";
 import { usePomodoroTimer } from "@/hooks/use-pomodoro";
 import { FlashcardsDialog } from "@/components/tools/flashcards-dialog";
+const SettingsDialog = lazy(() => import("@/components/settings/settings-dialog").then((m) => ({ default: m.SettingsDialog })));
+const SpatialAuroraDashboard = lazy(() => import("@/components/courses/spatial-aurora-dashboard").then((m) => ({ default: m.SpatialAuroraDashboard })));
+const DailyGoalView = lazy(() => import("@/components/tools/daily-goal-view").then((m) => ({ default: m.DailyGoalView })));
+const MarkdownCheatsheet = lazy(() => import("@/components/tools/markdown-cheatsheet").then((m) => ({ default: m.MarkdownCheatsheet })));
+const AiExamSimulatorDialog = lazy(() => import("@/components/tools/ai-exam-simulator-dialog").then((m) => ({ default: m.AiExamSimulatorDialog })));
+const AiNotePolisherDialog = lazy(() => import("@/components/tools/ai-note-polisher-dialog").then((m) => ({ default: m.AiNotePolisherDialog })));
+const ZenFocusBar = lazy(() => import("@/components/zen/zen-focus-bar").then((m) => ({ default: m.ZenFocusBar })));
+const AppWrapperHubDialog = lazy(() => import("@/components/pwa/app-wrapper-hub-dialog").then((m) => ({ default: m.AppWrapperHubDialog })));
 const PomodoroFloatingPill = lazy(() => import("@/components/tools/pomodoro-floating-pill").then((module) => ({ default: module.PomodoroFloatingPill })));
 const PomodoroDialog = lazy(() => import("@/components/tools/pomodoro-dialog").then((module) => ({ default: module.PomodoroDialog })));
 const PomodoroSessionCompleteDialog = lazy(() => import("@/components/tools/pomodoro-session-complete-dialog").then((module) => ({ default: module.PomodoroSessionCompleteDialog })));
-import { DailyGoalView } from "@/components/tools/daily-goal-view";
-import { MarkdownCheatsheet } from "@/components/tools/markdown-cheatsheet";
-import { AiExamSimulatorDialog } from "@/components/tools/ai-exam-simulator-dialog";
-import { AiNotePolisherDialog } from "@/components/tools/ai-note-polisher-dialog";
 import { NotificationBanner } from "@/components/ui/notification-banner";
-import { ZenFocusBar } from "@/components/zen/zen-focus-bar";
-import { AppWrapperHubDialog } from "@/components/pwa/app-wrapper-hub-dialog";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
 import { PWAInstallButton } from "@/components/pwa/pwa-install-button";
 import type { Note } from "@/lib/notes";
@@ -259,6 +259,7 @@ function AuthenticatedApp({
     return (
       <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && !isMobile && "p-[10px]")}>
         {settings.dashboardDesign === "spatial-aurora-bento" ? (
+          <Suspense fallback={null}>
           <SpatialAuroraDashboard
             courses={n.courses}
             notes={n.notes}
@@ -292,6 +293,7 @@ function AuthenticatedApp({
             dailyGoalHours={pomodoro.dailyGoalHours}
             onNavigateDailyGoal={navigateToDailyGoal}
           />
+          </Suspense>
         ) : (
           <CourseDashboard
             courses={n.courses}
@@ -525,7 +527,8 @@ function AuthenticatedApp({
           />
         </Suspense>
 
-        <SettingsDialog
+        <Suspense fallback={null}>
+      <SettingsDialog
           open={settingsOpen}
           onOpenChange={setSettingsOpen}
           realtimeStatus={n.realtimeStatus}
@@ -546,7 +549,8 @@ function AuthenticatedApp({
 
         <OfflineBanner />
 
-        <AiExamSimulatorDialog
+        <Suspense fallback={null}>
+      <AiExamSimulatorDialog
           open={examSimulatorOpen}
           onOpenChange={setExamSimulatorOpen}
           notes={n.notes}
@@ -630,15 +634,18 @@ function AuthenticatedApp({
               <PanelLeftOpen className="h-4 w-4" />
             </button>
           </div>
+          <Suspense fallback={null}>
           <DailyGoalView
             pomodoro={pomodoro}
             onOpenPomodoro={() => setPomodoroDialogOpen(true)}
           />
+          </Suspense>
         </div>
       )}
 
       {/* Zen Focus Mode Top Bar (Scoped to active course with collections and notes drawer) */}
       {focusMode && (
+        <Suspense fallback={null}>
         <ZenFocusBar
           courses={n.courses}
           activeCourse={n.activeCourse}
@@ -681,6 +688,7 @@ function AuthenticatedApp({
           pomodoroRunning={pomodoro.isRunning}
           pomodoroTimeFormatted={pomodoroTimeFormatted}
         />
+        </Suspense>
       )}
 
       {/* Mobile Top Header (Luminous Glass Header when browsing notes list) */}
@@ -1025,15 +1033,20 @@ function AuthenticatedApp({
         focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
         dailyGoalHours={pomodoro.dailyGoalHours}
       />
+      </Suspense>
 
+      <Suspense fallback={null}>
       <AppWrapperHubDialog
         open={appWrapperHubOpen}
         onOpenChange={setAppWrapperHubOpen}
       />
+      </Suspense>
 
       <OfflineBanner />
 
-      <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />
+      <Suspense fallback={null}>
+        <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />
+      </Suspense>
 
       <AiExamSimulatorDialog
         open={examSimulatorOpen}
@@ -1046,7 +1059,9 @@ function AuthenticatedApp({
           setFlashcardsDialogOpen(true);
         }}
       />
+      </Suspense>
 
+      <Suspense fallback={null}>
       <AiNotePolisherDialog
         open={notePolisherOpen}
         onOpenChange={setNotePolisherOpen}
@@ -1054,6 +1069,7 @@ function AuthenticatedApp({
         selectedNote={n.selected || n.visibleNotes[0] || null}
         onUpdateNote={n.updateNote}
       />
+      </Suspense>
     </ThemeStage>
   );
 }

@@ -84,13 +84,13 @@ export function MobileHeader({
           {onOpenAppHub ? (
             <button
               type="button"
-              aria-label="App Hub & Install"
+              aria-label="App Tools"
               onClick={() => {
                 haptic("medium");
                 onOpenAppHub();
               }}
               className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 transition-transform active:scale-90 touch-manipulation cursor-pointer backdrop-blur-xl"
-              title="iOS & Android App Wrapper & Push"
+              title="App tools"
             >
               <Smartphone className="h-4 w-4" />
             </button>

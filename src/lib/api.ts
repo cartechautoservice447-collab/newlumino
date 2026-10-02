@@ -1,4 +1,5 @@
-const PRODUCTION_API_BASE = "https://newlumino.vercel.app";
+export const PRODUCTION_APP_ORIGIN = "https://newlumino.vercel.app";
+const PRODUCTION_API_BASE = PRODUCTION_APP_ORIGIN;
 
 function isNativeAppWebView(): boolean {
   if (typeof window === "undefined") return false;
@@ -17,4 +18,8 @@ export function apiUrl(path: string): string {
 
 export async function fetchApi(path: string, init?: RequestInit): Promise<Response> {
   return fetch(apiUrl(path), init);
+}
+
+export function getAuthRedirectUrl(): string {
+  return `${PRODUCTION_APP_ORIGIN}/`;
 }

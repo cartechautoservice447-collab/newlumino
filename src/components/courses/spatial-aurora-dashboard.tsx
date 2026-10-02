@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   ArrowRight,
   Bell,
@@ -104,7 +104,7 @@ function ProgressRing({ percent }: { percent: number }) {
   );
 }
 
-export function SpatialAuroraDashboard({
+export const SpatialAuroraDashboard = memo(function SpatialAuroraDashboard({
   courses,
   notes,
   onOpenCourse,
@@ -381,4 +381,14 @@ export function SpatialAuroraDashboard({
       </nav>
     </div>
   );
+}, areSpatialAuroraDashboardPropsEqual);
+
+function areSpatialAuroraDashboardPropsEqual(prev: Props, next: Props) {
+  return (
+    prev.courses === next.courses &&
+    prev.notes === next.notes &&
+    prev.dailyGoalHours === next.dailyGoalHours &&
+    Math.floor((prev.todayFocusSeconds ?? 0) / 60) === Math.floor((next.todayFocusSeconds ?? 0) / 60)
+  );
 }
+

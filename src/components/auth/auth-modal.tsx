@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 import { AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";

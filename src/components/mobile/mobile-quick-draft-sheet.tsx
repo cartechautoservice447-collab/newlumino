@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 import { Sparkles, Plus, Check, Folder } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";

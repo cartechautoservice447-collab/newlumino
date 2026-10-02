@@ -65,7 +65,7 @@ export const NoteCard = memo(function NoteCard({
       }}
       style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
       className={cn(
-        "group liquid-surface animate-card-in relative w-full cursor-pointer rounded-2xl border p-4 text-left transition-all duration-300 select-none overflow-hidden",
+        "mobile-scroll-content-visibility group liquid-surface animate-card-in relative w-full cursor-pointer rounded-2xl border p-4 text-left transition-all duration-300 select-none overflow-hidden",
         useFluidStudioCard
           ? cn(
               "cursor-pointer !p-4 transition-all will-change-transform",

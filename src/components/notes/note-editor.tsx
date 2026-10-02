@@ -1,4 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import {
   Bold,
   Code,
@@ -44,7 +45,7 @@ type Props = {
 
 type Wrap = { before: string; after: string; placeholder: string };
 
-const actions: { label: string; icon: React.ReactNode; wrap: Wrap }[] = [
+const actions: { label: string; icon: ReactNode; wrap: Wrap }[] = [
   { label: "Bold", icon: <Bold className="h-3.5 w-3.5" />, wrap: { before: "**", after: "**", placeholder: "bold text" } },
   { label: "Italic", icon: <Italic className="h-3.5 w-3.5" />, wrap: { before: "_", after: "_", placeholder: "italic text" } },
   { label: "Code", icon: <Code className="h-3.5 w-3.5" />, wrap: { before: "`", after: "`", placeholder: "code" } },

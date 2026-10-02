@@ -540,14 +540,19 @@ export function useNotes(userId?: string | null) {
 
   const renameCollection = useCallback(
     (id: string, name: string) => {
-      setState((s) => {
-        const newCols = s.collections.map((c) => (c.id === id ? { ...c, name } : c));
-        const updated = newCols.find((c) => c.id === id);
-        if (userId && updated) {
-          void saveRemoteCollection(updated, userId);
-        }
-        return { ...s, collections: newCols };
-      });
+      const current = stateRef.current.collections.find((collection) => collection.id === id);
+      const updated = current ? { ...current, name } : null;
+
+      setState((s) => ({
+        ...s,
+        collections: s.collections.map((collection) =>
+          collection.id === id ? { ...collection, name } : collection,
+        ),
+      }));
+
+      if (userId && updated) {
+        void saveRemoteCollection(updated, userId);
+      }
     },
     [userId],
   );

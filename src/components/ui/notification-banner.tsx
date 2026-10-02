@@ -1,3 +1,4 @@
+import React from "react";
 import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from "lucide-react";
 import { useNotifications, type NotificationType } from "@/context/notification-context";
 import { cn } from "@/lib/utils";

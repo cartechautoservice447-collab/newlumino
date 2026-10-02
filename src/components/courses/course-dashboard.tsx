@@ -575,7 +575,7 @@ export const CourseDashboard = memo(function CourseDashboard({
                   }
                 }}
                 style={{ animationDelay: `${i * 35}ms` }}
-                className="glass-panel animate-panel-in group relative cursor-pointer overflow-hidden rounded-[1.75rem] p-4.5 text-left border border-white/12 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-3xl shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_12px_36px_0_rgba(0,0,0,0.4)] active:scale-[0.975] transition-all duration-300 select-none flex flex-col justify-between w-full"
+                className="mobile-scroll-content-visibility glass-panel animate-panel-in group relative cursor-pointer overflow-hidden rounded-[1.75rem] p-4.5 text-left border border-white/12 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-3xl shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_12px_36px_0_rgba(0,0,0,0.4)] active:scale-[0.975] transition-all duration-300 select-none flex flex-col justify-between w-full"
               >
                 {/* Delete course button */}
                 <button

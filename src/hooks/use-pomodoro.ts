@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { soundscapeEngine, type SoundscapeType } from "@/lib/soundscapes";
 import type { NoteTimeEntry, PomodoroSessionRecord, PomodoroPlanResult } from "@/lib/pomodoro-ai";
 import { notifyPomodoroPhaseChange } from "@/lib/push-notifications";
@@ -97,20 +97,81 @@ export function usePomodoroTimer(activeContext?: {
     }
   }, []);
 
-  // Save today's seconds
+  // Active AI Plan (if scheduled)
+  const [activePlan, setActivePlan] = useState<PomodoroPlanResult | null>(null);
+
+  // Keep frequently-changing timer data in refs so the interval remains stable
+  // while React state continues to drive the visible timer UI.
+  const settingsRef = useRef(settings);
+  const modeRef = useRef(mode);
+  const activeContextRef = useRef(activeContext);
+  const completedSessionsRef = useRef(completedSessions);
+  const activePlanRef = useRef(activePlan);
+  const todayFocusRef = useRef(todayFocusSeconds);
+  const noteTimeSpentRef = useRef(noteTimeSpent);
+  const sessionHistoryRef = useRef(sessionHistory);
+  const runtimePersistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
+    settingsRef.current = settings;
+    modeRef.current = mode;
+    activeContextRef.current = activeContext;
+    completedSessionsRef.current = completedSessions;
+    activePlanRef.current = activePlan;
+    todayFocusRef.current = todayFocusSeconds;
+    noteTimeSpentRef.current = noteTimeSpent;
+    sessionHistoryRef.current = sessionHistory;
+  }, [settings, mode, activeContext, completedSessions, activePlan, todayFocusSeconds, noteTimeSpent, sessionHistory]);
+
+  const persistRuntimeData = useCallback(() => {
     try {
       localStorage.setItem(
         TODAY_SECONDS_KEY,
-        JSON.stringify({ date: getTodayKey(), seconds: todayFocusSeconds })
+        JSON.stringify({ date: getTodayKey(), seconds: todayFocusRef.current }),
+      );
+      localStorage.setItem(
+        ANALYTICS_STORAGE_KEY,
+        JSON.stringify({
+          notes: noteTimeSpentRef.current,
+          history: sessionHistoryRef.current,
+        }),
       );
     } catch {
       // ignore
     }
-  }, [todayFocusSeconds]);
+  }, []);
 
-  // Active AI Plan (if scheduled)
-  const [activePlan, setActivePlan] = useState<PomodoroPlanResult | null>(null);
+  const scheduleRuntimePersist = useCallback(() => {
+    if (runtimePersistTimerRef.current) return;
+    runtimePersistTimerRef.current = setTimeout(() => {
+      persistRuntimeData();
+      runtimePersistTimerRef.current = null;
+    }, 2000);
+  }, [persistRuntimeData]);
+
+  // Persist continuously changing timer analytics at most once every 2s
+  // instead of blocking the main thread on every one-second tick.
+  useEffect(() => {
+    scheduleRuntimePersist();
+  }, [todayFocusSeconds, noteTimeSpent, sessionHistory, scheduleRuntimePersist]);
+
+  useEffect(() => {
+    const flush = () => {
+      if (runtimePersistTimerRef.current) {
+        clearTimeout(runtimePersistTimerRef.current);
+        runtimePersistTimerRef.current = null;
+      }
+      persistRuntimeData();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flush();
+    });
+    return () => {
+      window.removeEventListener("pagehide", flush);
+    };
+  }, [persistRuntimeData]);
+
 
   // Note-by-note and Overall App Time Tracking
   const [noteTimeSpent, setNoteTimeSpent] = useState<Record<string, NoteTimeEntry>>(() => {
@@ -138,18 +199,6 @@ export function usePomodoroTimer(activeContext?: {
     }
     return [];
   });
-
-  // Persist analytics
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        ANALYTICS_STORAGE_KEY,
-        JSON.stringify({ notes: noteTimeSpent, history: sessionHistory })
-      );
-    } catch {
-      // ignore
-    }
-  }, [noteTimeSpent, sessionHistory]);
 
   // Sync timeLeft when duration settings change if timer is not active
   useEffect(() => {
@@ -186,83 +235,94 @@ export function usePomodoroTimer(activeContext?: {
     soundscapeEngine.setVolume(soundVolume);
   }, [soundVolume]);
 
-  // Timer Tick & Live Note + Daily Goal Monitoring
+  // Timer Tick & Live Note + Daily Goal Monitoring.
+  // Keep a single interval while running and read changing values from refs;
+  // this prevents tearing down/recreating the interval on every render.
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (isRunning) {
-      timer = setInterval(() => {
-        // Track time on active note and daily goal during focus
-        if (mode === "focus") {
-          setTodayFocusSeconds((s) => s + 1);
+    if (!isRunning) return;
 
-          if (activeContext?.activeNoteId) {
-            const nId = activeContext.activeNoteId;
-            const nTitle = activeContext.activeNoteTitle || "Untitled Note";
-            const cName = activeContext.activeCourseName || "General Study";
+    const timer = setInterval(() => {
+      const currentMode = modeRef.current;
+      const currentSettings = settingsRef.current;
+      const currentContext = activeContextRef.current;
+      const currentPlan = activePlanRef.current;
+      const currentCompletedSessions = completedSessionsRef.current;
 
-            setNoteTimeSpent((prev) => {
-              const current = prev[nId] || {
-                noteId: nId,
+      if (currentMode === "focus") {
+        setTodayFocusSeconds((seconds) => seconds + 1);
+
+        if (currentContext?.activeNoteId) {
+          const nId = currentContext.activeNoteId;
+          const nTitle = currentContext.activeNoteTitle || "Untitled Note";
+          const cName = currentContext.activeCourseName || "General Study";
+
+          setNoteTimeSpent((prev) => {
+            const current = prev[nId] || {
+              noteId: nId,
+              noteTitle: nTitle,
+              courseName: cName,
+              seconds: 0,
+              lastStudied: Date.now(),
+            };
+            return {
+              ...prev,
+              [nId]: {
+                ...current,
                 noteTitle: nTitle,
                 courseName: cName,
-                seconds: 0,
+                seconds: current.seconds + 1,
                 lastStudied: Date.now(),
-              };
-              return {
-                ...prev,
-                [nId]: {
-                  ...current,
-                  noteTitle: nTitle,
-                  courseName: cName,
-                  seconds: current.seconds + 1,
-                  lastStudied: Date.now(),
-                },
-              };
-            });
+              },
+            };
+          });
+        }
+      }
+
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          soundscapeEngine.stop();
+          soundscapeEngine.playChime();
+
+          if (currentMode === "focus") {
+            const nextCompletedSessions = currentCompletedSessions + 1;
+            setCompletedSessions(nextCompletedSessions);
+            completedSessionsRef.current = nextCompletedSessions;
+            setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
+
+            void notifyPomodoroPhaseChange(
+              "shortBreak",
+              currentSettings.shortBreakMinutes,
+            ).catch(() => {});
+
+            const record: PomodoroSessionRecord = {
+              id: `sess-${Date.now()}`,
+              timestamp: Date.now(),
+              courseName: currentContext?.activeCourseName || "General Study",
+              noteTitle: currentContext?.activeNoteTitle || "Workspace Study",
+              durationMinutes: currentSettings.focusMinutes,
+              efficiencyScore: currentPlan ? currentPlan.efficiencyScore : 95,
+              intervalsCompleted: nextCompletedSessions,
+            };
+            setSessionHistory((history) => [record, ...history.slice(0, 49)]);
+
+            setMode("shortBreak");
+            modeRef.current = "shortBreak";
+            return currentSettings.shortBreakMinutes * 60;
           }
+
+          setMode("focus");
+          modeRef.current = "focus";
+          void notifyPomodoroPhaseChange("work", currentSettings.focusMinutes).catch(() => {});
+          return currentSettings.focusMinutes * 60;
         }
 
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            // Timer Finished
-            soundscapeEngine.stop();
-            soundscapeEngine.playChime();
+        return prev - 1;
+      });
+    }, 1000);
 
-            if (mode === "focus") {
-              setCompletedSessions((c) => c + 1);
-              setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
+    return () => clearInterval(timer);
+  }, [isRunning]);
 
-              // Send native push notification
-              notifyPomodoroPhaseChange("shortBreak", settings.shortBreakMinutes).catch(() => {});
-
-              // Record Session History
-              const record: PomodoroSessionRecord = {
-                id: `sess-${Date.now()}`,
-                timestamp: Date.now(),
-                courseName: activeContext?.activeCourseName || "General Study",
-                noteTitle: activeContext?.activeNoteTitle || "Workspace Study",
-                durationMinutes: settings.focusMinutes,
-                efficiencyScore: activePlan ? activePlan.efficiencyScore : 95,
-                intervalsCompleted: completedSessions + 1,
-              };
-              setSessionHistory((prev) => [record, ...prev.slice(0, 49)]);
-
-              setMode("shortBreak");
-              return settings.shortBreakMinutes * 60;
-            } else {
-              setMode("focus");
-              notifyPomodoroPhaseChange("work", settings.focusMinutes).catch(() => {});
-              return settings.focusMinutes * 60;
-            }
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isRunning, mode, settings, activeContext, completedSessions, activePlan]);
 
   const togglePlay = useCallback(() => {
     setIsRunning((r) => {
@@ -385,8 +445,11 @@ export function usePomodoroTimer(activeContext?: {
       ? settings.shortBreakMinutes
       : settings.longBreakMinutes) * 60;
 
-  // Calculate total tracked study minutes across all notes
-  const totalTrackedSeconds = Object.values(noteTimeSpent).reduce((acc, curr) => acc + curr.seconds, 0);
+  // Calculate total tracked study minutes only when analytics data changes.
+  const totalTrackedSeconds = useMemo(
+    () => Object.values(noteTimeSpent).reduce((acc, curr) => acc + curr.seconds, 0),
+    [noteTimeSpent],
+  );
 
   return {
     mode,

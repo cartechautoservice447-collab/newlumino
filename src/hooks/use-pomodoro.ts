@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { soundscapeEngine, type SoundscapeType } from "@/lib/soundscapes";
 import type { NoteTimeEntry, PomodoroSessionRecord, PomodoroPlanResult } from "@/lib/pomodoro-ai";
-import { notifyPomodoroPhaseChange } from "@/lib/push-notifications";
 
 export type PomodoroMode = "focus" | "shortBreak" | "longBreak";
 
@@ -292,10 +291,6 @@ export function usePomodoroTimer(activeContext?: {
             completedSessionsRef.current = nextCompletedSessions;
             setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
 
-            void notifyPomodoroPhaseChange(
-              "shortBreak",
-              currentSettings.shortBreakMinutes,
-            ).catch(() => {});
 
             const record: PomodoroSessionRecord = {
               id: `sess-${Date.now()}`,
@@ -315,7 +310,6 @@ export function usePomodoroTimer(activeContext?: {
 
           setMode("focus");
           modeRef.current = "focus";
-          void notifyPomodoroPhaseChange("work", currentSettings.focusMinutes).catch(() => {});
           return currentSettings.focusMinutes * 60;
         }
 

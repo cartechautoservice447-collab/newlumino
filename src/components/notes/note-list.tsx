@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { PanelLeftClose, Plus, Search, Star, Layers, Sparkles } from "lucide-react";
 import { NoteCard } from "./note-card";
 import { useCustomization } from "@/context/customization-context";
@@ -17,7 +18,7 @@ type Props = {
   totalNotesCount?: number;
 };
 
-export function NoteList({
+export const NoteList = memo(function NoteList({
   title,
   notes,
   collections,
@@ -107,5 +108,15 @@ export function NoteList({
         )}
       </div>
     </section>
+  );
+}, areNoteListPropsEqual);
+
+function areNoteListPropsEqual(prev: Props, next: Props) {
+  return (
+    prev.title === next.title &&
+    prev.notes === next.notes &&
+    prev.collections === next.collections &&
+    prev.selectedId === next.selectedId &&
+    prev.totalNotesCount === next.totalNotesCount
   );
 }

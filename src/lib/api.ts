@@ -5,7 +5,15 @@ function isNativeAppWebView(): boolean {
   if (typeof window === "undefined") return false;
   const protocol = window.location.protocol;
   const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
-  return protocol === "capacitor:" || protocol === "ionic:" || /Capacitor/i.test(userAgent);
+  const capacitor = (window as Window & {
+    Capacitor?: { isNativePlatform?: () => boolean };
+  }).Capacitor;
+  return (
+    protocol === "capacitor:" ||
+    protocol === "ionic:" ||
+    /Capacitor/i.test(userAgent) ||
+    capacitor?.isNativePlatform?.() === true
+  );
 }
 
 export function apiUrl(path: string): string {

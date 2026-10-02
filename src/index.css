@@ -760,7 +760,7 @@ html[data-ui-text-clarity="punchy"] .text-muted-foreground { color: oklch(0.94 0
 html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px currentColor; }
 
 /* ==========================================================================
-   MOBILE APP WRAPPER & 120HZ LAG-FREE ENGINE
+   MOBILE PERFORMANCE & 120HZ LAG-FREE ENGINE
    Hardware acceleration, touch optimization, safe-area insets & performance mode
    ========================================================================== */
 
@@ -791,7 +791,7 @@ button, a, input, textarea, select, [role="button"], [role="tab"], .clickable {
   overscroll-behavior-y: contain;
 }
 
-/* Safe Area Insets for iOS Notch / Dynamic Island & Android Navigation Bar */
+/* Safe Area Insets for Mobile Notches and Navigation Bars */
 .safe-top {
   padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
 }

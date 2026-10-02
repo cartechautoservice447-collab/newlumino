@@ -81,17 +81,12 @@ export const MobileSidebarDrawer = React.memo(function MobileSidebarDrawer({
   };
   if (!mounted) return null;
 
-  // Open progress ratio from 0 to 1
-  const openProgress = Math.max(0, Math.min(1, dragX / drawerWidth));
-  const backdropOpacity = openProgress * 0.75;
-  const transformOffset = dragX - drawerWidth; // from -drawerWidth (hidden) to 0 (open)
-
   const todayMinutes = Math.floor(todayFocusSeconds / 60);
   const goalPercent = Math.min(100, Math.round((todayFocusSeconds / (dailyGoalHours * 3600)) * 100));
 
   return createPortal(
     <div className="fixed inset-0 z-50 select-none md:hidden overflow-hidden pointer-events-auto">
-      {/* Dynamic backdrop with real-time blur and opacity */}
+      {/* Lightweight backdrop; no touchmove handler */}
       <div
         onClick={handleClose}
         className={cn(

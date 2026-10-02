@@ -19,9 +19,6 @@ export function PomodoroSessionCompleteDialog({
   completedSessions,
   onStartBreak,
 }: Props) {
-  const [loading, setLoading] = useState(false);
-
-
 
   return (
     <Dialog
@@ -71,7 +68,6 @@ export function PomodoroSessionCompleteDialog({
 
           {/* Action Buttons */}
           <div className="space-y-2 pt-2">
-
 
             <button
               type="button"

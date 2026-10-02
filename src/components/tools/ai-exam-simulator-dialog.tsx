@@ -214,7 +214,7 @@ export const AiExamSimulatorDialog = React.memo(function AiExamSimulatorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-panel scroll-sleek max-h-[90vh] overflow-y-auto border-white/10 sm:max-w-[620px] p-4 sm:p-6">
+      <DialogContent className="glass-panel scroll-sleek w-[calc(100vw-0.5rem)] max-w-none h-[calc(100dvh-0.5rem)] max-h-[calc(100dvh-0.5rem)] overflow-y-auto border-white/10 rounded-3xl p-3.5 sm:w-full sm:h-auto sm:max-h-[90vh] sm:max-w-[720px] sm:rounded-3xl sm:p-6">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">

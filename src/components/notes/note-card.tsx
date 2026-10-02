@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { Star, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate, snippet, type Note } from "@/lib/notes";
@@ -10,9 +11,9 @@ type Props = {
   active: boolean;
   index: number;
   collectionName?: string | undefined;
-  onSelect: () => void;
-  onToggleFavorite: () => void;
-  onOpenMobileMenu?: (e: React.MouseEvent) => void;
+  onSelect: (id: string) => void;
+  onToggleFavorite: (id: string) => void;
+  onOpenMobileMenu?: (note: Note, e: React.MouseEvent) => void;
 };
 
 function oldRelativeDate(timestamp: number) {
@@ -29,7 +30,7 @@ function oldRelativeDate(timestamp: number) {
   return new Date(timestamp).toLocaleDateString();
 }
 
-export function NoteCard({
+export const NoteCard = memo(function NoteCard({
   note,
   active,
   index,
@@ -42,6 +43,10 @@ export function NoteCard({
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
   const isMobile = useIsMobile();
   const useFluidStudioCard = isFluidGlass && !isMobile;
+  const wordCount = useMemo(
+    () => (note.body.trim() ? note.body.trim().split(/\s+/).length : 0),
+    [note.body],
+  );
 
   return (
     <div
@@ -55,7 +60,7 @@ export function NoteCard({
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           haptic("light");
-          onSelect();
+          onSelect(note.id);
         }
       }}
       style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
@@ -103,7 +108,7 @@ export function NoteCard({
             onClick={(e) => {
               e.stopPropagation();
               haptic("light");
-              onToggleFavorite();
+              onToggleFavorite(note.id);
             }}
             className="flex h-9 w-9 items-center justify-center shrink-0 rounded-xl text-muted-foreground transition-all hover:text-foreground hover:bg-white/[0.08] active:scale-90 touch-manipulation cursor-pointer"
           >
@@ -123,7 +128,7 @@ export function NoteCard({
               onClick={(e) => {
                 e.stopPropagation();
                 haptic("medium");
-                onOpenMobileMenu(e);
+                onOpenMobileMenu(note, e);
               }}
               className="md:hidden flex h-9 w-9 items-center justify-center shrink-0 rounded-xl text-muted-foreground hover:bg-white/[0.08] hover:text-foreground active:scale-90 touch-manipulation cursor-pointer"
             >
@@ -154,7 +159,7 @@ export function NoteCard({
             </div>
             {note.body && (
               <span className="text-[0.65rem] tracking-normal font-mono opacity-60">
-                {note.body.split(/\s+/).filter(Boolean).length}w
+                {wordCount}w
               </span>
             )}
           </div>
@@ -162,4 +167,4 @@ export function NoteCard({
       </div>
     </div>
   );
-}
+});

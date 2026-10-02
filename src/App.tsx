@@ -30,7 +30,6 @@ const PomodoroFloatingPill = lazy(() => import("@/components/tools/pomodoro-floa
 const PomodoroDialog = lazy(() => import("@/components/tools/pomodoro-dialog").then((module) => ({ default: module.PomodoroDialog })));
 const PomodoroSessionCompleteDialog = lazy(() => import("@/components/tools/pomodoro-session-complete-dialog").then((module) => ({ default: module.PomodoroSessionCompleteDialog })));
 import { NotificationBanner } from "@/components/ui/notification-banner";
-import { OfflineBanner } from "@/components/pwa/offline-banner";
 import type { Note } from "@/lib/notes";
 
 export default function App() {
@@ -401,10 +400,6 @@ function AuthenticatedApp({
             isSyncing={n.isSyncing}
             onRefresh={() => void n.refreshFromCloud()}
             onOpenAuth={onOpenAuth}
-            noteTitle={n.selected?.title || n.notes[0]?.title}
-            activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-            focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
-            dailyGoalHours={pomodoro.dailyGoalHours}
           />
 
           <AiExamSimulatorDialog
@@ -423,8 +418,6 @@ function AuthenticatedApp({
             onUpdateNote={n.updateNote}
           />
         </Suspense>
-
-        <OfflineBanner />
       </ThemeStage>
     );
   }
@@ -786,10 +779,6 @@ function AuthenticatedApp({
           isSyncing={n.isSyncing}
           onRefresh={() => void n.refreshFromCloud()}
           onOpenAuth={onOpenAuth}
-          noteTitle={n.selected?.title || n.visibleNotes[0]?.title}
-          activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-          focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
-          dailyGoalHours={pomodoro.dailyGoalHours}
         />
 
         <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />

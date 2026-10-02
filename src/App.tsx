@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+
 import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { CustomizationProvider, useCustomization } from "@/context/customization-context";
@@ -106,7 +107,6 @@ function AuthenticatedApp({
       setMobileDraftOpen(true);
     } else if (action === "pomodoro") {
       setPomodoroDialogOpen(true);
-    }
 
     const perfBoost = localStorage.getItem("newlumino_perf_boost") === "true";
     document.documentElement.setAttribute("data-perf-boost", perfBoost ? "true" : "false");
@@ -256,10 +256,9 @@ function AuthenticatedApp({
                 n.setActiveCourseId(n.courses[0].id);
               }
               setView("workspace");
-              enterFocus();
               if (!pomodoro.isRunning) {
-                pomodoro.togglePlay();
-              }
+              pomodoro.togglePlay();
+            }
             }}
             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
@@ -384,7 +383,10 @@ function AuthenticatedApp({
           />
         </Suspense>
 
-        <PomodoroSessionCompleteDialog
+        
+
+        <Suspense fallback={null}>
+          <PomodoroSessionCompleteDialog
             open={sessionCompleteModalOpen}
             onOpenChange={setSessionCompleteModalOpen}
             activeNote={n.selected || n.visibleNotes[0] || null}
@@ -406,6 +408,8 @@ function AuthenticatedApp({
             focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
             dailyGoalHours={pomodoro.dailyGoalHours}
           />
+
+          
 
           <AiExamSimulatorDialog
             open={examSimulatorOpen}
@@ -768,13 +772,7 @@ function AuthenticatedApp({
       </Suspense>
 
       <Suspense fallback={null}>
-          onOpenChange={(val) => {
-            if (!val) setAutoAIGenerateCards(false);
-          }}
-          notes={n.visibleNotes.length > 0 ? n.visibleNotes : n.notes}
-          activeCourseName={n.activeCourse?.name}
-          autoAIGenerate={autoAIGenerateCards}
-        />
+        
 
         <PomodoroSessionCompleteDialog
           open={sessionCompleteModalOpen}
@@ -797,7 +795,7 @@ function AuthenticatedApp({
           dailyGoalHours={pomodoro.dailyGoalHours}
         />
 
-        />
+        
 
         <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />
 

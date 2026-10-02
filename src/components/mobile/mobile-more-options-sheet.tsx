@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   FolderOpen,
@@ -57,6 +63,341 @@ type Props = {
   dailyGoalHours?: number;
 };
 
+const SHEET_EASE = "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)";
+const BACKDROP_EASE = "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)";
+const OPEN_TRANSFORM = "translate3d(0, 0, 0)";
+const CLOSED_TRANSFORM = "translate3d(0, 100%, 0)"; // 100% of the sheet's own height
+const BACKDROP_MAX = 0.75;
+const UNMOUNT_DELAY = 340;
+
+const EMPTY_COLLECTIONS: Collection[] = [];
+const DEFAULT_FILTER: Filter = { kind: "all" };
+const DEFAULT_COUNTS = { all: 0, favorites: 0, byCollection: {} as Record<string, number> };
+
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+const COUNT_BADGE = "font-mono text-xs px-2 py-0.5 rounded-lg bg-white/10 font-bold";
+
+type FolderDraft = { adding: boolean; draft: string };
+
+/* ------------------------------------------------------------------ */
+/* New-folder control: owns its own state so typing never re-renders   */
+/* the whole sheet. State is mirrored into a parent ref so it survives */
+/* tab switches / close-reopen exactly like before.                    */
+/* ------------------------------------------------------------------ */
+const NewFolderControl = React.memo(function NewFolderControl({
+  stateRef,
+  onAdd,
+}: {
+  stateRef: { current: FolderDraft };
+  onAdd?: (name: string, category?: string) => void;
+}) {
+  const [adding, setAddingState] = useState(stateRef.current.adding);
+  const [draft, setDraftState] = useState(stateRef.current.draft);
+
+  const setAdding = (v: boolean) => {
+    stateRef.current.adding = v;
+    setAddingState(v);
+  };
+  const setDraft = (v: string) => {
+    stateRef.current.draft = v;
+    setDraftState(v);
+  };
+
+  const commit = () => {
+    const name = draft.trim();
+    if (!name || !onAdd) return;
+    haptic("success");
+    onAdd(name);
+    setDraft("");
+    setAdding(false);
+  };
+
+  if (!adding) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          haptic("light");
+          setAdding(true);
+        }}
+        className="flex items-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/[0.03] px-2 py-1 text-[0.68rem] text-muted-foreground hover:text-foreground active:scale-90 transition-all cursor-pointer font-medium"
+      >
+        <Plus className="h-3 w-3 text-primary" />
+        <span>New Folder</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") setAdding(false);
+        }}
+        placeholder="Folder name..."
+        className="rounded-lg border border-primary/40 bg-white/[0.08] px-2 py-0.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none w-32"
+      />
+      <button
+        type="button"
+        onClick={commit}
+        className="rounded-lg bg-primary p-1 text-primary-foreground hover:bg-primary/90 cursor-pointer"
+      >
+        <Check className="h-3 w-3" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setAdding(false)}
+        className="rounded-lg bg-white/10 p-1 text-muted-foreground hover:text-foreground cursor-pointer"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  );
+});
+
+/* ------------------------------------------------------------------ */
+/* Collection row (memoized: only changed rows re-render)             */
+/* ------------------------------------------------------------------ */
+const CollectionRow = React.memo(function CollectionRow({
+  id,
+  name,
+  isActive,
+  count,
+  onSelect,
+  onDelete,
+}: {
+  id: Collection["id"];
+  name: string;
+  isActive: boolean;
+  count: number;
+  onSelect: (id: Collection["id"]) => void;
+  onDelete?: (id: string) => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "group flex items-center justify-between gap-2 rounded-2xl border px-3 py-2 transition-all duration-200 select-none",
+        isActive
+          ? "border-primary/50 bg-primary/15 text-foreground font-medium shadow-sm"
+          : "border-white/5 bg-white/[0.02] text-muted-foreground hover:border-white/10 hover:bg-white/[0.05]"
+      )}
+    >
+      <button
+        type="button"
+        onClick={() => onSelect(id)}
+        className="flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer"
+      >
+        <FolderClosed className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
+        <span className="text-xs font-semibold truncate">{name}</span>
+      </button>
+
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className={COUNT_BADGE}>{count}</span>
+
+        {onDelete && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              haptic("warning");
+              onDelete(id);
+            }}
+            title="Delete folder"
+            className="p-1 rounded-lg text-muted-foreground/50 hover:text-rose-400 hover:bg-rose-500/10 active:scale-90 transition-all cursor-pointer"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+});
+
+/* ------------------------------------------------------------------ */
+/* Pomodoro button (the only thing that changes every second)         */
+/* ------------------------------------------------------------------ */
+const PomodoroButton = React.memo(function PomodoroButton({
+  running,
+  timeFormatted,
+  todayMinutes,
+  onPress,
+}: {
+  running: boolean;
+  timeFormatted: string;
+  todayMinutes: number;
+  onPress: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onPress}
+      className={cn(
+        "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all duration-200 ease-out cursor-pointer",
+        "hover:border-primary/40 hover:bg-white/[0.06]",
+        "active:scale-[0.96] active:translate-y-1 active:bg-primary/20 active:shadow-[inset_0_3px_12px_rgba(0,0,0,0.5)] active:border-primary/50",
+        running
+          ? "border-primary/40 bg-primary/10 shadow-[0_0_16px_-4px_hsl(var(--primary)/0.3)]"
+          : "border-white/10 bg-white/[0.03]"
+      )}
+    >
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 group-active:scale-90",
+            running
+              ? "border-primary/50 bg-primary/20 text-primary animate-pulse"
+              : "border-primary/30 bg-primary/15 text-primary"
+          )}
+        >
+          <Clock className="h-4 w-4" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-foreground truncate">Pomodoro &amp; Soundscape</h4>
+            {running && (
+              <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-emerald-400">
+                Live
+              </span>
+            )}
+          </div>
+          <p className="text-[0.68rem] text-muted-foreground truncate">
+            {todayMinutes}m logged • Binaural beats
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="font-mono text-xs font-bold text-foreground bg-white/[0.06] border border-white/10 px-2 py-0.5 rounded-lg">
+          {timeFormatted}
+        </span>
+        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-active:translate-x-1" />
+      </div>
+    </button>
+  );
+});
+
+/* ------------------------------------------------------------------ */
+/* Liquid glass + theme card: subscribes to the customization context */
+/* itself, so settings changes don't re-render the entire sheet.      */
+/* ------------------------------------------------------------------ */
+const ThemeCard = React.memo(function ThemeCard() {
+  const { settings, update } = useCustomization();
+
+  return (
+    <div className="glass-panel rounded-2xl border border-white/10 bg-white/[0.03] p-3 space-y-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-400">
+            <Droplets className="h-3.5 w-3.5" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-bold text-foreground truncate">Liquid Glass Physics</h4>
+            <p className="text-[0.62rem] text-muted-foreground truncate">Refraction &amp; spring bounce</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            haptic("medium");
+            update({ liquidGlassEnabled: !settings.liquidGlassEnabled });
+          }}
+          className={cn(
+            "rounded-xl px-2.5 py-1 text-[0.68rem] font-bold transition-all duration-200 cursor-pointer active:scale-90",
+            settings.liquidGlassEnabled
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "border border-white/10 bg-white/[0.05] text-muted-foreground"
+          )}
+        >
+          {settings.liquidGlassEnabled ? "ACTIVE" : "OFF"}
+        </button>
+      </div>
+
+      {/* Quick Theme Switcher */}
+      <div className="grid grid-cols-3 gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-0.5">
+        <button
+          type="button"
+          onClick={() => {
+            haptic("light");
+            update({ theme: "original" });
+          }}
+          className={cn(
+            "flex items-center justify-center gap-1 rounded-lg py-1.5 text-[0.68rem] font-medium transition-all duration-200 cursor-pointer active:scale-95",
+            settings.theme === "original"
+              ? "bg-white/[0.12] text-foreground font-bold shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Sparkles className="h-3 w-3 text-primary" />
+          <span>Glass</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            haptic("light");
+            update({ theme: "dark" });
+          }}
+          className={cn(
+            "flex items-center justify-center gap-1 rounded-lg py-1.5 text-[0.68rem] font-medium transition-all duration-200 cursor-pointer active:scale-95",
+            settings.theme === "dark"
+              ? "bg-white/[0.12] text-foreground font-bold shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Moon className="h-3 w-3" />
+          <span>Dark</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            haptic("light");
+            update({ theme: "light" });
+          }}
+          className={cn(
+            "flex items-center justify-center gap-1 rounded-lg py-1.5 text-[0.68rem] font-medium transition-all duration-200 cursor-pointer active:scale-95",
+            settings.theme === "light"
+              ? "bg-white/[0.12] text-foreground font-bold shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Sun className="h-3 w-3 text-amber-400" />
+          <span>Light</span>
+        </button>
+      </div>
+    </div>
+  );
+});
+
+/* ------------------------------------------------------------------ */
+/* Sign-out button: owns the auth subscription                        */
+/* ------------------------------------------------------------------ */
+const SignOutButton = React.memo(function SignOutButton({ onClose }: { onClose: () => void }) {
+  const { user, signOut } = useAuth();
+  if (!user) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        haptic("warning");
+        onClose();
+        void signOut();
+      }}
+      className="w-full flex items-center justify-center gap-1.5 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-2.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer"
+    >
+      <LogOut className="h-3.5 w-3.5" />
+      <span>Log Out ({user.email?.split("@")[0] || "Account"})</span>
+    </button>
+  );
+});
+
 /**
  * Mobile Tool Icon Option Sheet:
  * Contains the Navigation Interface (Courses, Collections, All Notes, Starred, Folders)
@@ -65,11 +406,11 @@ type Props = {
 export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet({
   open,
   onOpenChange,
-  collections = [],
+  collections = EMPTY_COLLECTIONS,
   activeCourse,
-  filter = { kind: "all" },
+  filter = DEFAULT_FILTER,
   onFilterChange,
-  counts = { all: 0, favorites: 0, byCollection: {} },
+  counts = DEFAULT_COUNTS,
   onAddCollection,
   onDeleteCollection,
   onBackToCourses,
@@ -85,136 +426,162 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
   todayFocusSeconds = 0,
   dailyGoalHours = 2,
 }: Props) {
-  const { settings, update } = useCustomization();
-  const { user, signOut } = useAuth();
-
   const [activeTab, setActiveTab] = useState<"navigation" | "tools">("navigation");
-  const [newColDraft, setNewColDraft] = useState("");
-  const [addingCol, setAddingCol] = useState(false);
 
-  const [mounted, setMounted] = useState(open);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragY, setDragY] = useState(0);
-  const [sheetHeight, setSheetHeight] = useState(
-    typeof window !== "undefined" ? window.innerHeight * 0.9 : 640
-  );
+  // `rendered` keeps the sheet in the DOM while the close animation plays.
+  const [rendered, setRendered] = useState(open);
+  if (open && !rendered) setRendered(true); // adjust during render: no extra commit
+  const visible = open || rendered;
 
   const sheetRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const touchStartY = useRef(0);
-  const touchStartX = useRef(0);
-  const touchStartTime = useRef(0);
-  const dragFrameRef = useRef<number | null>(null);
-  const pendingDragYRef = useRef(0);
+  const folderDraftRef = useRef<FolderDraft>({ adding: false, draft: "" });
 
-  // Sync viewport height
+  // All drag state lives in a ref: touch-moves cause zero React renders.
+  const drag = useRef({
+    startY: 0,
+    startX: 0,
+    startTime: 0,
+    dragging: false,
+    pendingY: 0,
+    frame: null as number | null,
+    height: typeof window !== "undefined" ? window.innerHeight * 0.9 : 640,
+  });
+
+  // Single, cleaned-up unmount timer (was two uncleaned timers)
   useEffect(() => {
-    const updateHeight = () => {
-      setSheetHeight(window.innerHeight * 0.9);
+    if (open) return;
+    const timer = setTimeout(() => setRendered(false), UNMOUNT_DELAY);
+    return () => clearTimeout(timer);
+  }, [open]);
+
+  // Sheet height: imperative, rAF-coalesced, listener only while visible
+  useIsoLayoutEffect(() => {
+    if (!visible) return;
+    let frame: number | null = null;
+    const apply = () => {
+      frame = null;
+      const h = window.innerHeight * 0.9;
+      drag.current.height = h;
+      if (sheetRef.current) sheetRef.current.style.height = `${h}px`;
     };
-    updateHeight();
-    window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
-  }, []);
-
-  // When `open` prop changes
-  useEffect(() => {
-    if (open) {
-      setMounted(true);
-      setIsDragging(false);
-      setDragY(0);
-    } else if (!isDragging) {
-      setDragY(sheetHeight);
-      const timer = setTimeout(() => {
-        setMounted(false);
-      }, 340);
-      return () => clearTimeout(timer);
-    }
-  }, [open, sheetHeight, isDragging]);
-
-  const handleClose = () => {
-    haptic("light");
-    setIsDragging(false);
-    setDragY(sheetHeight);
-    onOpenChange(false);
-    setTimeout(() => {
-      setMounted(false);
-    }, 320);
-  };
-
-  const handleCommitCollection = () => {
-    if (!newColDraft.trim() || !onAddCollection) return;
-    haptic("success");
-    onAddCollection(newColDraft.trim());
-    setNewColDraft("");
-    setAddingCol(false);
-  };
-
-  // Touch handlers for drag-down dismiss
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    touchStartY.current = touch.clientY;
-    touchStartX.current = touch.clientX;
-    touchStartTime.current = Date.now();
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    const deltaY = touch.clientY - touchStartY.current;
-    const deltaX = Math.abs(touch.clientX - touchStartX.current);
-
-    // Only allow drag-down if content is scrolled to top
-    const isAtTop = !scrollRef.current || scrollRef.current.scrollTop <= 0;
-
-    if (deltaY > 0 && deltaY > deltaX && isAtTop) {
-      if (!isDragging) setIsDragging(true);
-      pendingDragYRef.current = deltaY;
-      if (dragFrameRef.current === null) {
-        dragFrameRef.current = requestAnimationFrame(() => {
-          dragFrameRef.current = null;
-          setDragY(pendingDragYRef.current);
-        });
-      }
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (dragFrameRef.current !== null) {
-      cancelAnimationFrame(dragFrameRef.current);
-      dragFrameRef.current = null;
-    }
-    if (!isDragging) return;
-    const touch = e.changedTouches[0];
-    const deltaY = touch.clientY - touchStartY.current;
-    const duration = Math.max(1, Date.now() - touchStartTime.current);
-    const velocity = deltaY / duration;
-
-    setIsDragging(false);
-
-    if (deltaY > 90 || velocity > 0.35) {
-      haptic("light");
-      setDragY(sheetHeight);
-      onOpenChange(false);
-      setTimeout(() => {
-        setMounted(false);
-      }, 300);
-    } else {
-      setDragY(0);
-    }
-  };
-
-  useEffect(() => {
+    apply();
+    const onResize = () => {
+      if (frame === null) frame = requestAnimationFrame(apply);
+    };
+    window.addEventListener("resize", onResize, { passive: true });
     return () => {
-      if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
+      window.removeEventListener("resize", onResize);
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
+  }, [visible]);
+
+  // Cancel any pending drag frame on unmount
+  useEffect(() => {
+    const d = drag.current;
+    return () => {
+      if (d.frame !== null) cancelAnimationFrame(d.frame);
     };
   }, []);
 
-  if (!mounted) return null;
+  const handleClose = useCallback(() => {
+    haptic("light");
+    onOpenChange(false);
+  }, [onOpenChange]);
 
-  const openProgress = Math.max(0, Math.min(1, 1 - dragY / sheetHeight));
-  const backdropOpacity = openProgress * 0.75;
+  // ---- Touch handlers for drag-down dismiss (direct DOM writes) ----
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const d = drag.current;
+    d.startY = touch.clientY;
+    d.startX = touch.clientX;
+    d.startTime = Date.now();
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const d = drag.current;
+    const deltaY = touch.clientY - d.startY;
+    if (deltaY <= 0) return;
+    const deltaX = Math.abs(touch.clientX - d.startX);
+    if (deltaY <= deltaX) return;
+
+    if (!d.dragging) {
+      // Only allow drag-down if content is scrolled to top (checked once, at drag start)
+      const scroller = scrollRef.current;
+      if (scroller && scroller.scrollTop > 0) return;
+      d.dragging = true;
+      if (sheetRef.current) sheetRef.current.style.transition = "none";
+      if (backdropRef.current) backdropRef.current.style.transition = "none";
+    }
+
+    d.pendingY = deltaY;
+    if (d.frame === null) {
+      d.frame = requestAnimationFrame(() => {
+        d.frame = null;
+        const y = d.pendingY;
+        if (sheetRef.current) sheetRef.current.style.transform = `translate3d(0, ${y}px, 0)`;
+        if (backdropRef.current) {
+          const progress = Math.max(0, Math.min(1, 1 - y / d.height));
+          backdropRef.current.style.opacity = String(progress * BACKDROP_MAX);
+        }
+      });
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      const d = drag.current;
+      if (d.frame !== null) {
+        cancelAnimationFrame(d.frame);
+        d.frame = null;
+      }
+      if (!d.dragging) return;
+      d.dragging = false;
+
+      const touch = e.changedTouches[0];
+      const deltaY = touch.clientY - d.startY;
+      const duration = Math.max(1, Date.now() - d.startTime);
+      const velocity = deltaY / duration;
+
+      const sheet = sheetRef.current;
+      const backdrop = backdropRef.current;
+      if (sheet) sheet.style.transition = SHEET_EASE;
+      if (backdrop) backdrop.style.transition = BACKDROP_EASE;
+
+      if (deltaY > 90 || velocity > 0.35) {
+        haptic("light");
+        if (sheet) sheet.style.transform = `translate3d(0, ${d.height}px, 0)`;
+        if (backdrop) backdrop.style.opacity = "0";
+        onOpenChange(false);
+      } else {
+        if (sheet) sheet.style.transform = OPEN_TRANSFORM;
+        if (backdrop) backdrop.style.opacity = String(BACKDROP_MAX);
+      }
+    },
+    [onOpenChange]
+  );
+
+  // ---- Stable handlers for memoized children ----
+  const handleSelectCollection = useCallback(
+    (id: Collection["id"]) => {
+      haptic("light");
+      if (onFilterChange) onFilterChange({ kind: "collection", id });
+      handleClose();
+    },
+    [onFilterChange, handleClose]
+  );
+
+  const handlePomodoro = useCallback(() => {
+    haptic("medium");
+    handleClose();
+    onOpenPomodoro();
+  }, [handleClose, onOpenPomodoro]);
+
+  if (!visible) return null;
 
   const todayMinutes = Math.floor(todayFocusSeconds / 60);
   const goalPercent = Math.min(100, Math.round((todayFocusSeconds / (dailyGoalHours * 3600)) * 100));
@@ -223,15 +590,17 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
     <div className="fixed inset-0 z-50 select-none md:hidden overflow-hidden pointer-events-auto">
       {/* Dynamic Backdrop */}
       <div
+        ref={backdropRef}
         onClick={handleClose}
         style={{
-          opacity: backdropOpacity,
-          transition: isDragging ? "none" : "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)",
+          opacity: open ? BACKDROP_MAX : 0,
+          transition: BACKDROP_EASE,
+          willChange: "opacity",
         }}
         className="absolute inset-0 bg-black backdrop-blur-md cursor-pointer"
       />
 
-      {/* Bottom Sheet Container */}
+      {/* Bottom Sheet Container (height is set imperatively) */}
       <div
         ref={sheetRef}
         onTouchStart={handleTouchStart}
@@ -239,11 +608,9 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
         style={{
-          height: `${sheetHeight}px`,
-          transform: `translate3d(0, ${dragY}px, 0)`,
-          transition: isDragging
-            ? "none"
-            : "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",
+          transform: open ? OPEN_TRANSFORM : CLOSED_TRANSFORM,
+          transition: SHEET_EASE,
+          willChange: "transform",
         }}
         className="glass-panel absolute inset-x-0 bottom-0 flex flex-col rounded-t-[2.25rem] border-t border-x border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden"
       >
@@ -363,9 +730,7 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
                     <Layers className={cn("h-4 w-4", filter.kind === "all" && "text-primary")} />
                     <span className="text-xs font-semibold">All Notes</span>
                   </div>
-                  <span className="font-mono text-xs px-2 py-0.5 rounded-lg bg-white/10 font-bold">
-                    {counts.all}
-                  </span>
+                  <span className={COUNT_BADGE}>{counts.all}</span>
                 </button>
 
                 <button
@@ -386,9 +751,7 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
                     <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
                     <span className="text-xs font-semibold">Starred Notes</span>
                   </div>
-                  <span className="font-mono text-xs px-2 py-0.5 rounded-lg bg-white/10 font-bold">
-                    {counts.favorites}
-                  </span>
+                  <span className={COUNT_BADGE}>{counts.favorites}</span>
                 </button>
               </div>
 
@@ -400,47 +763,7 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
                     <span>Folders &amp; Modules</span>
                   </span>
 
-                  {!addingCol ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        haptic("light");
-                        setAddingCol(true);
-                      }}
-                      className="flex items-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/[0.03] px-2 py-1 text-[0.68rem] text-muted-foreground hover:text-foreground active:scale-90 transition-all cursor-pointer font-medium"
-                    >
-                      <Plus className="h-3 w-3 text-primary" />
-                      <span>New Folder</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <input
-                        autoFocus
-                        value={newColDraft}
-                        onChange={(e) => setNewColDraft(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleCommitCollection();
-                          if (e.key === "Escape") setAddingCol(false);
-                        }}
-                        placeholder="Folder name..."
-                        className="rounded-lg border border-primary/40 bg-white/[0.08] px-2 py-0.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none w-32"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleCommitCollection}
-                        className="rounded-lg bg-primary p-1 text-primary-foreground hover:bg-primary/90 cursor-pointer"
-                      >
-                        <Check className="h-3 w-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAddingCol(false)}
-                        className="rounded-lg bg-white/10 p-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  )}
+                  <NewFolderControl stateRef={folderDraftRef} onAdd={onAddCollection} />
                 </div>
 
                 {/* Collections List */}
@@ -450,56 +773,17 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
                       No custom folders created yet.
                     </div>
                   ) : (
-                    collections.map((col) => {
-                      const isActive = filter.kind === "collection" && filter.id === col.id;
-                      const count = counts.byCollection[col.id] || 0;
-
-                      return (
-                        <div
-                          key={col.id}
-                          className={cn(
-                            "group flex items-center justify-between gap-2 rounded-2xl border px-3 py-2 transition-all duration-200 select-none",
-                            isActive
-                              ? "border-primary/50 bg-primary/15 text-foreground font-medium shadow-sm"
-                              : "border-white/5 bg-white/[0.02] text-muted-foreground hover:border-white/10 hover:bg-white/[0.05]"
-                          )}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              haptic("light");
-                              if (onFilterChange) onFilterChange({ kind: "collection", id: col.id });
-                              handleClose();
-                            }}
-                            className="flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer"
-                          >
-                            <FolderClosed className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
-                            <span className="text-xs font-semibold truncate">{col.name}</span>
-                          </button>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="font-mono text-xs px-2 py-0.5 rounded-lg bg-white/10 font-bold">
-                              {count}
-                            </span>
-
-                            {onDeleteCollection && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  haptic("warning");
-                                  onDeleteCollection(col.id);
-                                }}
-                                title="Delete folder"
-                                className="p-1 rounded-lg text-muted-foreground/50 hover:text-rose-400 hover:bg-rose-500/10 active:scale-90 transition-all cursor-pointer"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
+                    collections.map((col) => (
+                      <CollectionRow
+                        key={col.id}
+                        id={col.id}
+                        name={col.name}
+                        isActive={filter.kind === "collection" && filter.id === col.id}
+                        count={counts.byCollection[col.id] || 0}
+                        onSelect={handleSelectCollection}
+                        onDelete={onDeleteCollection}
+                      />
+                    ))
                   )}
                 </div>
               </div>
@@ -563,58 +847,12 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
           {activeTab === "tools" && (
             <div className="space-y-2.5 animate-panel-in">
               {/* Option 1: Pomodoro & Soundscape */}
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  handleClose();
-                  onOpenPomodoro();
-                }}
-                className={cn(
-                  "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all duration-200 ease-out cursor-pointer",
-                  "hover:border-primary/40 hover:bg-white/[0.06]",
-                  "active:scale-[0.96] active:translate-y-1 active:bg-primary/20 active:shadow-[inset_0_3px_12px_rgba(0,0,0,0.5)] active:border-primary/50",
-                  pomodoroRunning
-                    ? "border-primary/40 bg-primary/10 shadow-[0_0_16px_-4px_hsl(var(--primary)/0.3)]"
-                    : "border-white/10 bg-white/[0.03]"
-                )}
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div
-                    className={cn(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 group-active:scale-90",
-                      pomodoroRunning
-                        ? "border-primary/50 bg-primary/20 text-primary animate-pulse"
-                        : "border-primary/30 bg-primary/15 text-primary"
-                    )}
-                  >
-                    <Clock className="h-4 w-4" />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-bold text-foreground truncate">
-                        Pomodoro &amp; Soundscape
-                      </h4>
-                      {pomodoroRunning && (
-                        <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-emerald-400">
-                          Live
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[0.68rem] text-muted-foreground truncate">
-                      {todayMinutes}m logged • Binaural beats
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="font-mono text-xs font-bold text-foreground bg-white/[0.06] border border-white/10 px-2 py-0.5 rounded-lg">
-                    {pomodoroTimeFormatted}
-                  </span>
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-active:translate-x-1" />
-                </div>
-              </button>
+              <PomodoroButton
+                running={pomodoroRunning}
+                timeFormatted={pomodoroTimeFormatted}
+                todayMinutes={todayMinutes}
+                onPress={handlePomodoro}
+              />
 
               {/* Option 2: Daily Goal & Analytics */}
               {onNavigateDailyGoal && (
@@ -781,89 +1019,7 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
               )}
 
               {/* Option 6: Liquid Glass Physics & Quick Themes */}
-              <div className="glass-panel rounded-2xl border border-white/10 bg-white/[0.03] p-3 space-y-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-400">
-                      <Droplets className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-foreground truncate">Liquid Glass Physics</h4>
-                      <p className="text-[0.62rem] text-muted-foreground truncate">Refraction &amp; spring bounce</p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      haptic("medium");
-                      update({ liquidGlassEnabled: !settings.liquidGlassEnabled });
-                    }}
-                    className={cn(
-                      "rounded-xl px-2.5 py-1 text-[0.68rem] font-bold transition-all duration-200 cursor-pointer active:scale-90",
-                      settings.liquidGlassEnabled
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "border border-white/10 bg-white/[0.05] text-muted-foreground"
-                    )}
-                  >
-                    {settings.liquidGlassEnabled ? "ACTIVE" : "OFF"}
-                  </button>
-                </div>
-
-                {/* Quick Theme Switcher */}
-                <div className="grid grid-cols-3 gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      haptic("light");
-                      update({ theme: "original" });
-                    }}
-                    className={cn(
-                      "flex items-center justify-center gap-1 rounded-lg py-1.5 text-[0.68rem] font-medium transition-all duration-200 cursor-pointer active:scale-95",
-                      settings.theme === "original"
-                        ? "bg-white/[0.12] text-foreground font-bold shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Sparkles className="h-3 w-3 text-primary" />
-                    <span>Glass</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      haptic("light");
-                      update({ theme: "dark" });
-                    }}
-                    className={cn(
-                      "flex items-center justify-center gap-1 rounded-lg py-1.5 text-[0.68rem] font-medium transition-all duration-200 cursor-pointer active:scale-95",
-                      settings.theme === "dark"
-                        ? "bg-white/[0.12] text-foreground font-bold shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Moon className="h-3 w-3" />
-                    <span>Dark</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      haptic("light");
-                      update({ theme: "light" });
-                    }}
-                    className={cn(
-                      "flex items-center justify-center gap-1 rounded-lg py-1.5 text-[0.68rem] font-medium transition-all duration-200 cursor-pointer active:scale-95",
-                      settings.theme === "light"
-                        ? "bg-white/[0.12] text-foreground font-bold shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Sun className="h-3 w-3 text-amber-400" />
-                    <span>Light</span>
-                  </button>
-                </div>
-              </div>
+              <ThemeCard />
 
               {/* Bottom Actions: New Course & Settings */}
               <div className="grid grid-cols-2 gap-2 pt-0.5">
@@ -895,20 +1051,7 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
               </div>
 
               {/* Account Sign Out */}
-              {user && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("warning");
-                    handleClose();
-                    void signOut();
-                  }}
-                  className="w-full flex items-center justify-center gap-1.5 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-2.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  <span>Log Out ({user.email?.split("@")[0] || "Account"})</span>
-                </button>
-              )}
+              <SignOutButton onClose={handleClose} />
             </div>
           )}
         </div>

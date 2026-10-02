@@ -379,38 +379,37 @@ export function subscribeToRealtimeSharedBackend(
   },
 ): () => void {
   try {
-    const channelName = `shared-courses-sync-${userId || "global"}-${Date.now().toString(36)}`;
+    if (!userId) return () => {};
+
+    // Deliver only the signed-in user's rows so unrelated realtime changes
+    // do not wake the client or trigger unnecessary React renders.
+    const userFilter = `user_id=eq.${userId}`;
+    const channelName = `shared-courses-sync-${userId}-${Date.now().toString(36)}`;
     const channel = supabase
       .channel(channelName)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "courses" },
+        { event: "*", schema: "public", table: "courses", filter: userFilter },
         (payload) => {
-          console.log("[Shared Realtime] courses table change detected:", payload);
           callbacks.onCoursesChange(payload);
         },
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "notes" },
+        { event: "*", schema: "public", table: "notes", filter: userFilter },
         (payload) => {
-          console.log("[Shared Realtime] notes table change detected:", payload);
           callbacks.onNotesChange(payload);
         },
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "collections" },
+        { event: "*", schema: "public", table: "collections", filter: userFilter },
         (payload) => {
-          console.log("[Shared Realtime] collections table change detected:", payload);
           callbacks.onCollectionsChange(payload);
         },
       )
       .subscribe((status) => {
-        console.log(`[Shared Realtime Channel: ${channelName}] Status:`, status);
-        if (callbacks.onStatusChange) {
-          callbacks.onStatusChange(status as any);
-        }
+        callbacks.onStatusChange?.(status as any);
       });
 
     return () => {

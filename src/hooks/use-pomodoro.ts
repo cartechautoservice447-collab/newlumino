@@ -57,7 +57,6 @@ export function usePomodoroTimer(activeContext?: {
   const [soundVolume, setSoundVolume] = useState<number>(0.4);
   const [completedSessions, setCompletedSessions] = useState<number>(0);
   const [sessionCompletedSignal, setSessionCompletedSignal] = useState<{ id: number; timestamp: number } | null>(null);
-  const [miniPillDismissed, setMiniPillDismissed] = useState<boolean>(false);
 
   // Daily Study Goal in Hours
   const [dailyGoalHours, setDailyGoalHoursState] = useState<number>(() => {
@@ -322,11 +321,7 @@ export function usePomodoroTimer(activeContext?: {
 
 
   const togglePlay = useCallback(() => {
-    setIsRunning((r) => {
-      const next = !r;
-      if (next) setMiniPillDismissed(false);
-      return next;
-    });
+    setIsRunning((r) => !r);
   }, []);
 
   const addTime = useCallback((seconds = 300) => {
@@ -432,7 +427,6 @@ export function usePomodoroTimer(activeContext?: {
     setMode("focus");
     setTimeLeft(plan.recommendedFocusMinutes * 60);
     setIsRunning(true);
-    setMiniPillDismissed(false);
   }, []);
 
   const totalDuration =
@@ -459,8 +453,6 @@ export function usePomodoroTimer(activeContext?: {
     completedSessions,
     sessionCompletedSignal,
     clearSessionCompletedSignal: () => setSessionCompletedSignal(null),
-    miniPillDismissed,
-    setMiniPillDismissed,
     setSoundscape,
     setSoundVolume,
     togglePlay,

@@ -51,7 +51,7 @@ interface MobileSidebarDrawerProps {
  * DEDICATED EXCLUSIVELY TO STUDY TOOLS SUITE.
  * Swiping left-to-right side ONLY shows this study tools interface.
  */
-export function MobileSidebarDrawer({
+export const MobileSidebarDrawer = React.memo(function MobileSidebarDrawer({
   open,
   onOpenChange,
   onOpenSettings,
@@ -883,4 +883,13 @@ export function MobileSidebarDrawer({
     </div>,
     document.body
   );
+}, MobileSidebarDrawerPropsAreEqual);
+
+function MobileSidebarDrawerPropsAreEqual(prev: MobileSidebarDrawerProps, next: MobileSidebarDrawerProps) {
+  return prev.open === next.open &&
+  prev.focusMode === next.focusMode &&
+  prev.pomodoroRunning === next.pomodoroRunning &&
+  prev.pomodoroTimeFormatted === next.pomodoroTimeFormatted &&
+  prev.todayFocusSeconds === next.todayFocusSeconds &&
+  prev.dailyGoalHours === next.dailyGoalHours;
 }

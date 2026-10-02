@@ -100,9 +100,9 @@ export const NoteList = memo(function NoteList({
               collectionName={
                 collections.find((c) => c.id === note.collectionId)?.name
               }
-              onSelect={() => onSelect(note.id)}
-              onToggleFavorite={() => onToggleFavorite(note.id)}
-              onOpenMobileMenu={onOpenMobileNoteMenu ? () => onOpenMobileNoteMenu(note) : undefined}
+              onSelect={onSelect}
+              onToggleFavorite={onToggleFavorite}
+              onOpenMobileMenu={onOpenMobileNoteMenu}
             />
           ))
         )}

@@ -6,11 +6,7 @@
 
 This contains everything you need to run your app locally.
 
-<<<<<<< HEAD
-View your app in AI Studio: https://ai.studio/apps/56936d90-dccb-46ca-8f1d-7f4b8f346fd2
-=======
-View your app in AI Studio: https://ai.studio/apps/69748c48-a9af-44a1-9c75-9a0dc10146af
->>>>>>> 1231699 (Update NewLumino project)
+View your app in AI Studio: https://ai.studio/
 
 ## Run Locally
 

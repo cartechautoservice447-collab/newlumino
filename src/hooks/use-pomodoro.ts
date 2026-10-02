@@ -100,6 +100,33 @@ export function usePomodoroTimer(activeContext?: {
   // Active AI Plan (if scheduled)
   const [activePlan, setActivePlan] = useState<PomodoroPlanResult | null>(null);
 
+  // Note-by-note and Overall App Time Tracking
+  const [noteTimeSpent, setNoteTimeSpent] = useState<Record<string, NoteTimeEntry>>(() => {
+    try {
+      const saved = localStorage.getItem(ANALYTICS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.notes || {};
+      }
+    } catch {
+      // ignore
+    }
+    return {};
+  });
+
+  const [sessionHistory, setSessionHistory] = useState<PomodoroSessionRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem(ANALYTICS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.history || [];
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  });
+
   // Keep frequently-changing timer data in refs so the interval remains stable
   // while React state continues to drive the visible timer UI.
   const settingsRef = useRef(settings);
@@ -164,41 +191,17 @@ export function usePomodoroTimer(activeContext?: {
       persistRuntimeData();
     };
     window.addEventListener("pagehide", flush);
-    document.addEventListener("visibilitychange", () => {
+    const handleVisibility = () => {
       if (document.visibilityState === "hidden") flush();
-    });
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
     return () => {
       window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [persistRuntimeData]);
 
 
-  // Note-by-note and Overall App Time Tracking
-  const [noteTimeSpent, setNoteTimeSpent] = useState<Record<string, NoteTimeEntry>>(() => {
-    try {
-      const saved = localStorage.getItem(ANALYTICS_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return parsed.notes || {};
-      }
-    } catch {
-      // ignore
-    }
-    return {};
-  });
-
-  const [sessionHistory, setSessionHistory] = useState<PomodoroSessionRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(ANALYTICS_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return parsed.history || [];
-      }
-    } catch {
-      // ignore
-    }
-    return [];
-  });
 
   // Sync timeLeft when duration settings change if timer is not active
   useEffect(() => {

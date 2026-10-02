@@ -1,3 +1,4 @@
+import React from "react";
 import React, { useState } from 'react';
 import { usePWAInstall } from '@/hooks/use-pwa-install';
 import { Download, Smartphone, Check, Sparkles } from 'lucide-react';

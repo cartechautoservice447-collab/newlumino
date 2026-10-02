@@ -1285,7 +1285,7 @@ function MobileSwipeableSettingsSheet({
   );
 }
 
-export function SettingsDialog({
+export const SettingsDialog = React.memo(function SettingsDialog({
   open,
   onOpenChange,
   realtimeStatus,
@@ -1363,5 +1363,15 @@ export function SettingsDialog({
       </DialogContent>
     </Dialog>
   );
+}, SettingsDialogPropsAreEqual);
+
+function SettingsDialogPropsAreEqual(prev: Props, next: Props) {
+  return (prev.open === next.open &&
+    prev.realtimeStatus === next.realtimeStatus &&
+    prev.isSyncing === next.isSyncing &&
+    prev.noteTitle === next.noteTitle &&
+    prev.activeCourseName === next.activeCourseName &&
+    prev.focusMinutes === next.focusMinutes &&
+    prev.dailyGoalHours === next.dailyGoalHours);
 }
 

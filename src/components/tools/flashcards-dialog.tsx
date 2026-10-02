@@ -1,4 +1,3 @@
-import React from "react";
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import confetti from "canvas-confetti";
 import {

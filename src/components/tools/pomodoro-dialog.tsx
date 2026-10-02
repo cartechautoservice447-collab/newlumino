@@ -579,7 +579,7 @@ export function PomodoroDialog({
 
             </div>
 
-            {/* Generate Button */}
+            {/* Generate Button — retired Active Recall integration removed */}
             <button
               type="button"
               disabled={isGeneratingPlan}

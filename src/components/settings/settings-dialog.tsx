@@ -1,17 +1,16 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud, Moon, Sun, Droplets, Zap, Smartphone, Download } from "lucide-react";
+import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud, Moon, Sun, Droplets, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
-import { liquidSpringParams, type DashboardDesign, type MotionLevel, type ThemeBase, type UiFont, type WebsiteTheme } from "@/lib/customization";
+import { liquidSpringParams, type MotionLevel, type ThemeBase, type UiFont, type WebsiteTheme } from "@/lib/customization";
 import { haptic } from "@/lib/haptics";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { AiNotificationSection } from "./ai-notification-section";
 
 function Section({ title, hint, children }: { title: string; hint?: string | undefined; children: React.ReactNode }) {
   return (
@@ -142,22 +141,12 @@ function SettingsContent({
   onRefresh,
   onOpenAuth,
   onClose,
-  noteTitle,
-  activeCourseName,
-  focusMinutes,
-  dailyGoalHours,
-  onOpenAppHub,
 }: {
   realtimeStatus?: "connected" | "connecting" | "offline";
   isSyncing?: boolean;
   onRefresh?: () => void;
   onOpenAuth?: () => void;
   onClose?: () => void;
-  onOpenAppHub?: () => void;
-  noteTitle?: string;
-  activeCourseName?: string;
-  focusMinutes?: number;
-  dailyGoalHours?: number;
 }) {
   const { user } = useAuth();
   const { settings, update, applyGlassPreset, reset, resetOldThemeDefaults } = useCustomization();
@@ -241,51 +230,6 @@ function SettingsContent({
         </div>
       </Section>
 
-      {/* Native App Wrapper, iOS/Android Packaging & Offline Section */}
-      <Section
-        title="Native App Wrapper & Mobile Packaging"
-        hint="Download original app wrapper package for iOS & Android with native push notifications and offline caching."
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3.5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-              <Smartphone className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-foreground">
-                iOS &amp; Android App Packages
-              </p>
-              <p className="text-[0.68rem] text-muted-foreground mt-0.5">
-                Standalone PWA, TWA / APK configs, Apple .mobileconfig, 100% offline cache &amp; lag fix.
-              </p>
-            </div>
-          </div>
-
-          {onOpenAppHub && (
-            <button
-              type="button"
-              onClick={() => {
-                haptic("medium");
-                if (onClose) onClose();
-                onOpenAppHub();
-              }}
-              className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 active:scale-95 transition cursor-pointer shrink-0 shadow-sm"
-            >
-              <Download className="h-3.5 w-3.5" />
-              <span>Open App Hub</span>
-            </button>
-          )}
-        </div>
-      </Section>
-
-      {/* AI-Integrated Notification System Section */}
-      <AiNotificationSection
-        noteTitle={noteTitle}
-        activeCourseName={activeCourseName}
-        focusMinutes={focusMinutes}
-        dailyGoalHours={dailyGoalHours}
-      />
-
       <Section
         title="Theme Selector"
         hint="Choose between the current website default theme and the old website theme."
@@ -323,90 +267,6 @@ function SettingsContent({
               </div>
               <span className="text-[11px] leading-tight text-muted-foreground/80 font-normal">
                 {t.desc}
-              </span>
-            </button>
-          ))}
-        </div>
-      </Section>
-
-      <Section
-        title="Dashboard Design"
-        hint="Choose the dashboard presentation independently from the website theme."
-      >
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {([
-            {
-              value: "newlumino" as DashboardDesign,
-              label: "Default NewLumino",
-              desc: "Current existing dashboard — unchanged default experience.",
-            },
-            {
-              value: "spatial-aurora-bento" as DashboardDesign,
-              label: "Spatial Aurora & Organic Bento",
-              desc: "Aurora glass dashboard based on the supplied mobile visual reference.",
-            },
-          ]).map((design) => (
-            <button
-              key={design.value}
-              type="button"
-              onClick={() => {
-                haptic("light");
-                update({ dashboardDesign: design.value });
-              }}
-              aria-pressed={settings.dashboardDesign === design.value}
-              className={cn(
-                "flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-all touch-manipulation cursor-pointer",
-                settings.dashboardDesign === design.value
-                  ? "border-primary/50 bg-white/[0.12] text-foreground font-semibold shadow-md ring-1 ring-primary/40"
-                  : "border-white/5 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
-              )}
-            >
-              <div className="flex w-full items-center justify-between gap-2">
-                <span className="text-xs font-bold text-foreground">{design.label}</span>
-                {settings.dashboardDesign === design.value ? (
-                  <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary">
-                    Active
-                  </span>
-                ) : null}
-              </div>
-
-              <div
-                className={cn(
-                  "h-20 w-full overflow-hidden rounded-xl border",
-                  settings.dashboardDesign === design.value
-                    ? "border-primary/25 bg-[#0b0f17]"
-                    : "border-white/5 bg-white/[0.025]",
-                )}
-                aria-hidden
-              >
-                {design.value === "newlumino" ? (
-                  <div className="h-full w-full p-2">
-                    <div className="h-4 rounded-lg bg-white/[0.09]" />
-                    <div className="mt-2 grid grid-cols-3 gap-1.5">
-                      <div className="h-7 rounded-md bg-white/[0.08]" />
-                      <div className="h-7 rounded-md bg-white/[0.08]" />
-                      <div className="h-7 rounded-md bg-white/[0.08]" />
-                    </div>
-                    <div className="mt-2 h-6 rounded-md bg-white/[0.06]" />
-                    <div className="mt-1 h-6 rounded-md bg-white/[0.05]" />
-                  </div>
-                ) : (
-                  <div className="relative h-full w-full bg-[#070a10] p-2">
-                    <div className="absolute -top-5 left-1/2 h-16 w-24 -translate-x-1/2 rounded-full bg-emerald-400/20 blur-xl" />
-                    <div className="relative h-3 rounded-lg bg-white/[0.08]" />
-                    <div className="relative mt-1.5 h-8 rounded-lg border border-emerald-300/15 bg-gradient-to-br from-emerald-300/10 via-cyan-300/10 to-violet-300/10" />
-                    <div className="relative mt-1.5 grid grid-cols-3 gap-1">
-                      <div className="h-5 rounded-md bg-emerald-300/10" />
-                      <div className="h-5 rounded-md bg-cyan-300/10" />
-                      <div className="h-5 rounded-md bg-violet-300/10" />
-                    </div>
-                    <div className="absolute bottom-1.5 left-2 right-2 h-3 rounded-full border border-white/10 bg-white/[0.06]" />
-                  </div>
-                )}
-              </div>
-
-              <span className="text-[11px] leading-tight text-muted-foreground/80 font-normal">
-                {design.desc}
               </span>
             </button>
           ))}
@@ -1293,11 +1153,6 @@ export const SettingsDialog = React.memo(function SettingsDialog({
   isSyncing,
   onRefresh,
   onOpenAuth,
-  noteTitle,
-  activeCourseName,
-  focusMinutes,
-  dailyGoalHours,
-  onOpenAppHub,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1305,11 +1160,6 @@ export const SettingsDialog = React.memo(function SettingsDialog({
   isSyncing?: boolean;
   onRefresh?: () => void;
   onOpenAuth?: () => void;
-  onOpenAppHub?: () => void;
-  noteTitle?: string;
-  activeCourseName?: string;
-  focusMinutes?: number;
-  dailyGoalHours?: number;
 }) {
   const isMobile = useIsMobile();
 
@@ -1323,11 +1173,6 @@ export const SettingsDialog = React.memo(function SettingsDialog({
           onRefresh={onRefresh}
           onOpenAuth={onOpenAuth}
           onClose={() => onOpenChange(false)}
-          onOpenAppHub={onOpenAppHub}
-          noteTitle={noteTitle}
-          activeCourseName={activeCourseName}
-          focusMinutes={focusMinutes}
-          dailyGoalHours={dailyGoalHours}
         />
       </MobileSwipeableSettingsSheet>
     );
@@ -1355,11 +1200,6 @@ export const SettingsDialog = React.memo(function SettingsDialog({
           onRefresh={onRefresh}
           onOpenAuth={onOpenAuth}
           onClose={() => onOpenChange(false)}
-          onOpenAppHub={onOpenAppHub}
-          noteTitle={noteTitle}
-          activeCourseName={activeCourseName}
-          focusMinutes={focusMinutes}
-          dailyGoalHours={dailyGoalHours}
         />
       </DialogContent>
     </Dialog>
@@ -1370,9 +1210,7 @@ function SettingsDialogPropsAreEqual(prev: Props, next: Props) {
   return (prev.open === next.open &&
     prev.realtimeStatus === next.realtimeStatus &&
     prev.isSyncing === next.isSyncing &&
-    prev.noteTitle === next.noteTitle &&
-    prev.activeCourseName === next.activeCourseName &&
-    prev.focusMinutes === next.focusMinutes &&
-    prev.dailyGoalHours === next.dailyGoalHours);
+    prev.open === next.open &&
+    prev.realtimeStatus === next.realtimeStatus);
 }
 

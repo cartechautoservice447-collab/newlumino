@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import {
   Zap,
@@ -62,215 +62,23 @@ export const MobileSidebarDrawer = React.memo(function MobileSidebarDrawer({
   const { settings, update } = useCustomization();
   const { user, signOut } = useAuth();
 
+  // Tap-open drawer only. Edge-swipe and drag-to-close gestures are removed so
+  // dashboard scrolling never competes with global touchmove listeners.
   const [mounted, setMounted] = useState(open);
-  const [isDragging, setIsDragging] = useState(false);
-  
-  // Drawer width in pixels (88vw capped at 330px)
-  const [drawerWidth, setDrawerWidth] = useState(
-    typeof window !== "undefined" ? Math.min(330, window.innerWidth * 0.88) : 310
-  );
 
-  // dragX: 0 = fully closed (hidden left), drawerWidth = fully open
-  const [dragX, setDragX] = useState(open ? drawerWidth : 0);
-
-  const drawerRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
-  const touchStartTime = useRef(0);
-  const currentDragMode = useRef<"left-to-right-open" | "right-to-left-close" | null>(null);
-  const dragFrameRef = useRef<number | null>(null);
-  const pendingDragXRef = useRef(0);
-
-  // Sync drawer width on resize
-  useEffect(() => {
-    const updateWidth = () => {
-      const w = Math.min(330, window.innerWidth * 0.88);
-      setDrawerWidth(w);
-    };
-    updateWidth();
-    window.addEventListener("resize", updateWidth);
-    return () => window.removeEventListener("resize", updateWidth);
-  }, []);
-
-  // When `open` prop changes programmatically
   useEffect(() => {
     if (open) {
       setMounted(true);
-      setIsDragging(false);
-      setDragX(drawerWidth);
-    } else if (!isDragging) {
-      // Animate out to left
-      setDragX(0);
-      const timer = setTimeout(() => {
-        setMounted(false);
-      }, 340);
-      return () => clearTimeout(timer);
+      return;
     }
-  }, [open, drawerWidth, isDragging]);
-
-  // Global left-edge touch listener for "Swipe from left to right to open Study Tools"
-  useEffect(() => {
-    let trackingGesture = false;
-
-    const handleWindowTouchStart = (e: TouchEvent) => {
-      if (open || e.touches.length !== 1) return;
-      const touch = e.touches[0];
-      // Do not engage left-edge swipe if touch is in the bottom dock area (bottom 95px)
-      if (touch.clientY >= window.innerHeight - 95) return;
-      // Do not engage left-edge swipe if touch is in the very top system bar area
-      if (touch.clientY <= 15) return;
-
-      // Detect touch starting strictly near the left edge of the screen (left 35px)
-      if (touch.clientX <= 35) {
-        touchStartX.current = touch.clientX;
-        touchStartY.current = touch.clientY;
-        touchStartTime.current = Date.now();
-        trackingGesture = true;
-      }
-    };
-
-    const handleWindowTouchMove = (e: TouchEvent) => {
-      if (!trackingGesture || open || e.touches.length !== 1) return;
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - touchStartX.current; // positive = moving RIGHT
-      const deltaY = Math.abs(touch.clientY - touchStartY.current);
-
-      // Only engage if clear rightward horizontal swipe
-      if (deltaX > 15 && deltaX > deltaY * 1.4) {
-        currentDragMode.current = "left-to-right-open";
-        if (!isDragging) setIsDragging(true);
-        setMounted(true);
-
-        // Throttle high-frequency touchmove updates to one React render/frame.
-        pendingDragXRef.current = Math.max(0, Math.min(drawerWidth, deltaX));
-        if (dragFrameRef.current === null) {
-          dragFrameRef.current = requestAnimationFrame(() => {
-            dragFrameRef.current = null;
-            setDragX(pendingDragXRef.current);
-          });
-        }
-      }
-    };
-
-    const handleWindowTouchEnd = (e: TouchEvent) => {
-      if (!trackingGesture) return;
-      trackingGesture = false;
-
-      if (currentDragMode.current === "left-to-right-open") {
-        const touch = e.changedTouches[0];
-        const deltaX = touch.clientX - touchStartX.current;
-        const duration = Math.max(1, Date.now() - touchStartTime.current);
-        const velocity = deltaX / duration; // px/ms
-
-        setIsDragging(false);
-        currentDragMode.current = null;
-
-        // If swiped right past 70px or flick velocity > 0.35
-        if (deltaX > 70 || velocity > 0.35) {
-          haptic("medium");
-          setDragX(drawerWidth);
-          onOpenChange(true);
-        } else {
-          // Snap back closed to left
-          setDragX(0);
-          setTimeout(() => {
-            setMounted(false);
-          }, 300);
-        }
-      }
-    };
-
-    window.addEventListener("touchstart", handleWindowTouchStart, { capture: true, passive: true });
-    window.addEventListener("touchmove", handleWindowTouchMove, { capture: true, passive: true });
-    window.addEventListener("touchend", handleWindowTouchEnd, { capture: true, passive: true });
-    window.addEventListener("touchcancel", handleWindowTouchEnd, { capture: true, passive: true });
-
-    return () => {
-      window.removeEventListener("touchstart", handleWindowTouchStart, { capture: true });
-      window.removeEventListener("touchmove", handleWindowTouchMove, { capture: true });
-      window.removeEventListener("touchend", handleWindowTouchEnd, { capture: true });
-      window.removeEventListener("touchcancel", handleWindowTouchEnd, { capture: true });
-    };
-  }, [open, drawerWidth, onOpenChange]);
-
-  // Touch handlers on the opened drawer for "Swipe left to close"
-  const handleDrawerTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    touchStartX.current = touch.clientX;
-    touchStartY.current = touch.clientY;
-    touchStartTime.current = Date.now();
-    currentDragMode.current = "right-to-left-close";
-  };
-
-  const handleDrawerTouchMove = (e: React.TouchEvent) => {
-    if (currentDragMode.current !== "right-to-left-close" || e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchStartX.current; // negative = moving LEFT
-    const deltaY = Math.abs(touch.clientY - touchStartY.current);
-
-    // Only engage horizontal drag-to-close if moving left and horizontal delta dominates vertical
-    if (deltaX < -6 && Math.abs(deltaX) > deltaY * 1.1) {
-      if (!isDragging) setIsDragging(true);
-      // Throttle drag-to-close updates to one React render/frame.
-      pendingDragXRef.current = Math.max(0, Math.min(drawerWidth, drawerWidth + deltaX));
-      if (dragFrameRef.current === null) {
-        dragFrameRef.current = requestAnimationFrame(() => {
-          dragFrameRef.current = null;
-          setDragX(pendingDragXRef.current);
-        });
-      }
-    }
-  };
-
-  const handleDrawerTouchEnd = (e: React.TouchEvent) => {
-    if (currentDragMode.current !== "right-to-left-close") return;
-    currentDragMode.current = null;
-
-    if (dragFrameRef.current !== null) {
-      cancelAnimationFrame(dragFrameRef.current);
-      dragFrameRef.current = null;
-    }
-
-    if (isDragging) {
-      const touch = e.changedTouches[0];
-      const deltaX = touch.clientX - touchStartX.current;
-      const duration = Math.max(1, Date.now() - touchStartTime.current);
-      const velocity = Math.abs(deltaX) / duration;
-
-      setIsDragging(false);
-
-      // If dragged left past 75px or flicked left
-      if (deltaX < -75 || (deltaX < -20 && velocity > 0.35)) {
-        haptic("light");
-        setDragX(0);
-        onOpenChange(false);
-        setTimeout(() => {
-          setMounted(false);
-        }, 300);
-      } else {
-        // Snap back to fully open
-        setDragX(drawerWidth);
-      }
-    }
-  };
+    const timer = window.setTimeout(() => setMounted(false), 300);
+    return () => window.clearTimeout(timer);
+  }, [open]);
 
   const handleClose = () => {
     haptic("light");
-    setIsDragging(false);
-    setDragX(0);
     onOpenChange(false);
-    setTimeout(() => {
-      setMounted(false);
-    }, 320);
   };
-
-  useEffect(() => {
-    return () => {
-      if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
-    };
-  }, []);
-
   if (!mounted) return null;
 
   // Open progress ratio from 0 to 1
@@ -286,32 +94,19 @@ export const MobileSidebarDrawer = React.memo(function MobileSidebarDrawer({
       {/* Dynamic backdrop with real-time blur and opacity */}
       <div
         onClick={handleClose}
-        style={{
-          opacity: backdropOpacity,
-          transition: isDragging ? "none" : "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-        className="absolute inset-0 bg-black backdrop-blur-md cursor-pointer"
+        className={cn(
+          "absolute inset-0 bg-black/75 backdrop-blur-sm cursor-pointer transition-opacity duration-300",
+          open ? "opacity-100" : "opacity-0",
+        )}
       />
 
       {/* Left-to-Right Sliding Drawer: EXCLUSIVELY STUDY TOOLS */}
       <div
-        ref={drawerRef}
-        onTouchStart={handleDrawerTouchStart}
-        onTouchMove={handleDrawerTouchMove}
-        onTouchEnd={handleDrawerTouchEnd}
-        onTouchCancel={handleDrawerTouchEnd}
-        style={{
-          width: `${drawerWidth}px`,
-          transform: `translate3d(${transformOffset}px, 0, 0)`,
-          transition: isDragging
-            ? "none"
-            : "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-        className="glass-panel absolute inset-y-0 left-0 flex flex-col rounded-r-3xl border-r border-y border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden"
+        className={cn(
+          "glass-panel absolute inset-y-0 left-0 flex w-[88vw] max-w-[330px] flex-col rounded-r-3xl border-r border-y border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden transition-transform duration-300 ease-out",
+          open ? "translate-x-0" : "-translate-x-full",
+        )}
       >
-        {/* Right edge drag pill handle indicator */}
-        <div className="absolute right-1 top-1/2 -translate-y-1/2 w-1.5 h-14 rounded-full bg-white/30 pointer-events-none shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
-
         {/* Top Header: Pure Study Tools Interface */}
         <div className="flex items-center justify-between p-3.5 pb-2.5 border-b border-white/10 shrink-0 bg-white/[0.02]">
           <div className="flex items-center gap-2.5">

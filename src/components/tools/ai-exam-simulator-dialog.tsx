@@ -22,6 +22,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import type { Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
+import { fetchApi } from "@/lib/api";
 import { useNotifications } from "@/context/notification-context";
 
 export interface DiagnosticQuestion {
@@ -114,7 +115,7 @@ export const AiExamSimulatorDialog = React.memo(function AiExamSimulatorDialog({
     setStage("loading");
 
     try {
-      const res = await fetch("/api/ai/exam-simulate", {
+      const res = await fetchApi("/api/ai/exam-simulate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

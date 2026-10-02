@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthRedirectUrl } from "@/lib/api";
 
 type Tab = "login" | "signup";
 
@@ -51,9 +52,9 @@ export function AuthModal({ onGuestAccess }: { onGuestAccess?: () => void }) {
     setError(null);
     setBusy(true);
     try {
-      // In embedded iframe or web preview environments, signInWithOAuth redirect might be blocked
-      // Use standard redirectTo with current origin and query parameters
-      const redirectTo = window.location.origin;
+      // The Supabase project is shared with Fluid Glass Studio, so always provide
+      // an explicit NewLumino callback target instead of inheriting the project Site URL.
+      const redirectTo = getAuthRedirectUrl();
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {

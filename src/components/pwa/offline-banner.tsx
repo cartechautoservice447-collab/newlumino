@@ -1,3 +1,4 @@
+import React from "react";
 import React from 'react';
 import { useOnlineStatus } from '@/hooks/use-pwa-install';
 import { WifiOff, Sparkles, CheckCircle2 } from 'lucide-react';

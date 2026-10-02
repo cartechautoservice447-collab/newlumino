@@ -1,7 +1,6 @@
 export type PomodoroDifficulty = "high_code" | "conceptual" | "revision" | "problem_solving";
 export type PomodoroRhythm = "ai_adaptive" | "deep_50_10" | "classic_25_5" | "ultradian_90_20" | "sprint_15_3";
 export type PomodoroBreakPref = "adaptive" | "short_5m" | "standard_10m" | "long_15m";
-export type PomodoroRecallStrategy = "session_end" | "cycle_end" | "none";
 
 export interface PomodoroPlanRequest {
   targetHours: number;
@@ -10,7 +9,6 @@ export interface PomodoroPlanRequest {
   difficulty: PomodoroDifficulty;
   sessionGoal: string;
   rhythm: PomodoroRhythm;
-  activeRecallStrategy: PomodoroRecallStrategy;
   noteTitle?: string;
   noteSnippet?: string;
 }
@@ -95,8 +93,8 @@ export async function requestAIPomodoroPlan(
   for (let i = 1; i <= cyclesCount; i++) {
     if (i === 1) {
       milestones.push(`Cycle 1: Core reading, syntax breakdown & note outlining for ${req.courseName}`);
-    } else if (i === cyclesCount && req.activeRecallStrategy !== "none") {
-      milestones.push(`Cycle ${i}: Final active recall testing, flashcard drill & summary consolidation`);
+    } else if (i === cyclesCount) {
+      milestones.push(`Cycle ${i}: Final review, consolidation & summary`);
     } else if (i === 2) {
       milestones.push(`Cycle 2: Deep problem solving, practice implementation & edge cases`);
     } else {
@@ -113,7 +111,7 @@ export async function requestAIPomodoroPlan(
     totalWorkMinutes: calculatedTotalWork,
     totalBreakMinutes: calculatedTotalBreak,
     milestones,
-    cognitivePacingAdvice: `Keep hydration near, take screen-off breaks during the ${breakMin}m intervals, and finish with active recall.`,
+    cognitivePacingAdvice: `Keep hydration near, take screen-off breaks during the ${breakMin}m intervals, and consolidate key takeaways before continuing.`,
     efficiencyScore: 94,
     fallback: true,
   };

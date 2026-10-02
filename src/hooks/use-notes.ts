@@ -443,7 +443,7 @@ export function useNotes(userId?: string | null) {
 
       return note.id;
     },
-    [filter, activeCourseId, userId],
+    [filter, activeCourseId, scheduleRemoteNoteSave],
   );
 
   const duplicateNote = useCallback(
@@ -466,7 +466,7 @@ export function useNotes(userId?: string | null) {
 
       return duplicated.id;
     },
-    [state.notes, userId],
+    [state.notes, scheduleRemoteNoteSave],
   );
 
   const updateNote = useCallback(

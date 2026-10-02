@@ -208,6 +208,23 @@ export function CourseDashboard({
     setDeletingCourse(null);
   };
 
+  // Precompute per-course note counts/latest edits once instead of filtering the
+  // entire note library for every course card render.
+  const courseStats = useMemo(() => {
+    const stats = new Map<string, { count: number; latest: number }>();
+    for (const note of notes) {
+      if (!note.courseId) continue;
+      const current = stats.get(note.courseId);
+      if (!current) {
+        stats.set(note.courseId, { count: 1, latest: note.updatedAt });
+      } else {
+        current.count += 1;
+        current.latest = Math.max(current.latest, note.updatedAt);
+      }
+    }
+    return stats;
+  }, [notes]);
+
   const totalNotes = notes.length;
   const favNotes = notes.filter((n) => n.favorite).length;
 
@@ -536,10 +553,9 @@ export function CourseDashboard({
         {/* MOBILE VIEW: Mobile Liquid Glass Course Cards */}
         <div className="sm:hidden mt-5 flex flex-col gap-3.5 w-full">
           {filteredCourses.map((c, i) => {
-            const courseNotes = notes.filter((n) => n.courseId === c.id);
-            const last = courseNotes.length > 0
-              ? Math.max(...courseNotes.map((n) => n.updatedAt))
-              : c.updatedAt || c.createdAt;
+            const stats = courseStats.get(c.id);
+            const noteCount = stats?.count ?? 0;
+            const last = stats?.latest || c.updatedAt || c.createdAt;
             const style = ACCENT_STYLES[c.color] ?? ACCENT_STYLES.sky;
 
             return (
@@ -582,7 +598,7 @@ export function CourseDashboard({
                       <FolderOpen className="h-5 w-5" />
                     </span>
                     <span className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-0.5 text-xs font-mono font-medium tabular-nums text-muted-foreground">
-                      {courseNotes.length} {courseNotes.length === 1 ? "note" : "notes"}
+                      {noteCount} {noteCount === 1 ? "note" : "notes"}
                     </span>
                   </div>
 
@@ -678,7 +694,7 @@ export function CourseDashboard({
                       <FolderOpen className="h-6 w-6" />
                     </span>
                     <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-mono tabular-nums text-muted-foreground">
-                      {courseNotes.length} {courseNotes.length === 1 ? "note" : "notes"}
+                      {noteCount} {noteCount === 1 ? "note" : "notes"}
                     </span>
                   </div>
 

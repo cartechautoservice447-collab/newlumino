@@ -1,0 +1,48 @@
+name: NewLumino Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: v1.0.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify production build
+        run: npm run build
+
+      - name: Package web build
+        run: |
+          cd dist
+          zip -r ../NewLumino-Web-v1.0.1.zip .
+          cd ..
+
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            --title "NewLumino v1.0.1" \
+            --notes "New web release after the feature cleanup and Vercel build fix. Includes the verified production web build." \
+            NewLumino-Web-v1.0.1.zip

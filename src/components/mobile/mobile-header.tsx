@@ -1,4 +1,4 @@
-import { Sparkles, Menu, ArrowLeft, Settings, Search, X, Smartphone } from "lucide-react";
+import { Sparkles, Menu, ArrowLeft, Settings, Search, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
@@ -10,7 +10,6 @@ type Props = {
   onBack?: () => void;
   onOpenSidebar?: () => void;
   onOpenSettings?: () => void;
-  onOpenAppHub?: () => void;
   searchQuery?: string;
   onSearchChange?: (q: string) => void;
   showSearch?: boolean;
@@ -25,7 +24,6 @@ export function MobileHeader({
   onBack,
   onOpenSidebar,
   onOpenSettings,
-  onOpenAppHub,
   searchQuery,
   onSearchChange,
   showSearch = false,
@@ -81,21 +79,6 @@ export function MobileHeader({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          {onOpenAppHub ? (
-            <button
-              type="button"
-              aria-label="App Tools"
-              onClick={() => {
-                haptic("medium");
-                onOpenAppHub();
-              }}
-              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 transition-transform active:scale-90 touch-manipulation cursor-pointer backdrop-blur-xl"
-              title="App tools"
-            >
-              <Smartphone className="h-4 w-4" />
-            </button>
-          ) : null}
-
           {onToggleSearch ? (
             <button
               type="button"

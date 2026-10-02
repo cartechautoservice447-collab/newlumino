@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import type { Note } from "@/lib/notes";
 import { MarkdownPreview } from "@/components/notes/markdown-preview";
 import { haptic } from "@/lib/haptics";
+import { fetchApi } from "@/lib/api";
 import { useNotifications } from "@/context/notification-context";
 
 interface Props {
@@ -113,7 +114,7 @@ export const AiNotePolisherDialog = React.memo(function AiNotePolisherDialog({
     setPolishedResult(null);
 
     try {
-      const res = await fetch("/api/ai/note-polish", {
+      const res = await fetchApi("/api/ai/note-polish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

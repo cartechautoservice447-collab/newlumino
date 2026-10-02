@@ -27,7 +27,6 @@ const DailyGoalView = lazy(() => import("@/components/tools/daily-goal-view").th
 const MarkdownCheatsheet = lazy(() => import("@/components/tools/markdown-cheatsheet").then((m) => ({ default: m.MarkdownCheatsheet })));
 const AiExamSimulatorDialog = lazy(() => import("@/components/tools/ai-exam-simulator-dialog").then((m) => ({ default: m.AiExamSimulatorDialog })));
 const AiNotePolisherDialog = lazy(() => import("@/components/tools/ai-note-polisher-dialog").then((m) => ({ default: m.AiNotePolisherDialog })));
-const PomodoroFloatingPill = lazy(() => import("@/components/tools/pomodoro-floating-pill").then((module) => ({ default: module.PomodoroFloatingPill })));
 const PomodoroDialog = lazy(() => import("@/components/tools/pomodoro-dialog").then((module) => ({ default: module.PomodoroDialog })));
 const PomodoroSessionCompleteDialog = lazy(() => import("@/components/tools/pomodoro-session-complete-dialog").then((module) => ({ default: module.PomodoroSessionCompleteDialog })));
 import { NotificationBanner } from "@/components/ui/notification-banner";
@@ -365,14 +364,6 @@ function AuthenticatedApp({
           pomodoroRunning={pomodoro.isRunning}
           pomodoroTimeFormatted={pomodoroTimeFormatted}
         />
-
-        {/* Unobtrusive Floating Pomodoro Pill */}
-        <Suspense fallback={null}>
-          <PomodoroFloatingPill
-            pomodoro={pomodoro}
-            onOpenFullDialog={() => setPomodoroDialogOpen(true)}
-          />
-        </Suspense>
 
         {/* Study Tools Dialogs */}
         <Suspense fallback={null}>
@@ -745,14 +736,6 @@ function AuthenticatedApp({
           setView("workspace");
         }}
       />
-
-      {/* Unobtrusive Floating Pomodoro Pill */}
-      <Suspense fallback={null}>
-        <PomodoroFloatingPill
-          pomodoro={pomodoro}
-          onOpenFullDialog={() => setPomodoroDialogOpen(true)}
-        />
-      </Suspense>
 
       {/* Study Tools Dialogs */}
       <Suspense fallback={null}>

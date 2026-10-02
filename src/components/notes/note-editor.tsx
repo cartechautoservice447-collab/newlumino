@@ -16,7 +16,6 @@ import {
   MoreHorizontal,
   Copy,
   Check,
-  Brain,
   Type,
   ListTodo,
   Calendar,
@@ -35,10 +34,7 @@ type Props = {
   onToggleFavorite: () => void;
   onCreateNote: () => void;
   onBack?: () => void;
-  focusMode: boolean;
-  onToggleFocus: () => void;
   onOpenMobileSheet?: (note: Note) => void;
-  onOpenFlashcards?: (note: Note) => void;
   externalMode?: "write" | "preview";
   onModeChange?: (mode: "write" | "preview") => void;
 };
@@ -60,10 +56,7 @@ export const NoteEditor = memo(function NoteEditor({
   onToggleFavorite,
   onCreateNote,
   onBack,
-  focusMode,
-  onToggleFocus,
   onOpenMobileSheet,
-  onOpenFlashcards,
   externalMode,
   onModeChange,
 }: Props) {
@@ -306,22 +299,6 @@ export const NoteEditor = memo(function NoteEditor({
             <span className="font-mono">A{fontSize === "sm" ? "↓" : fontSize === "lg" ? "↑" : ""}</span>
           </button>
 
-          {/* Interactive Active Recall Flashcard Trigger */}
-          {onOpenFlashcards && (
-            <button
-              type="button"
-              onClick={() => {
-                haptic("medium");
-                onOpenFlashcards(note);
-              }}
-              title="Practice this note with Flashcards"
-              className="hidden sm:flex items-center gap-1 rounded-xl border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-300 hover:bg-purple-500/20 transition-all active:scale-90 touch-manipulation cursor-pointer"
-            >
-              <Brain className="h-3.5 w-3.5" />
-              <span>Study</span>
-            </button>
-          )}
-
           {/* Star Note */}
           <button
             type="button"
@@ -463,7 +440,6 @@ function areNoteEditorPropsEqual(prev: Props, next: Props) {
   return (
     prev.note === next.note &&
     prev.collections === next.collections &&
-    prev.focusMode === next.focusMode &&
     prev.externalMode === next.externalMode
   );
 }

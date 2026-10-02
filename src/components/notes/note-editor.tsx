@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   Bold,
   Code,
@@ -51,7 +51,7 @@ const actions: { label: string; icon: React.ReactNode; wrap: Wrap }[] = [
   { label: "Link", icon: <Link2 className="h-3.5 w-3.5" />, wrap: { before: "[", after: "](https://)", placeholder: "label" } },
 ];
 
-export function NoteEditor({
+export const NoteEditor = memo(function NoteEditor({
   note,
   collections,
   onChange,
@@ -456,4 +456,14 @@ export function NoteEditor({
       </div>
     </section>
   );
+}, areNoteEditorPropsEqual);
+
+function areNoteEditorPropsEqual(prev: Props, next: Props) {
+  return (
+    prev.note === next.note &&
+    prev.collections === next.collections &&
+    prev.focusMode === next.focusMode &&
+    prev.externalMode === next.externalMode
+  );
 }
+

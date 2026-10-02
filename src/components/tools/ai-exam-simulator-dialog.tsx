@@ -225,7 +225,7 @@ export const AiExamSimulatorDialog = React.memo(function AiExamSimulatorDialog({
                   AI Adaptive Exam Simulator
                 </DialogTitle>
                 <p className="text-[0.68rem] text-muted-foreground">
-                  Diagnostic active-recall mock exams synthesized with Gemini
+                  Diagnostic retrieval mock exams synthesized with Gemini
                 </p>
               </div>
             </div>
@@ -362,7 +362,7 @@ export const AiExamSimulatorDialog = React.memo(function AiExamSimulatorDialog({
             <div>
               <h3 className="text-sm font-bold text-foreground">Synthesizing Diagnostic Drill</h3>
               <p className="text-xs text-muted-foreground max-w-xs mt-1">
-                Gemini is parsing "{targetNote?.title}" to engineer high-yield active-recall questions...
+                Gemini is parsing "{targetNote?.title}" to engineer high-yield retrieval questions...
               </p>
             </div>
           </div>

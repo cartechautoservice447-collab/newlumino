@@ -106,6 +106,7 @@ function AuthenticatedApp({
       setMobileDraftOpen(true);
     } else if (action === "pomodoro") {
       setPomodoroDialogOpen(true);
+    }
 
     const perfBoost = localStorage.getItem("newlumino_perf_boost") === "true";
     document.documentElement.setAttribute("data-perf-boost", perfBoost ? "true" : "false");

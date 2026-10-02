@@ -12,8 +12,6 @@ import {
   Check,
   Zap,
   Clock,
-  Brain,
-  Maximize2,
   Target,
   FileText,
   Droplets,
@@ -25,7 +23,6 @@ import {
   Moon,
   Sparkles,
   Wand2,
-  Smartphone,
 } from "lucide-react";
 import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
@@ -48,18 +45,14 @@ type Props = {
   onBackToCourses?: () => void;
   // Tool options
   onOpenSettings: () => void;
-  onOpenAppHub?: () => void;
   onOpenNewCourse: () => void;
   onOpenPomodoro: () => void;
-  onOpenFlashcards: () => void;
   onOpenCheatsheet: () => void;
   onOpenExamSimulator?: () => void;
   onOpenNotePolisher?: () => void;
   onNavigateDailyGoal?: () => void;
   pomodoroRunning?: boolean;
   pomodoroTimeFormatted?: string;
-  onToggleFocus?: () => void;
-  focusMode?: boolean;
   todayFocusSeconds?: number;
   dailyGoalHours?: number;
 };
@@ -81,18 +74,14 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
   onDeleteCollection,
   onBackToCourses,
   onOpenSettings,
-  onOpenAppHub,
   onOpenNewCourse,
   onOpenPomodoro,
-  onOpenFlashcards,
   onOpenCheatsheet,
   onOpenExamSimulator,
   onOpenNotePolisher,
   onNavigateDailyGoal,
   pomodoroRunning = false,
   pomodoroTimeFormatted = "25:00",
-  onToggleFocus,
-  focusMode = false,
   todayFocusSeconds = 0,
   dailyGoalHours = 2,
 }: Props) {
@@ -627,140 +616,7 @@ export const MobileMoreOptionsSheet = React.memo(function MobileMoreOptionsSheet
                 </div>
               </button>
 
-              {/* Option 2: Active Recall & Flashcards */}
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  handleClose();
-                  onOpenFlashcards();
-                }}
-                className={cn(
-                  "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all duration-200 ease-out cursor-pointer",
-                  "border-purple-500/20 bg-purple-500/10 hover:border-purple-500/40 hover:bg-purple-500/15",
-                  "active:scale-[0.96] active:translate-y-1 active:bg-purple-500/25 active:shadow-[inset_0_3px_12px_rgba(0,0,0,0.5)] active:border-purple-400/60"
-                )}
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-500/20 text-purple-300 transition-all duration-200 group-active:scale-90">
-                    <Brain className="h-4 w-4" />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-bold text-foreground truncate">
-                        Active Recall &amp; Flashcards
-                      </h4>
-                      <span className="rounded-full bg-purple-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-purple-300">
-                        AI ✨
-                      </span>
-                    </div>
-                    <p className="text-[0.68rem] text-muted-foreground truncate">
-                      FSRS spaced repetition • Note verification
-                    </p>
-                  </div>
-                </div>
-
-                <ChevronRight className="h-3.5 w-3.5 text-purple-300/70 transition-transform group-active:translate-x-1 shrink-0" />
-              </button>
-
-              {/* Option: Native App Wrapper & Offline Hub */}
-              {onOpenAppHub && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("medium");
-                    handleClose();
-                    onOpenAppHub();
-                  }}
-                  className="glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-3 text-left transition-all duration-200 ease-out cursor-pointer hover:border-emerald-500/50 hover:bg-emerald-500/20 active:scale-[0.96]"
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/20 text-emerald-300">
-                      <Smartphone className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs font-bold text-foreground truncate">
-                          Native App Wrapper &amp; Offline
-                        </h4>
-                        <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-emerald-300">
-                          iOS / Android
-                        </span>
-                      </div>
-                      <p className="text-[0.68rem] text-muted-foreground truncate">
-                        Download wrapper, push alerts &amp; 100% offline study
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-3.5 w-3.5 text-emerald-300/70 transition-transform group-active:translate-x-1 shrink-0" />
-                </button>
-              )}
-
-              {/* Option 3: Zen Focus Mode */}
-              {onToggleFocus && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("medium");
-                    handleClose();
-                    onToggleFocus();
-                  }}
-                  className={cn(
-                    "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all duration-200 ease-out cursor-pointer",
-                    "hover:border-emerald-500/40 hover:bg-white/[0.06]",
-                    "active:scale-[0.96] active:translate-y-1 active:bg-emerald-500/20 active:shadow-[inset_0_3px_12px_rgba(0,0,0,0.5)] active:border-emerald-500/50",
-                    focusMode
-                      ? "border-emerald-500/40 bg-emerald-500/10 shadow-[0_0_14px_-4px_rgba(16,185,129,0.3)]"
-                      : "border-white/10 bg-white/[0.03]"
-                  )}
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div
-                      className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 group-active:scale-90",
-                        focusMode
-                          ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-400"
-                          : "border-white/10 bg-white/[0.05] text-muted-foreground"
-                      )}
-                    >
-                      <Maximize2 className="h-4 w-4" />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs font-bold text-foreground truncate">
-                          Zen Focus Canvas
-                        </h4>
-                        {focusMode && (
-                          <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-emerald-400">
-                            ON
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[0.68rem] text-muted-foreground truncate">
-                        Distraction-free edge-to-edge writing
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={cn(
-                      "flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors",
-                      focusMode ? "bg-emerald-500" : "bg-white/15"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
-                        focusMode ? "translate-x-4" : "translate-x-0"
-                      )}
-                    />
-                  </div>
-                </button>
-              )}
-
-              {/* Option 4: Daily Goal & Analytics */}
+              {/* Option 2: Daily Goal & Analytics */}
               {onNavigateDailyGoal && (
                 <button
                   type="button"
@@ -1070,7 +926,6 @@ function MobileMoreOptionsSheetPropsAreEqual(prev: MobileMoreOptionsSheetProps, 
   prev.counts === next.counts &&
   prev.pomodoroRunning === next.pomodoroRunning &&
   prev.pomodoroTimeFormatted === next.pomodoroTimeFormatted &&
-  prev.focusMode === next.focusMode &&
   Math.floor((prev.todayFocusSeconds ?? 0) / 60) === Math.floor((next.todayFocusSeconds ?? 0) / 60) &&
   prev.dailyGoalHours === next.dailyGoalHours;
 }

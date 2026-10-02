@@ -89,6 +89,8 @@ export function MobileSidebarDrawer({
   const touchStartY = useRef(0);
   const touchStartTime = useRef(0);
   const currentDragMode = useRef<"left-to-right-open" | "right-to-left-close" | null>(null);
+  const dragFrameRef = useRef<number | null>(null);
+  const pendingDragXRef = useRef(0);
 
   // Sync drawer width on resize
   useEffect(() => {
@@ -147,12 +149,17 @@ export function MobileSidebarDrawer({
       // Only engage if clear rightward horizontal swipe
       if (deltaX > 15 && deltaX > deltaY * 1.4) {
         currentDragMode.current = "left-to-right-open";
-        setIsDragging(true);
+        if (!isDragging) setIsDragging(true);
         setMounted(true);
 
-        // Position drawer in real time tracking the finger
-        const currentX = Math.max(0, Math.min(drawerWidth, deltaX));
-        setDragX(currentX);
+        // Throttle high-frequency touchmove updates to one React render/frame.
+        pendingDragXRef.current = Math.max(0, Math.min(drawerWidth, deltaX));
+        if (dragFrameRef.current === null) {
+          dragFrameRef.current = requestAnimationFrame(() => {
+            dragFrameRef.current = null;
+            setDragX(pendingDragXRef.current);
+          });
+        }
       }
     };
 
@@ -215,16 +222,26 @@ export function MobileSidebarDrawer({
 
     // Only engage horizontal drag-to-close if moving left and horizontal delta dominates vertical
     if (deltaX < -6 && Math.abs(deltaX) > deltaY * 1.1) {
-      setIsDragging(true);
-      // Drawer follows finger to the left in real time
-      const currentX = Math.max(0, Math.min(drawerWidth, drawerWidth + deltaX));
-      setDragX(currentX);
+      if (!isDragging) setIsDragging(true);
+      // Throttle drag-to-close updates to one React render/frame.
+      pendingDragXRef.current = Math.max(0, Math.min(drawerWidth, drawerWidth + deltaX));
+      if (dragFrameRef.current === null) {
+        dragFrameRef.current = requestAnimationFrame(() => {
+          dragFrameRef.current = null;
+          setDragX(pendingDragXRef.current);
+        });
+      }
     }
   };
 
   const handleDrawerTouchEnd = (e: React.TouchEvent) => {
     if (currentDragMode.current !== "right-to-left-close") return;
     currentDragMode.current = null;
+
+    if (dragFrameRef.current !== null) {
+      cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
 
     if (isDragging) {
       const touch = e.changedTouches[0];
@@ -258,6 +275,12 @@ export function MobileSidebarDrawer({
       setMounted(false);
     }, 320);
   };
+
+  useEffect(() => {
+    return () => {
+      if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
+    };
+  }, []);
 
   if (!mounted) return null;
 

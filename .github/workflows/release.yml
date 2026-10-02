@@ -2,6 +2,8 @@ name: Build & Release Android App (.APK)
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
@@ -16,6 +18,9 @@ permissions:
 
 jobs:
   build-and-release:
+    # One-time stable asset refresh on main; normal main pushes keep using
+    # the verification workflows and do not rewrite the published release.
+    if: github.event_name != 'push' || github.event.head_commit.message == 'Refresh stable APK v1.0.0'
     runs-on: ubuntu-latest
 
     steps:
@@ -50,22 +55,23 @@ jobs:
           ./gradlew assembleDebug --stacktrace
           cd ..
           mkdir -p release
-          cp android/app/build/outputs/apk/debug/app-debug.apk release/NewLumino-Android-${{ github.event.inputs.version || github.ref_name || 'v1.0.0' }}.apk
-          echo "APK successfully built: release/NewLumino-Android-${{ github.event.inputs.version || github.ref_name || 'v1.0.0' }}.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk release/NewLumino-Android-v1.0.0.apk
+          echo "APK successfully built: release/NewLumino-Android-v1.0.0.apk"
 
       - name: Package Native Release Assets
         run: node scripts/package-release.js
 
-      - name: Create GitHub Release with APK
+      - name: Update Existing GitHub Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          name: "NewLumino ${{ github.event.inputs.version || github.ref_name || 'v1.0.0' }}"
-          tag_name: ${{ github.event.inputs.version || github.ref_name || 'v1.0.0' }}
+          name: "NewLumino v1.0.0"
+          tag_name: v1.0.0
           body_path: release/RELEASE_NOTES.md
           draft: false
           prerelease: false
+          overwrite_files: true
           files: |
-            release/NewLumino-Android-*.apk
+            release/NewLumino-Android-v1.0.0.apk
             release/NewLumino-Android-Wrapper-v1.0.0.zip
             release/NewLumino-iOS-Wrapper-v1.0.0.zip
             release/NewLumino-iOS-Home-Screen.mobileconfig

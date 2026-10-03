@@ -30,6 +30,7 @@ import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
+import { useLivePomodoroTime } from "@/hooks/use-live-pomodoro-time";
 import type { Collection, Course } from "@/lib/notes";
 import type { Filter } from "@/hooks/use-notes";
 
@@ -56,6 +57,7 @@ type Props = {
   onNavigateDailyGoal?: () => void;
   pomodoroRunning?: boolean;
   pomodoroTimeFormatted?: string;
+  pomodoroEndAt?: number | null;
   onToggleFocus?: () => void;
   focusMode?: boolean;
   todayFocusSeconds?: number;
@@ -88,6 +90,7 @@ export function MobileMoreOptionsSheet({
   onNavigateDailyGoal,
   pomodoroRunning = false,
   pomodoroTimeFormatted = "25:00",
+  pomodoroEndAt = null,
   onToggleFocus,
   focusMode = false,
   todayFocusSeconds = 0,
@@ -95,6 +98,15 @@ export function MobileMoreOptionsSheet({
 }: Props) {
   const { settings, update } = useCustomization();
   const { user, signOut } = useAuth();
+
+  const liveTimeLeft = useLivePomodoroTime(
+    pomodoroEndAt,
+    pomodoroRunning,
+    Number(pomodoroTimeFormatted.split(":")[0] || 0) * 60 + Number(pomodoroTimeFormatted.split(":")[1] || 0),
+  );
+  const liveMinutes = Math.floor(liveTimeLeft / 60);
+  const liveSeconds = liveTimeLeft % 60;
+  const liveTimeFormatted = `${String(liveMinutes).padStart(2, "0")}:${String(liveSeconds).padStart(2, "0")}`;
 
   const [activeTab, setActiveTab] = useState<"navigation" | "tools">("navigation");
   const [newColDraft, setNewColDraft] = useState("");
@@ -626,7 +638,7 @@ export function MobileMoreOptionsSheet({
 
                 <div className="flex items-center gap-1.5 shrink-0">
                   <span className="font-mono text-xs font-bold text-foreground bg-white/[0.06] border border-white/10 px-2 py-0.5 rounded-lg">
-                    {pomodoroTimeFormatted}
+                    {liveTimeFormatted}
                   </span>
                   <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-active:translate-x-1" />
                 </div>

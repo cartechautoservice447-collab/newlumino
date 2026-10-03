@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { memo, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
   Zap,
@@ -51,7 +51,7 @@ interface MobileSidebarDrawerProps {
  * DEDICATED EXCLUSIVELY TO STUDY TOOLS SUITE.
  * Swiping left-to-right side ONLY shows this study tools interface.
  */
-export function MobileSidebarDrawer({
+export const MobileSidebarDrawer = memo(function MobileSidebarDrawer({
   open,
   onOpenChange,
   onOpenSettings,
@@ -880,4 +880,4 @@ export function MobileSidebarDrawer({
     </div>,
     document.body
   );
-}
+});

@@ -67,8 +67,7 @@ export function usePomodoroTimer(
   const updateTimerEndAt = useCallback(
     (endAt: number | null) => {
       if (!mobileOptimized) return;
-      timerEndAtRef.current = endAt;
-      setTimerEndAt(endAt);
+      updateTimerEndAt(endAt);
     },
     [mobileOptimized],
   );
@@ -398,8 +397,7 @@ export function usePomodoroTimer(
       const current = Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000));
       const next = Math.min(maxDuration, current + extra);
       const endAt = Date.now() + next * 1000;
-      timerEndAtRef.current = endAt;
-      setTimerEndAt(endAt);
+      updateTimerEndAt(endAt);
       setTimeLeft(next);
       return;
     }
@@ -414,8 +412,7 @@ export function usePomodoroTimer(
       const current = Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000));
       const next = Math.max(0, current - amount);
       const endAt = Date.now() + next * 1000;
-      timerEndAtRef.current = endAt;
-      setTimerEndAt(endAt);
+      updateTimerEndAt(endAt);
       setTimeLeft(next);
       return;
     }
@@ -480,8 +477,7 @@ export function usePomodoroTimer(
   const switchMode = useCallback(
     (newMode: PomodoroMode) => {
       setIsRunning(false);
-      timerEndAtRef.current = null;
-      setTimerEndAt(null);
+      updateTimerEndAt(null);
       soundscapeEngine.stop();
       setMode(newMode);
       const mins =
@@ -510,8 +506,7 @@ export function usePomodoroTimer(
 
   const applyAIPlan = useCallback((plan: PomodoroPlanResult) => {
     const endAt = Date.now() + plan.recommendedFocusMinutes * 60 * 1000;
-    timerEndAtRef.current = endAt;
-    setTimerEndAt(endAt);
+    updateTimerEndAt(endAt);
     setActivePlan(plan);
     setSettings((prev) => ({
       ...prev,
@@ -522,7 +517,7 @@ export function usePomodoroTimer(
     setTimeLeft(plan.recommendedFocusMinutes * 60);
     setIsRunning(true);
     setMiniPillDismissed(false);
-  }, []);
+  }, [updateTimerEndAt]);
 
   const totalDuration =
     (mode === "focus"

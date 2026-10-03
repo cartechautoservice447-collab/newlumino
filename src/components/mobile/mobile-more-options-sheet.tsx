@@ -103,6 +103,7 @@ export function MobileMoreOptionsSheet({
     pomodoroEndAt,
     pomodoroRunning,
     Number(pomodoroTimeFormatted.split(":")[0] || 0) * 60 + Number(pomodoroTimeFormatted.split(":")[1] || 0),
+    open,
   );
   const liveMinutes = Math.floor(liveTimeLeft / 60);
   const liveSeconds = liveTimeLeft % 60;

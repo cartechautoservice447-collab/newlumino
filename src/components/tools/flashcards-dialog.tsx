@@ -91,7 +91,10 @@ export function FlashcardsDialog({
   const [showBatchOptions, setShowBatchOptions] = useState<boolean>(false);
   const [batchFeedback, setBatchFeedback] = useState<string | null>(null);
 
-  // Touch gesture tracking for mobile swipe
+  // Touch gesture tracking for mobile swipe. Keep continuous movement outside React renders.
+  const flashcardRef = useRef<HTMLDivElement>(null);
+  const swipeFrameRef = useRef<number | null>(null);
+  const swipeTargetRef = useRef(0);
   const touchStartX = useRef<number | null>(null);
   const touchCurrentX = useRef<number | null>(null);
 
@@ -250,17 +253,38 @@ export function FlashcardsDialog({
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchCurrentX.current = e.touches[0].clientX;
+    if (flashcardRef.current) flashcardRef.current.dataset.swipe = "none";
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
     touchCurrentX.current = e.touches[0].clientX;
-    const diff = touchCurrentX.current - touchStartX.current;
-    setDragOffset(diff);
+    swipeTargetRef.current = touchCurrentX.current - touchStartX.current;
+
+    if (swipeFrameRef.current === null) {
+      swipeFrameRef.current = requestAnimationFrame(() => {
+        swipeFrameRef.current = null;
+        const card = flashcardRef.current;
+        if (!card) return;
+
+        const diff = swipeTargetRef.current;
+        card.style.setProperty("--flashcard-x", diff + "px");
+        card.style.setProperty("--flashcard-rotate", diff * 0.04 + "deg");
+        card.style.setProperty("--swipe-good-opacity", String(Math.max(0, Math.min(1, diff / 30))));
+        card.style.setProperty("--swipe-again-opacity", String(Math.max(0, Math.min(1, -diff / 30))));
+        card.dataset.swipe = diff > 20 ? "right" : diff < -20 ? "left" : "none";
+      });
+    }
   };
 
   const handleTouchEnd = () => {
     if (touchStartX.current === null || touchCurrentX.current === null) return;
+
+    if (swipeFrameRef.current !== null) {
+      cancelAnimationFrame(swipeFrameRef.current);
+      swipeFrameRef.current = null;
+    }
+
     const diff = touchCurrentX.current - touchStartX.current;
     const threshold = 75;
 
@@ -268,11 +292,17 @@ export function FlashcardsDialog({
       handleRate(currentCard.id, "good");
     } else if (diff < -threshold && currentCard) {
       handleRate(currentCard.id, "again");
+    } else {
+      flashcardRef.current?.style.setProperty("--flashcard-x", "0px");
+      flashcardRef.current?.style.setProperty("--flashcard-rotate", "0deg");
+      flashcardRef.current?.style.setProperty("--swipe-good-opacity", "0");
+      flashcardRef.current?.style.setProperty("--swipe-again-opacity", "0");
+      if (flashcardRef.current) flashcardRef.current.dataset.swipe = "none";
+      setDragOffset(0);
     }
 
     touchStartX.current = null;
     touchCurrentX.current = null;
-    setDragOffset(0);
   };
 
   // Spaced repetition analytics
@@ -672,36 +702,42 @@ export function FlashcardsDialog({
           /* Active Flashcard Swipe Canvas */
           <div className="my-3 space-y-3">
             <div
+              ref={flashcardRef}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               onClick={handleFlip}
               style={{
-                transform: `translateX(${dragOffset}px) rotate(${dragOffset * 0.04}deg)`,
+                "--flashcard-x": `${dragOffset}px`,
+                "--flashcard-rotate": `${dragOffset * 0.04}deg`,
+                "--swipe-good-opacity": "0",
+                "--swipe-again-opacity": "0",
+                transform: "translate3d(var(--flashcard-x, 0px), 0, 0) rotate(var(--flashcard-rotate, 0deg))",
                 transition: dragOffset === 0 ? "transform 0.3s ease, border-color 0.2s" : "none",
-              }}
+              } as React.CSSProperties}
               className={cn(
-                "relative min-h-[270px] sm:min-h-[310px] w-full cursor-pointer select-none rounded-3xl border p-5 sm:p-6 shadow-2xl backdrop-blur-2xl transition-all flex flex-col justify-between",
-                dragOffset > 30
-                  ? "border-emerald-400/60 bg-emerald-950/20"
-                  : dragOffset < -30
-                  ? "border-rose-400/60 bg-rose-950/20"
-                  : isFlipped
+                "flashcard-swipe relative min-h-[270px] sm:min-h-[310px] w-full cursor-pointer select-none rounded-3xl border p-5 sm:p-6 shadow-2xl backdrop-blur-2xl transition-all flex flex-col justify-between",
+                isFlipped
                   ? "border-purple-400/40 bg-white/[0.07]"
-                  : "border-white/15 bg-white/[0.04] hover:border-white/25"
+                  : "border-white/15 bg-white/[0.04] hover:border-white/25",
+                "data-[swipe=right]:border-emerald-400/60 data-[swipe=right]:bg-emerald-950/20 data-[swipe=left]:border-rose-400/60 data-[swipe=left]:bg-rose-950/20"
               )}
             >
-              {/* Swipe Hints Indicators */}
-              {dragOffset > 20 && (
-                <div className="absolute top-4 right-4 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30">
-                  Good →
-                </div>
-              )}
-              {dragOffset < -20 && (
-                <div className="absolute top-4 left-4 rounded-full bg-rose-500/20 px-3 py-1 text-xs font-bold text-rose-400 border border-rose-500/30">
-                  ← Again
-                </div>
-              )}
+              {/* Swipe hints stay mounted; opacity follows the compositor gesture variables. */}
+              <div
+                className="absolute top-4 right-4 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30"
+                style={{ opacity: "var(--swipe-good-opacity, 0)" }}
+                aria-hidden="true"
+              >
+                Good →
+              </div>
+              <div
+                className="absolute top-4 left-4 rounded-full bg-rose-500/20 px-3 py-1 text-xs font-bold text-rose-400 border border-rose-500/30"
+                style={{ opacity: "var(--swipe-again-opacity, 0)" }}
+                aria-hidden="true"
+              >
+                ← Again
+              </div>
 
               {/* Card Meta Top */}
               <div className="flex items-center justify-between text-[0.68rem] uppercase tracking-wider text-muted-foreground">

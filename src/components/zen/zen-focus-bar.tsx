@@ -29,6 +29,8 @@ import { cn } from "@/lib/utils";
 import { formatDate, snippet, type Course, type Collection, type Note, type CourseAccent } from "@/lib/notes";
 import type { Filter } from "@/hooks/use-notes";
 import { haptic } from "@/lib/haptics";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useLivePomodoroTime } from "@/hooks/use-live-pomodoro-time";
 
 const ACCENT_STYLES: Record<
   CourseAccent,
@@ -61,6 +63,7 @@ type Props = {
   onOpenPomodoro?: () => void;
   pomodoroRunning?: boolean;
   pomodoroTimeFormatted?: string;
+  pomodoroEndAt?: number | null;
 };
 
 export function ZenFocusBar({
@@ -82,6 +85,7 @@ export function ZenFocusBar({
   onOpenPomodoro,
   pomodoroRunning = false,
   pomodoroTimeFormatted = "25:00",
+  pomodoroEndAt = null,
 }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,6 +94,19 @@ export function ZenFocusBar({
   const [newCollectionDraft, setNewCollectionDraft] = useState("");
   const [addingCollection, setAddingCollection] = useState(false);
   const [showNotesStrip, setShowNotesStrip] = useState(true);
+
+  const isMobile = useIsMobile();
+  const liveTimeLeft = useLivePomodoroTime(
+    pomodoroEndAt,
+    pomodoroRunning,
+    Number(pomodoroTimeFormatted.split(":")[0] || 0) * 60 + Number(pomodoroTimeFormatted.split(":")[1] || 0),
+    isMobile,
+  );
+  const liveMinutes = Math.floor(liveTimeLeft / 60);
+  const liveSeconds = liveTimeLeft % 60;
+  const displayPomodoroTimeFormatted = isMobile
+    ? `${String(liveMinutes).padStart(2, "0")}:${String(liveSeconds).padStart(2, "0")}`
+    : pomodoroTimeFormatted;
   
   // Track collapsed/expanded state of collection folders
   const [collapsedCollections, setCollapsedCollections] = useState<Record<string, boolean>>({});
@@ -373,7 +390,7 @@ export function ZenFocusBar({
               >
                 <Clock className={cn("h-3.5 w-3.5", pomodoroRunning && "text-primary animate-pulse")} />
                 {pomodoroRunning ? (
-                  <span className="font-mono text-[0.7rem] font-bold text-primary">{pomodoroTimeFormatted}</span>
+                  <span className="font-mono text-[0.7rem] font-bold text-primary">{displayPomodoroTimeFormatted}</span>
                 ) : null}
               </button>
             )}

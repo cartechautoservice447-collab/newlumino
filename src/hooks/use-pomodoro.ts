@@ -20,11 +20,15 @@ function getTodayKey(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function usePomodoroTimer(activeContext?: {
-  activeNoteId?: string | null;
-  activeNoteTitle?: string;
-  activeCourseName?: string;
-}) {
+export function usePomodoroTimer(
+  activeContext?: {
+    activeNoteId?: string | null;
+    activeNoteTitle?: string;
+    activeCourseName?: string;
+  },
+  options?: { mobileOptimized?: boolean },
+) {
+  const mobileOptimized = options?.mobileOptimized === true;
   const [settings, setSettings] = useState<PomodoroSettings>(() => {
     const fallback: PomodoroSettings = { focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 };
     try {
@@ -58,6 +62,16 @@ export function usePomodoroTimer(activeContext?: {
   const [completedSessions, setCompletedSessions] = useState<number>(0);
   const [sessionCompletedSignal, setSessionCompletedSignal] = useState<{ id: number; timestamp: number } | null>(null);
   const [miniPillDismissed, setMiniPillDismissed] = useState<boolean>(false);
+  const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
+  const timerEndAtRef = useRef<number | null>(null);
+  const updateTimerEndAt = useCallback(
+    (endAt: number | null) => {
+      if (!mobileOptimized) return;
+      timerEndAtRef.current = endAt;
+      setTimerEndAt(endAt);
+    },
+    [mobileOptimized],
+  );
 
   // Daily Study Goal in Hours
   const [dailyGoalHours, setDailyGoalHoursState] = useState<number>(() => {
@@ -160,8 +174,11 @@ export function usePomodoroTimer(activeContext?: {
           ? settings.shortBreakMinutes
           : settings.longBreakMinutes;
       setTimeLeft(mins * 60);
+      if (mobileOptimized) {
+        updateTimerEndAt(null);
+      }
     }
-  }, [settings, mode, isRunning]);
+  }, [settings, mode, isRunning, mobileOptimized, updateTimerEndAt]);
 
   // Save settings
   useEffect(() => {
@@ -187,85 +204,188 @@ export function usePomodoroTimer(activeContext?: {
 
   // Timer Tick & Live Note + Daily Goal Monitoring
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (isRunning) {
-      timer = setInterval(() => {
-        // Track time on active note and daily goal during focus
-        if (mode === "focus") {
-          setTodayFocusSeconds((s) => s + 1);
+    if (!isRunning) return;
 
-          if (activeContext?.activeNoteId) {
-            const nId = activeContext.activeNoteId;
-            const nTitle = activeContext.activeNoteTitle || "Untitled Note";
-            const cName = activeContext.activeCourseName || "General Study";
+    if (mobileOptimized) {
+      let timer: NodeJS.Timeout | null = null;
+      let analyticsLastAt = Date.now();
 
-            setNoteTimeSpent((prev) => {
-              const current = prev[nId] || {
-                noteId: nId,
-                noteTitle: nTitle,
-                courseName: cName,
-                seconds: 0,
-                lastStudied: Date.now(),
-              };
-              return {
-                ...prev,
-                [nId]: {
-                  ...current,
-                  noteTitle: nTitle,
-                  courseName: cName,
-                  seconds: current.seconds + 1,
-                  lastStudied: Date.now(),
-                },
-              };
-            });
-          }
+      const flushAnalytics = (now: number, force = false) => {
+        if (mode !== "focus") {
+          analyticsLastAt = now;
+          return;
         }
 
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            // Timer Finished
-            soundscapeEngine.stop();
-            soundscapeEngine.playChime();
+        const elapsedSeconds = Math.max(0, Math.floor((now - analyticsLastAt) / 1000));
+        if (!force && elapsedSeconds < 5) return;
+        if (elapsedSeconds <= 0) return;
 
-            if (mode === "focus") {
-              setCompletedSessions((c) => c + 1);
-              setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
+        analyticsLastAt += elapsedSeconds * 1000;
+        setTodayFocusSeconds((value) => value + elapsedSeconds);
 
-              // Record Session History
-              const record: PomodoroSessionRecord = {
-                id: `sess-${Date.now()}`,
-                timestamp: Date.now(),
-                courseName: activeContext?.activeCourseName || "General Study",
-                noteTitle: activeContext?.activeNoteTitle || "Workspace Study",
-                durationMinutes: settings.focusMinutes,
-                efficiencyScore: activePlan ? activePlan.efficiencyScore : 95,
-                intervalsCompleted: completedSessions + 1,
-              };
-              setSessionHistory((prev) => [record, ...prev.slice(0, 49)]);
+        if (activeContext?.activeNoteId) {
+          const nId = activeContext.activeNoteId;
+          const nTitle = activeContext.activeNoteTitle || "Untitled Note";
+          const cName = activeContext.activeCourseName || "General Study";
 
-              setMode("shortBreak");
-              return settings.shortBreakMinutes * 60;
-            } else {
-              setMode("focus");
-              return settings.focusMinutes * 60;
-            }
-          }
-          return prev - 1;
-        });
-      }, 1000);
+          setNoteTimeSpent((prev) => {
+            const current = prev[nId] || {
+              noteId: nId,
+              noteTitle: nTitle,
+              courseName: cName,
+              seconds: 0,
+              lastStudied: now,
+            };
+            return {
+              ...prev,
+              [nId]: {
+                ...current,
+                noteTitle: nTitle,
+                courseName: cName,
+                seconds: current.seconds + elapsedSeconds,
+                lastStudied: now,
+              },
+            };
+          });
+        }
+      };
+
+      timer = setInterval(() => {
+        const endAt = timerEndAtRef.current;
+        if (!endAt) return;
+
+        const now = Date.now();
+        const remaining = Math.max(0, Math.ceil((endAt - now) / 1000));
+        flushAnalytics(now);
+
+        if (remaining > 0) return;
+
+        flushAnalytics(now, true);
+        soundscapeEngine.stop();
+        soundscapeEngine.playChime();
+
+        if (mode === "focus") {
+          setCompletedSessions((count) => count + 1);
+          setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
+
+          const record: PomodoroSessionRecord = {
+            id: "sess-" + Date.now(),
+            timestamp: Date.now(),
+            courseName: activeContext?.activeCourseName || "General Study",
+            noteTitle: activeContext?.activeNoteTitle || "Workspace Study",
+            durationMinutes: settings.focusMinutes,
+            efficiencyScore: activePlan ? activePlan.efficiencyScore : 95,
+            intervalsCompleted: completedSessions + 1,
+          };
+          setSessionHistory((prev) => [record, ...prev.slice(0, 49)]);
+
+          const nextEndAt = Date.now() + settings.shortBreakMinutes * 60 * 1000;
+          updateTimerEndAt(nextEndAt);
+          setMode("shortBreak");
+          setTimeLeft(settings.shortBreakMinutes * 60);
+        } else {
+          const nextEndAt = Date.now() + settings.focusMinutes * 60 * 1000;
+          updateTimerEndAt(nextEndAt);
+          setMode("focus");
+          setTimeLeft(settings.focusMinutes * 60);
+        }
+      }, 500);
+
+      return () => {
+        if (timer) clearInterval(timer);
+      };
     }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isRunning, mode, settings, activeContext, completedSessions, activePlan]);
+
+    const timer: NodeJS.Timeout = setInterval(() => {
+      if (mode === "focus") {
+        setTodayFocusSeconds((value) => value + 1);
+
+        if (activeContext?.activeNoteId) {
+          const nId = activeContext.activeNoteId;
+          const nTitle = activeContext.activeNoteTitle || "Untitled Note";
+          const cName = activeContext.activeCourseName || "General Study";
+
+          setNoteTimeSpent((prev) => {
+            const current = prev[nId] || {
+              noteId: nId,
+              noteTitle: nTitle,
+              courseName: cName,
+              seconds: 0,
+              lastStudied: Date.now(),
+            };
+            return {
+              ...prev,
+              [nId]: {
+                ...current,
+                noteTitle: nTitle,
+                courseName: cName,
+                seconds: current.seconds + 1,
+                lastStudied: Date.now(),
+              },
+            };
+          });
+        }
+      }
+
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          soundscapeEngine.stop();
+          soundscapeEngine.playChime();
+
+          if (mode === "focus") {
+            setCompletedSessions((count) => count + 1);
+            setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
+
+            const record: PomodoroSessionRecord = {
+              id: "sess-" + Date.now(),
+              timestamp: Date.now(),
+              courseName: activeContext?.activeCourseName || "General Study",
+              noteTitle: activeContext?.activeNoteTitle || "Workspace Study",
+              durationMinutes: settings.focusMinutes,
+              efficiencyScore: activePlan ? activePlan.efficiencyScore : 95,
+              intervalsCompleted: completedSessions + 1,
+            };
+            setSessionHistory((prev) => [record, ...prev.slice(0, 49)]);
+
+            const nextEndAt = Date.now() + settings.shortBreakMinutes * 60 * 1000;
+            updateTimerEndAt(nextEndAt);
+            setMode("shortBreak");
+            return settings.shortBreakMinutes * 60;
+          }
+
+          const nextEndAt = Date.now() + settings.focusMinutes * 60 * 1000;
+          updateTimerEndAt(nextEndAt);
+          setMode("focus");
+          return settings.focusMinutes * 60;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isRunning, mode, settings, activeContext, completedSessions, activePlan, mobileOptimized, updateTimerEndAt]);
 
   const togglePlay = useCallback(() => {
-    setIsRunning((r) => {
-      const next = !r;
-      if (next) setMiniPillDismissed(false);
-      return next;
-    });
-  }, []);
+    const next = !isRunning;
+    setIsRunning(next);
+
+    if (next) {
+      setMiniPillDismissed(false);
+      if (mobileOptimized) {
+        const endAt = Date.now() + Math.max(0, timeLeft) * 1000;
+        updateTimerEndAt(endAt);
+      }
+      return;
+    }
+
+    if (mobileOptimized) {
+      const remaining = timerEndAtRef.current
+        ? Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000))
+        : timeLeft;
+      setTimeLeft(remaining);
+      updateTimerEndAt(null);
+    }
+  }, [isRunning, mobileOptimized, timeLeft, updateTimerEndAt]);
 
   const addTime = useCallback((seconds = 300) => {
     const maxDuration =
@@ -274,14 +394,37 @@ export function usePomodoroTimer(activeContext?: {
         : mode === "shortBreak"
         ? settings.shortBreakMinutes
         : settings.longBreakMinutes) * 60;
-    setTimeLeft((prev) => Math.min(maxDuration, prev + Math.max(0, seconds)));
-  }, [mode, settings]);
+    const extra = Math.max(0, seconds);
+
+    if (mobileOptimized && isRunning && timerEndAtRef.current) {
+      const current = Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000));
+      const next = Math.min(maxDuration, current + extra);
+      const endAt = Date.now() + next * 1000;
+      updateTimerEndAt(endAt);
+      setTimeLeft(next);
+      return;
+    }
+
+    setTimeLeft((prev) => Math.min(maxDuration, prev + extra));
+  }, [isRunning, mobileOptimized, mode, settings, updateTimerEndAt]);
 
   const skipTime = useCallback((seconds = 300) => {
-    setTimeLeft((prev) => Math.max(0, prev - Math.max(0, seconds)));
-  }, []);
+    const amount = Math.max(0, seconds);
+
+    if (mobileOptimized && isRunning && timerEndAtRef.current) {
+      const current = Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000));
+      const next = Math.max(0, current - amount);
+      const endAt = Date.now() + next * 1000;
+      updateTimerEndAt(endAt);
+      setTimeLeft(next);
+      return;
+    }
+
+    setTimeLeft((prev) => Math.max(0, prev - amount));
+  }, [isRunning, mobileOptimized, updateTimerEndAt]);
 
   const completeSession = useCallback(() => {
+    updateTimerEndAt(null);
     soundscapeEngine.stop();
     soundscapeEngine.playChime();
 
@@ -318,10 +461,12 @@ export function usePomodoroTimer(activeContext?: {
     mode,
     settings.focusMinutes,
     settings.shortBreakMinutes,
+    updateTimerEndAt,
   ]);
 
   const resetTimer = useCallback(() => {
     setIsRunning(false);
+    updateTimerEndAt(null);
     soundscapeEngine.stop();
     const mins =
       mode === "focus"
@@ -330,11 +475,12 @@ export function usePomodoroTimer(activeContext?: {
         ? settings.shortBreakMinutes
         : settings.longBreakMinutes;
     setTimeLeft(mins * 60);
-  }, [mode, settings]);
+  }, [mode, settings, updateTimerEndAt]);
 
   const switchMode = useCallback(
     (newMode: PomodoroMode) => {
       setIsRunning(false);
+      updateTimerEndAt(null);
       soundscapeEngine.stop();
       setMode(newMode);
       const mins =
@@ -345,10 +491,11 @@ export function usePomodoroTimer(activeContext?: {
           : settings.longBreakMinutes;
       setTimeLeft(mins * 60);
     },
-    [settings]
+    [settings, updateTimerEndAt]
   );
 
   const setPreset = useCallback((focus: number, sBreak: number) => {
+    updateTimerEndAt(null);
     setSettings((prev) => ({
       ...prev,
       focusMinutes: focus,
@@ -358,9 +505,11 @@ export function usePomodoroTimer(activeContext?: {
     soundscapeEngine.stop();
     setMode("focus");
     setTimeLeft(focus * 60);
-  }, []);
+  }, [updateTimerEndAt]);
 
   const applyAIPlan = useCallback((plan: PomodoroPlanResult) => {
+    const endAt = Date.now() + plan.recommendedFocusMinutes * 60 * 1000;
+    updateTimerEndAt(endAt);
     setActivePlan(plan);
     setSettings((prev) => ({
       ...prev,
@@ -371,7 +520,7 @@ export function usePomodoroTimer(activeContext?: {
     setTimeLeft(plan.recommendedFocusMinutes * 60);
     setIsRunning(true);
     setMiniPillDismissed(false);
-  }, []);
+  }, [updateTimerEndAt]);
 
   const totalDuration =
     (mode === "focus"
@@ -396,6 +545,7 @@ export function usePomodoroTimer(activeContext?: {
     clearSessionCompletedSignal: () => setSessionCompletedSignal(null),
     miniPillDismissed,
     setMiniPillDismissed,
+    timerEndAt,
     setSoundscape,
     setSoundVolume,
     togglePlay,

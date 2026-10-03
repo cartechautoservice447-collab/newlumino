@@ -30,6 +30,7 @@ import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
+import { useLivePomodoroTime } from "@/hooks/use-live-pomodoro-time";
 import type { Collection, Course } from "@/lib/notes";
 import type { Filter } from "@/hooks/use-notes";
 
@@ -56,6 +57,7 @@ type Props = {
   onNavigateDailyGoal?: () => void;
   pomodoroRunning?: boolean;
   pomodoroTimeFormatted?: string;
+  pomodoroEndAt?: number | null;
   onToggleFocus?: () => void;
   focusMode?: boolean;
   todayFocusSeconds?: number;
@@ -88,6 +90,7 @@ export function MobileMoreOptionsSheet({
   onNavigateDailyGoal,
   pomodoroRunning = false,
   pomodoroTimeFormatted = "25:00",
+  pomodoroEndAt = null,
   onToggleFocus,
   focusMode = false,
   todayFocusSeconds = 0,
@@ -95,6 +98,16 @@ export function MobileMoreOptionsSheet({
 }: Props) {
   const { settings, update } = useCustomization();
   const { user, signOut } = useAuth();
+
+  const liveTimeLeft = useLivePomodoroTime(
+    pomodoroEndAt,
+    pomodoroRunning,
+    Number(pomodoroTimeFormatted.split(":")[0] || 0) * 60 + Number(pomodoroTimeFormatted.split(":")[1] || 0),
+    open,
+  );
+  const liveMinutes = Math.floor(liveTimeLeft / 60);
+  const liveSeconds = liveTimeLeft % 60;
+  const liveTimeFormatted = `${String(liveMinutes).padStart(2, "0")}:${String(liveSeconds).padStart(2, "0")}`;
 
   const [activeTab, setActiveTab] = useState<"navigation" | "tools">("navigation");
   const [newColDraft, setNewColDraft] = useState("");
@@ -108,6 +121,10 @@ export function MobileMoreOptionsSheet({
   );
 
   const sheetRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+  const dragFrameRef = useRef<number | null>(null);
+  const dragTargetRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
@@ -175,18 +192,37 @@ export function MobileMoreOptionsSheet({
     const isAtTop = !scrollRef.current || scrollRef.current.scrollTop <= 0;
 
     if (deltaY > 0 && deltaY > deltaX && isAtTop) {
-      setIsDragging(true);
-      setDragY(deltaY);
+      if (!draggingRef.current) {
+        draggingRef.current = true;
+        setIsDragging(true);
+      }
+      dragTargetRef.current = deltaY;
+      if (dragFrameRef.current === null) {
+        dragFrameRef.current = requestAnimationFrame(() => {
+          dragFrameRef.current = null;
+          const nextY = dragTargetRef.current;
+          sheetRef.current?.style.setProperty("--sheet-y", `${nextY}px`);
+          backdropRef.current?.style.setProperty(
+            "--sheet-backdrop-opacity",
+            String((Math.max(0, Math.min(1, 1 - nextY / sheetHeight))) * 0.75),
+          );
+        });
+      }
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging) return;
+    if (!draggingRef.current) return;
+    if (dragFrameRef.current !== null) {
+      cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
     const touch = e.changedTouches[0];
     const deltaY = touch.clientY - touchStartY.current;
     const duration = Math.max(1, Date.now() - touchStartTime.current);
     const velocity = deltaY / duration;
 
+    draggingRef.current = false;
     setIsDragging(false);
 
     if (deltaY > 90 || velocity > 0.35) {
@@ -213,9 +249,11 @@ export function MobileMoreOptionsSheet({
     <div className="fixed inset-0 z-50 select-none md:hidden overflow-hidden pointer-events-auto">
       {/* Dynamic Backdrop */}
       <div
+        ref={backdropRef}
         onClick={handleClose}
         style={{
-          opacity: backdropOpacity,
+          opacity: "var(--sheet-backdrop-opacity, 0)",
+          ["--sheet-backdrop-opacity" as string]: String(backdropOpacity),
           transition: isDragging ? "none" : "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
         className="absolute inset-0 bg-black backdrop-blur-md cursor-pointer"
@@ -230,12 +268,13 @@ export function MobileMoreOptionsSheet({
         onTouchCancel={handleTouchEnd}
         style={{
           height: `${sheetHeight}px`,
-          transform: `translate3d(0, ${dragY}px, 0)`,
+          transform: "translate3d(0, var(--sheet-y, 0px), 0)",
+          ["--sheet-y" as string]: `${dragY}px`,
           transition: isDragging
             ? "none"
             : "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
-        className="glass-panel absolute inset-x-0 bottom-0 flex flex-col rounded-t-[2.25rem] border-t border-x border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden"
+        className="glass-panel absolute inset-x-0 bottom-0 flex flex-col rounded-t-[2.25rem] border-t border-x border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden will-change-transform"
       >
         {/* Top Grab Zone & Header */}
         <div className="flex flex-col items-center pt-3 pb-2.5 px-4 border-b border-white/10 shrink-0 bg-white/[0.02]">
@@ -600,7 +639,7 @@ export function MobileMoreOptionsSheet({
 
                 <div className="flex items-center gap-1.5 shrink-0">
                   <span className="font-mono text-xs font-bold text-foreground bg-white/[0.06] border border-white/10 px-2 py-0.5 rounded-lg">
-                    {pomodoroTimeFormatted}
+                    {liveTimeFormatted}
                   </span>
                   <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-active:translate-x-1" />
                 </div>

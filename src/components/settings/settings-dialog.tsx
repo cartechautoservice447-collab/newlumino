@@ -992,7 +992,11 @@ function MobileSwipeableSettingsSheet({
   const [sheetHeight, setSheetHeight] = useState(typeof window !== "undefined" ? window.innerHeight * 0.92 : 650);
 
   const sheetRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+  const dragFrameRef = useRef<number | null>(null);
+  const dragTargetRef = useRef(0);
 
   // Gesture tracking refs
   const touchStartY = useRef(0);
@@ -1052,14 +1056,26 @@ function MobileSwipeableSettingsSheet({
       if (deltaY > 6 && deltaY > deltaX) {
         // Engaged! The finger is swiping UP from bottom
         currentDragMode.current = "up-to-open";
-        setIsDragging(true);
-        setMounted(true);
-
-        // Calculate sheet position in REAL TIME tracking finger exactly!
-        // At deltaY = 0, dragY = sheetHeight (fully hidden)
-        // As deltaY increases, dragY decreases towards 0 (fully open)
         const currentY = Math.max(0, sheetHeight - deltaY);
-        setDragY(currentY);
+
+        if (!draggingRef.current) {
+          draggingRef.current = true;
+          setIsDragging(true);
+          setMounted(true);
+          setDragY(currentY);
+        }
+        dragTargetRef.current = currentY;
+        if (dragFrameRef.current === null) {
+          dragFrameRef.current = requestAnimationFrame(() => {
+            dragFrameRef.current = null;
+            const nextY = dragTargetRef.current;
+            sheetRef.current?.style.setProperty("--settings-sheet-y", nextY + "px");
+            backdropRef.current?.style.setProperty(
+              "--settings-backdrop-opacity",
+              String((Math.max(0, Math.min(1, 1 - nextY / sheetHeight))) * 0.75),
+            );
+          });
+        }
       }
     };
 
@@ -1073,6 +1089,11 @@ function MobileSwipeableSettingsSheet({
         const duration = Math.max(1, Date.now() - touchStartTime.current);
         const velocity = deltaY / duration; // px per ms
 
+        if (dragFrameRef.current !== null) {
+          cancelAnimationFrame(dragFrameRef.current);
+          dragFrameRef.current = null;
+        }
+        draggingRef.current = false;
         setIsDragging(false);
         currentDragMode.current = null;
 
@@ -1124,9 +1145,22 @@ function MobileSwipeableSettingsSheet({
     const isAtTop = !scrollRef.current || scrollRef.current.scrollTop <= 0;
 
     if (deltaY > 0 && deltaY > deltaX && isAtTop) {
-      setIsDragging(true);
-      // Sheet follows finger downwards in real-time
-      setDragY(deltaY);
+      if (!draggingRef.current) {
+        draggingRef.current = true;
+        setIsDragging(true);
+      }
+      dragTargetRef.current = deltaY;
+      if (dragFrameRef.current === null) {
+        dragFrameRef.current = requestAnimationFrame(() => {
+          dragFrameRef.current = null;
+          const nextY = dragTargetRef.current;
+          sheetRef.current?.style.setProperty("--settings-sheet-y", nextY + "px");
+          backdropRef.current?.style.setProperty(
+            "--settings-backdrop-opacity",
+            String((Math.max(0, Math.min(1, 1 - nextY / sheetHeight))) * 0.75),
+          );
+        });
+      }
     }
   };
 
@@ -1134,7 +1168,14 @@ function MobileSwipeableSettingsSheet({
     if (currentDragMode.current !== "down-to-close") return;
     currentDragMode.current = null;
 
-    if (isDragging) {
+    if (!draggingRef.current) return;
+    if (dragFrameRef.current !== null) {
+      cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
+    draggingRef.current = false;
+
+    {
       const touch = e.changedTouches[0];
       const deltaY = touch.clientY - touchStartY.current;
       const duration = Math.max(1, Date.now() - touchStartTime.current);
@@ -1160,6 +1201,11 @@ function MobileSwipeableSettingsSheet({
   // Close with smooth transition
   const handleClose = () => {
     haptic("light");
+    if (dragFrameRef.current !== null) {
+      cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
+    draggingRef.current = false;
     setIsDragging(false);
     setDragY(sheetHeight);
     onOpenChange(false);
@@ -1178,9 +1224,11 @@ function MobileSwipeableSettingsSheet({
     <div className="fixed inset-0 z-50 select-none md:hidden overflow-hidden pointer-events-auto">
       {/* Backdrop with real-time blur and opacity */}
       <div
+        ref={backdropRef}
         onClick={handleClose}
         style={{
-          opacity: backdropOpacity,
+          opacity: "var(--settings-backdrop-opacity, 0)",
+          ["--settings-backdrop-opacity" as string]: String(backdropOpacity),
           transition: isDragging ? "none" : "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
         className="absolute inset-0 bg-black backdrop-blur-md cursor-pointer"
@@ -1195,7 +1243,8 @@ function MobileSwipeableSettingsSheet({
         onTouchCancel={handleSheetTouchEnd}
         style={{
           height: `${sheetHeight}px`,
-          transform: `translate3d(0, ${dragY}px, 0)`,
+          transform: "translate3d(0, var(--settings-sheet-y, 0px), 0)",
+          ["--settings-sheet-y" as string]: `${dragY}px`,
           transition: isDragging
             ? "none"
             : "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",

@@ -763,6 +763,14 @@ html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px c
 
 /* Mobile dashboard: use the browser's native page scroll.
    Desktop stage/scroll behavior remains unchanged. */
+/* Mobile dashboard runtime optimization.
+   Keeps layout/appearance intact while allowing Chromium to skip paint work
+   for course cards that are far outside the viewport. */
+.mobile-dashboard-course-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 190px;
+}
+
 @media (max-width: 767px) {
   .mobile-dashboard-stage,
   .mobile-daily-goal-stage {

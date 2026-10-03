@@ -4,11 +4,12 @@ export function useLivePomodoroTime(
   endAt: number | null,
   isRunning: boolean,
   fallbackSeconds: number,
+  enabled = true,
 ) {
   const [secondsLeft, setSecondsLeft] = useState(fallbackSeconds);
 
   useEffect(() => {
-    if (!isRunning || !endAt) {
+    if (!enabled || !isRunning || !endAt) {
       setSecondsLeft(fallbackSeconds);
       return;
     }
@@ -20,7 +21,7 @@ export function useLivePomodoroTime(
     update();
     const timer = window.setInterval(update, 1000);
     return () => window.clearInterval(timer);
-  }, [endAt, isRunning, fallbackSeconds]);
+  }, [enabled, endAt, isRunning, fallbackSeconds]);
 
   return secondsLeft;
 }

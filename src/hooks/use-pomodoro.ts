@@ -397,28 +397,36 @@ export function usePomodoroTimer(
         : mode === "shortBreak"
         ? settings.shortBreakMinutes
         : settings.longBreakMinutes) * 60;
-    setTimeLeft((prev) => {
-      const next = Math.min(maxDuration, prev + Math.max(0, seconds));
-      if (mobileOptimized && timerEndAtRef.current) {
-        const endAt = timerEndAtRef.current + Math.max(0, next - prev) * 1000;
-        timerEndAtRef.current = endAt;
-        setTimerEndAt(endAt);
-      }
-      return next;
-    });
-  }, [mode, settings]);
+    const extra = Math.max(0, seconds);
+
+    if (mobileOptimized && isRunning && timerEndAtRef.current) {
+      const current = Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000));
+      const next = Math.min(maxDuration, current + extra);
+      const endAt = Date.now() + next * 1000;
+      timerEndAtRef.current = endAt;
+      setTimerEndAt(endAt);
+      setTimeLeft(next);
+      return;
+    }
+
+    setTimeLeft((prev) => Math.min(maxDuration, prev + extra));
+  }, [isRunning, mobileOptimized, mode, settings]);
 
   const skipTime = useCallback((seconds = 300) => {
-    setTimeLeft((prev) => {
-      const next = Math.max(0, prev - Math.max(0, seconds));
-      if (mobileOptimized && timerEndAtRef.current) {
-        const endAt = Math.max(Date.now(), timerEndAtRef.current - Math.max(0, prev - next) * 1000);
-        timerEndAtRef.current = endAt;
-        setTimerEndAt(endAt);
-      }
-      return next;
-    });
-  }, []);
+    const amount = Math.max(0, seconds);
+
+    if (mobileOptimized && isRunning && timerEndAtRef.current) {
+      const current = Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000));
+      const next = Math.max(0, current - amount);
+      const endAt = Date.now() + next * 1000;
+      timerEndAtRef.current = endAt;
+      setTimerEndAt(endAt);
+      setTimeLeft(next);
+      return;
+    }
+
+    setTimeLeft((prev) => Math.max(0, prev - amount));
+  }, [isRunning, mobileOptimized]);
 
   const completeSession = useCallback(() => {
     timerEndAtRef.current = null;

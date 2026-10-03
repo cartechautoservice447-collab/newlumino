@@ -359,14 +359,8 @@ export function usePomodoroTimer(
       });
     }, 1000);
 
-    if (!timerEndAtRef.current && timeLeft > 0) {
-      const endAt = Date.now() + timeLeft * 1000;
-      timerEndAtRef.current = endAt;
-      setTimerEndAt(endAt);
-    }
-
     return () => clearInterval(timer);
-  }, [isRunning, mode, settings, activeContext, completedSessions, activePlan, mobileOptimized, timeLeft]);
+  }, [isRunning, mode, settings, activeContext, completedSessions, activePlan, mobileOptimized]);
 
   const togglePlay = useCallback(() => {
     setIsRunning((r) => {

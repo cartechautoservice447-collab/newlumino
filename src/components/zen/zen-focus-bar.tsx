@@ -100,6 +100,7 @@ export function ZenFocusBar({
     pomodoroEndAt,
     pomodoroRunning,
     Number(pomodoroTimeFormatted.split(":")[0] || 0) * 60 + Number(pomodoroTimeFormatted.split(":")[1] || 0),
+    isMobile,
   );
   const liveMinutes = Math.floor(liveTimeLeft / 60);
   const liveSeconds = liveTimeLeft % 60;

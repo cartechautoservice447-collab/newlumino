@@ -12,9 +12,9 @@ import { ThemeStage } from "@/components/theme/theme-stage";
 import { SidebarPanel } from "@/components/notes/sidebar-panel";
 import { NoteList } from "@/components/notes/note-list";
 import { NoteEditor } from "@/components/notes/note-editor";
-import { CourseDashboard } from "@/components/courses/course-dashboard";
+const CourseDashboard = lazy(() => import("@/components/courses/course-dashboard").then((module) => ({ default: module.CourseDashboard })));
 import { MobileCourseDashboard } from "@/components/courses/mobile-course-dashboard";
-import { SpatialAuroraDashboard } from "@/components/courses/spatial-aurora-dashboard";
+const SpatialAuroraDashboard = lazy(() => import("@/components/courses/spatial-aurora-dashboard").then((module) => ({ default: module.SpatialAuroraDashboard })));
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { MobileSidebarDrawer } from "@/components/mobile/mobile-sidebar-drawer";
 import { MobileBottomDock } from "@/components/mobile/mobile-bottom-dock";
@@ -349,7 +349,8 @@ function AuthenticatedApp({
     return (
       <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isMobile && view === "dashboard" && "mobile-dashboard-stage", isFluidGlass && !isMobile && "p-[10px]")}>
         {settings.dashboardDesign === "spatial-aurora-bento" ? (
-          <SpatialAuroraDashboard
+          <Suspense fallback={null}>
+            <SpatialAuroraDashboard
             courses={n.courses}
             notes={n.notes}
             onOpenCourse={openCourse}
@@ -381,7 +382,8 @@ function AuthenticatedApp({
             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
             onNavigateDailyGoal={navigateToDailyGoal}
-          />
+            />
+          </Suspense>
         ) : isMobile ? (
           <MobileCourseDashboard
             courses={n.courses}
@@ -399,7 +401,8 @@ function AuthenticatedApp({
             dailyGoalHours={pomodoro.dailyGoalHours}
           />
         ) : (
-          <CourseDashboard
+          <Suspense fallback={null}>
+            <CourseDashboard
             courses={n.courses}
             notes={n.notes}
             onOpenCourse={openCourse}
@@ -418,7 +421,8 @@ function AuthenticatedApp({
             isSyncing={n.isSyncing}
             onRefresh={() => void n.refreshFromCloud()}
             onOpenAuth={onOpenAuth}
-          />
+            />
+          </Suspense>
         )}
 
         {/* Mobile Slide-in Drawer: Study Tools when swiped or hamburger clicked on Dashboard */}

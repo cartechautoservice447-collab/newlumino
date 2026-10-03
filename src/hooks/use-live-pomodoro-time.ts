@@ -9,7 +9,9 @@ export function useLivePomodoroTime(
   const [secondsLeft, setSecondsLeft] = useState(fallbackSeconds);
 
   useEffect(() => {
-    if (!enabled || !isRunning || !endAt) {
+    if (!enabled) return;
+
+    if (!isRunning || !endAt) {
       setSecondsLeft(fallbackSeconds);
       return;
     }
@@ -23,5 +25,5 @@ export function useLivePomodoroTime(
     return () => window.clearInterval(timer);
   }, [enabled, endAt, isRunning, fallbackSeconds]);
 
-  return secondsLeft;
+  return enabled ? secondsLeft : fallbackSeconds;
 }

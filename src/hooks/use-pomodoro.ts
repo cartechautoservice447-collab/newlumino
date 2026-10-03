@@ -67,7 +67,8 @@ export function usePomodoroTimer(
   const updateTimerEndAt = useCallback(
     (endAt: number | null) => {
       if (!mobileOptimized) return;
-      updateTimerEndAt(endAt);
+      timerEndAtRef.current = endAt;
+      setTimerEndAt(endAt);
     },
     [mobileOptimized],
   );

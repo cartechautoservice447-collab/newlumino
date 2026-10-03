@@ -96,7 +96,7 @@ export function PomodoroDialog({
   } = pomodoro;
 
   const isMobile = useIsMobile();
-  const liveTimeLeft = useLivePomodoroTime(pomodoro.timerEndAt, isRunning, timeLeft);
+  const liveTimeLeft = useLivePomodoroTime(pomodoro.timerEndAt, isRunning, timeLeft, isMobile);
   const displayedTimeLeft = isMobile ? liveTimeLeft : timeLeft;
 
   // Active View Tab inside Pomodoro Dialog

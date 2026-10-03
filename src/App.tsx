@@ -9,9 +9,9 @@ import { useNotes } from "@/hooks/use-notes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { ThemeStage } from "@/components/theme/theme-stage";
-import { SidebarPanel } from "@/components/notes/sidebar-panel";
-import { NoteList } from "@/components/notes/note-list";
-import { NoteEditor } from "@/components/notes/note-editor";
+const SidebarPanel = lazy(() => import("@/components/notes/sidebar-panel").then((module) => ({ default: module.SidebarPanel })));
+const NoteList = lazy(() => import("@/components/notes/note-list").then((module) => ({ default: module.NoteList })));
+const NoteEditor = lazy(() => import("@/components/notes/note-editor").then((module) => ({ default: module.NoteEditor })));
 const CourseDashboard = lazy(() => import("@/components/courses/course-dashboard").then((module) => ({ default: module.CourseDashboard })));
 import { MobileCourseDashboard } from "@/components/courses/mobile-course-dashboard";
 const SpatialAuroraDashboard = lazy(() => import("@/components/courses/spatial-aurora-dashboard").then((module) => ({ default: module.SpatialAuroraDashboard })));
@@ -29,12 +29,12 @@ const FlashcardsDialog = lazy(() => import("@/components/tools/flashcards-dialog
 const PomodoroFloatingPill = lazy(() => import("@/components/tools/pomodoro-floating-pill").then((module) => ({ default: module.PomodoroFloatingPill })));
 const PomodoroDialog = lazy(() => import("@/components/tools/pomodoro-dialog").then((module) => ({ default: module.PomodoroDialog })));
 const PomodoroSessionCompleteDialog = lazy(() => import("@/components/tools/pomodoro-session-complete-dialog").then((module) => ({ default: module.PomodoroSessionCompleteDialog })));
-import { DailyGoalView } from "@/components/tools/daily-goal-view";
-import { MarkdownCheatsheet } from "@/components/tools/markdown-cheatsheet";
+const DailyGoalView = lazy(() => import("@/components/tools/daily-goal-view").then((module) => ({ default: module.DailyGoalView })));
+const MarkdownCheatsheet = lazy(() => import("@/components/tools/markdown-cheatsheet").then((module) => ({ default: module.MarkdownCheatsheet })));
 const AiExamSimulatorDialog = lazy(() => import("@/components/tools/ai-exam-simulator-dialog").then((module) => ({ default: module.AiExamSimulatorDialog })));
 const AiNotePolisherDialog = lazy(() => import("@/components/tools/ai-note-polisher-dialog").then((module) => ({ default: module.AiNotePolisherDialog })));
 import { NotificationBanner } from "@/components/ui/notification-banner";
-import { ZenFocusBar } from "@/components/zen/zen-focus-bar";
+const ZenFocusBar = lazy(() => import("@/components/zen/zen-focus-bar").then((module) => ({ default: module.ZenFocusBar })));
 import type { Note } from "@/lib/notes";
 
 export default function App() {
@@ -618,7 +618,8 @@ function AuthenticatedApp({
         : (n.collections.find((c) => c.id === filter.id)?.name ?? "Collection");
 
   const sidebarContent = (
-    <SidebarPanel
+    <Suspense fallback={null}>
+<SidebarPanel
       onCollapse={() => setSidebarOpen(false)}
       onBackToCourses={backToCourses}
       onOpenSettings={() => setSettingsOpen(true)}
@@ -648,6 +649,7 @@ function AuthenticatedApp({
       onAddCollection={(name, category) => n.addCollection(name, category, n.activeCourseId)}
       onDeleteCollection={n.deleteCollection}
     />
+</Suspense>
   );
 
   return (
@@ -668,16 +670,19 @@ function AuthenticatedApp({
               <PanelLeftOpen className="h-4 w-4" />
             </button>
           </div>
-          <DailyGoalView
+          <Suspense fallback={null}>
+<DailyGoalView
             pomodoro={pomodoro}
             onOpenPomodoro={() => setPomodoroDialogOpen(true)}
           />
+</Suspense>
         </div>
       )}
 
       {/* Zen Focus Mode Top Bar (Scoped to active course with collections and notes drawer) */}
       {focusMode && (
-        <ZenFocusBar
+        <Suspense fallback={null}>
+<ZenFocusBar
           courses={n.courses}
           activeCourse={n.activeCourse}
           activeCourseId={n.activeCourseId}
@@ -720,6 +725,7 @@ function AuthenticatedApp({
           pomodoroTimeFormatted={pomodoroTimeFormatted}
           pomodoroEndAt={pomodoro.timerEndAt}
         />
+</Suspense>
       )}
 
       {/* Mobile Top Header (Luminous Glass Header when browsing notes list) */}
@@ -807,7 +813,8 @@ function AuthenticatedApp({
                 : "hidden w-0 opacity-0"
             }`}
           >
-            <NoteList
+            <Suspense fallback={null}>
+<NoteList
               title={listTitle}
               notes={n.visibleNotes}
               collections={n.collections}
@@ -821,6 +828,7 @@ function AuthenticatedApp({
               onCreateNote={() => n.createNote()}
               onOpenMobileNoteMenu={handleMobileOpenNoteSheet}
             />
+</Suspense>
           </div>
 
           {/* Note Editor Column */}
@@ -833,7 +841,8 @@ function AuthenticatedApp({
                   : `min-w-0 flex-1 lg:block ${n.selectedId || !listOpen ? "block" : "hidden"}`
             }
           >
-            <NoteEditor
+            <Suspense fallback={null}>
+<NoteEditor
               note={n.selected}
               collections={n.collections}
               onChange={(patch) => n.selected && n.updateNote(n.selected.id, patch)}
@@ -862,6 +871,7 @@ function AuthenticatedApp({
               externalMode={mobileEditorMode}
               onModeChange={setMobileEditorMode}
             />
+</Suspense>
           </div>
         </div>
       )}
@@ -1067,7 +1077,9 @@ function AuthenticatedApp({
       />
 </Suspense>
 
-      <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />
+      <Suspense fallback={null}>
+<MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />
+</Suspense>
 
       <Suspense fallback={null}>
 <AiExamSimulatorDialog

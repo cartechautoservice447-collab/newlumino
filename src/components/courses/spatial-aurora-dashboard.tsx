@@ -170,7 +170,7 @@ export function SpatialAuroraDashboard({
       <div className="pointer-events-none absolute -left-28 top-[460px] h-88 w-88 rounded-full bg-cyan-400/10 blur-[110px]" />
       <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-violet-400/10 blur-[130px]" />
 
-      <div className="relative z-10 h-full overflow-y-auto overscroll-contain pb-28">
+      <div className="mobile-native-scroll-root relative z-10 min-h-[100dvh] overflow-y-visible pb-28 md:h-full md:min-h-0 md:overflow-y-auto">
         <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#070a10]/80 px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] backdrop-blur-2xl">
           <div className="mx-auto flex w-full max-w-[480px] items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">

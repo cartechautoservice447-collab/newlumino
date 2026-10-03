@@ -72,7 +72,7 @@ export function PomodoroDialog({
 }: Props) {
   const {
     mode,
-    displayedTimeLeft,
+    timeLeft,
     totalDuration,
     isRunning,
     soundscape,
@@ -97,7 +97,7 @@ export function PomodoroDialog({
 
   const isMobile = useIsMobile();
   const liveTimeLeft = useLivePomodoroTime(pomodoro.timerEndAt, isRunning, timeLeft);
-  const displayedTimeLeft = isMobile ? liveTimeLeft : displayedTimeLeft;
+  const displayedTimeLeft = isMobile ? liveTimeLeft : timeLeft;
 
   // Active View Tab inside Pomodoro Dialog
   const [activeTab, setActiveTab] = useState<"timer" | "ai_planner" | "analytics">("timer");

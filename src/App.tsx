@@ -97,7 +97,7 @@ function AuthenticatedApp({
     activeNoteId: n.selectedId,
     activeNoteTitle: n.selected?.title,
     activeCourseName: n.activeCourse?.name,
-  });
+  }, { mobileOptimized: isMobile });
   const [pomodoroDialogOpen, setPomodoroDialogOpen] = useState(false);
   const [flashcardsDialogOpen, setFlashcardsDialogOpen] = useState(false);
   const [flashcardTargetNote, setFlashcardTargetNote] = useState<Note | null>(null);

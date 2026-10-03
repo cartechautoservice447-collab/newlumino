@@ -82,6 +82,10 @@ export function MobileSidebarDrawer({
   const [dragX, setDragX] = useState(open ? drawerWidth : 0);
 
   const drawerRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+  const dragFrameRef = useRef<number | null>(null);
+  const dragTargetRef = useRef(0);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const touchStartTime = useRef(0);
@@ -144,12 +148,25 @@ export function MobileSidebarDrawer({
       // Only engage if clear rightward horizontal swipe
       if (deltaX > 15 && deltaX > deltaY * 1.4) {
         currentDragMode.current = "left-to-right-open";
-        setIsDragging(true);
-        setMounted(true);
+        if (!draggingRef.current) {
+          draggingRef.current = true;
+          setIsDragging(true);
+          setMounted(true);
+        }
 
-        // Position drawer in real time tracking the finger
         const currentX = Math.max(0, Math.min(drawerWidth, deltaX));
-        setDragX(currentX);
+        dragTargetRef.current = currentX;
+        if (dragFrameRef.current === null) {
+          dragFrameRef.current = requestAnimationFrame(() => {
+            dragFrameRef.current = null;
+            const nextX = dragTargetRef.current;
+            drawerRef.current?.style.setProperty("--drawer-x", `${nextX - drawerWidth}px`);
+            backdropRef.current?.style.setProperty(
+              "--drawer-backdrop-opacity",
+              String((Math.max(0, Math.min(1, nextX / drawerWidth))) * 0.75),
+            );
+          });
+        }
       }
     };
 
@@ -163,6 +180,11 @@ export function MobileSidebarDrawer({
         const duration = Math.max(1, Date.now() - touchStartTime.current);
         const velocity = deltaX / duration; // px/ms
 
+        if (dragFrameRef.current !== null) {
+          cancelAnimationFrame(dragFrameRef.current);
+          dragFrameRef.current = null;
+        }
+        draggingRef.current = false;
         setIsDragging(false);
         currentDragMode.current = null;
 
@@ -212,10 +234,23 @@ export function MobileSidebarDrawer({
 
     // Only engage horizontal drag-to-close if moving left and horizontal delta dominates vertical
     if (deltaX < -6 && Math.abs(deltaX) > deltaY * 1.1) {
-      setIsDragging(true);
-      // Drawer follows finger to the left in real time
+      if (!draggingRef.current) {
+        draggingRef.current = true;
+        setIsDragging(true);
+      }
       const currentX = Math.max(0, Math.min(drawerWidth, drawerWidth + deltaX));
-      setDragX(currentX);
+      dragTargetRef.current = currentX;
+      if (dragFrameRef.current === null) {
+        dragFrameRef.current = requestAnimationFrame(() => {
+          dragFrameRef.current = null;
+          const nextX = dragTargetRef.current;
+          drawerRef.current?.style.setProperty("--drawer-x", `${nextX - drawerWidth}px`);
+          backdropRef.current?.style.setProperty(
+            "--drawer-backdrop-opacity",
+            String((Math.max(0, Math.min(1, nextX / drawerWidth))) * 0.75),
+          );
+        });
+      }
     }
   };
 
@@ -223,12 +258,17 @@ export function MobileSidebarDrawer({
     if (currentDragMode.current !== "right-to-left-close") return;
     currentDragMode.current = null;
 
-    if (isDragging) {
+    if (draggingRef.current) {
+      if (dragFrameRef.current !== null) {
+        cancelAnimationFrame(dragFrameRef.current);
+        dragFrameRef.current = null;
+      }
       const touch = e.changedTouches[0];
       const deltaX = touch.clientX - touchStartX.current;
       const duration = Math.max(1, Date.now() - touchStartTime.current);
       const velocity = Math.abs(deltaX) / duration;
 
+      draggingRef.current = false;
       setIsDragging(false);
 
       // If dragged left past 75px or flicked left
@@ -248,6 +288,7 @@ export function MobileSidebarDrawer({
 
   const handleClose = () => {
     haptic("light");
+    draggingRef.current = false;
     setIsDragging(false);
     setDragX(0);
     onOpenChange(false);
@@ -270,9 +311,11 @@ export function MobileSidebarDrawer({
     <div className="fixed inset-0 z-50 select-none md:hidden overflow-hidden pointer-events-auto">
       {/* Dynamic backdrop with real-time blur and opacity */}
       <div
+        ref={backdropRef}
         onClick={handleClose}
         style={{
-          opacity: backdropOpacity,
+          opacity: "var(--drawer-backdrop-opacity, 0)",
+          ["--drawer-backdrop-opacity" as string]: String(backdropOpacity),
           transition: isDragging ? "none" : "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
         className="absolute inset-0 bg-black backdrop-blur-md cursor-pointer"
@@ -287,12 +330,13 @@ export function MobileSidebarDrawer({
         onTouchCancel={handleDrawerTouchEnd}
         style={{
           width: `${drawerWidth}px`,
-          transform: `translate3d(${transformOffset}px, 0, 0)`,
+          transform: "translate3d(var(--drawer-x, 0px), 0, 0)",
+          ["--drawer-x" as string]: `${transformOffset}px`,
           transition: isDragging
             ? "none"
             : "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
-        className="glass-panel absolute inset-y-0 left-0 flex flex-col rounded-r-3xl border-r border-y border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden"
+        className="glass-panel absolute inset-y-0 left-0 flex flex-col rounded-r-3xl border-r border-y border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden will-change-transform"
       >
         {/* Right edge drag pill handle indicator */}
         <div className="absolute right-1 top-1/2 -translate-y-1/2 w-1.5 h-14 rounded-full bg-white/30 pointer-events-none shadow-[0_0_8px_rgba(255,255,255,0.2)]" />

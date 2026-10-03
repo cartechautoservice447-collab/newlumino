@@ -759,3 +759,15 @@ html[data-ui-text-clarity="punchy"] .text-foreground { color: #fff !important; t
 html[data-ui-text-clarity="punchy"] .text-muted-foreground { color: oklch(0.94 0.01 250) !important; text-shadow: 0 0 0.28px currentColor; }
 html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px currentColor; }
 
+
+
+/* Mobile dashboard: use the browser's native page scroll.
+   Desktop stage/scroll behavior remains unchanged. */
+@media (max-width: 767px) {
+  .mobile-dashboard-stage {
+    height: auto !important;
+    min-height: 100dvh;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+}

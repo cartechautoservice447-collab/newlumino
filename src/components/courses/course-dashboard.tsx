@@ -208,7 +208,7 @@ export function CourseDashboard({
   const favNotes = notes.filter((n) => n.favorite).length;
 
   return (
-    <div className="relative h-full min-h-0 w-full overflow-x-hidden overflow-y-auto pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-12 transition-colors duration-500">
+    <div className="relative min-h-[100dvh] w-full overflow-x-hidden overflow-y-visible pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:h-full md:min-h-0 md:overflow-y-auto md:pb-12 md:transition-colors md:duration-500">
       <div className="relative mx-auto w-full max-w-[1240px] p-3.5 sm:p-8">
 
         {/* Header Bar with Feature 7: Time-of-Day Contextual Dynamic Greeting */}

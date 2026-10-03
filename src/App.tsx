@@ -235,7 +235,7 @@ function AuthenticatedApp({
   // Dashboard view
   if (view === "dashboard") {
     return (
-      <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && !isMobile && "p-[10px]")}>
+      <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isMobile && view === "dashboard" && "mobile-dashboard-stage", isFluidGlass && !isMobile && "p-[10px]")}>
         {settings.dashboardDesign === "spatial-aurora-bento" ? (
           <SpatialAuroraDashboard
             courses={n.courses}

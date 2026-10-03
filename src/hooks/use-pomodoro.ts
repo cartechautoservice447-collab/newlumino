@@ -365,24 +365,26 @@ export function usePomodoroTimer(
   }, [isRunning, mode, settings, activeContext, completedSessions, activePlan, mobileOptimized, updateTimerEndAt]);
 
   const togglePlay = useCallback(() => {
-    setIsRunning((r) => {
-      const next = !r;
-      if (next) {
-        setMiniPillDismissed(false);
-        if (mobileOptimized) {
-          const endAt = Date.now() + Math.max(0, timeLeft) * 1000;
-          updateTimerEndAt(endAt);
-        }
-      } else if (mobileOptimized) {
-        const remaining = timerEndAtRef.current
-          ? Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000))
-          : timeLeft;
-        setTimeLeft(remaining);
-        updateTimerEndAt(null);
+    const next = !isRunning;
+    setIsRunning(next);
+
+    if (next) {
+      setMiniPillDismissed(false);
+      if (mobileOptimized) {
+        const endAt = Date.now() + Math.max(0, timeLeft) * 1000;
+        updateTimerEndAt(endAt);
       }
-      return next;
-    });
-  }, [mobileOptimized, timeLeft, updateTimerEndAt]);
+      return;
+    }
+
+    if (mobileOptimized) {
+      const remaining = timerEndAtRef.current
+        ? Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000))
+        : timeLeft;
+      setTimeLeft(remaining);
+      updateTimerEndAt(null);
+    }
+  }, [isRunning, mobileOptimized, timeLeft, updateTimerEndAt]);
 
   const addTime = useCallback((seconds = 300) => {
     const maxDuration =

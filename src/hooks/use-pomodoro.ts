@@ -64,6 +64,14 @@ export function usePomodoroTimer(
   const [miniPillDismissed, setMiniPillDismissed] = useState<boolean>(false);
   const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
   const timerEndAtRef = useRef<number | null>(null);
+  const updateTimerEndAt = useCallback(
+    (endAt: number | null) => {
+      if (!mobileOptimized) return;
+      timerEndAtRef.current = endAt;
+      setTimerEndAt(endAt);
+    },
+    [mobileOptimized],
+  );
 
   // Daily Study Goal in Hours
   const [dailyGoalHours, setDailyGoalHoursState] = useState<number>(() => {
@@ -167,8 +175,7 @@ export function usePomodoroTimer(
           : settings.longBreakMinutes;
       setTimeLeft(mins * 60);
       if (mobileOptimized) {
-        timerEndAtRef.current = null;
-        setTimerEndAt(null);
+        updateTimerEndAt(null);
       }
     }
   }, [settings, mode, isRunning, mobileOptimized]);
@@ -273,8 +280,7 @@ export function usePomodoroTimer(
           setSessionHistory((prev) => [record, ...prev.slice(0, 49)]);
 
           const nextEndAt = Date.now() + settings.shortBreakMinutes * 60 * 1000;
-          timerEndAtRef.current = nextEndAt;
-          setTimerEndAt(nextEndAt);
+          updateTimerEndAt(nextEndAt);
           setMode("shortBreak");
           setTimeLeft(settings.shortBreakMinutes * 60);
         } else {
@@ -343,8 +349,7 @@ export function usePomodoroTimer(
             setSessionHistory((prev) => [record, ...prev.slice(0, 49)]);
 
             const nextEndAt = Date.now() + settings.shortBreakMinutes * 60 * 1000;
-            timerEndAtRef.current = nextEndAt;
-            setTimerEndAt(nextEndAt);
+            updateTimerEndAt(nextEndAt);
             setMode("shortBreak");
             return settings.shortBreakMinutes * 60;
           }
@@ -369,16 +374,14 @@ export function usePomodoroTimer(
         setMiniPillDismissed(false);
         if (mobileOptimized) {
           const endAt = Date.now() + Math.max(0, timeLeft) * 1000;
-          timerEndAtRef.current = endAt;
-          setTimerEndAt(endAt);
+          updateTimerEndAt(endAt);
         }
       } else if (mobileOptimized) {
         const remaining = timerEndAtRef.current
           ? Math.max(0, Math.ceil((timerEndAtRef.current - Date.now()) / 1000))
           : timeLeft;
         setTimeLeft(remaining);
-        timerEndAtRef.current = null;
-        setTimerEndAt(null);
+        updateTimerEndAt(null);
       }
       return next;
     });

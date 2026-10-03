@@ -723,17 +723,21 @@ export function FlashcardsDialog({
                 "data-[swipe=right]:border-emerald-400/60 data-[swipe=right]:bg-emerald-950/20 data-[swipe=left]:border-rose-400/60 data-[swipe=left]:bg-rose-950/20"
               )}
             >
-              {/* Swipe hints are always mounted; opacity is driven directly by the gesture frame. */}
-              {dragOffset > 20 && (
-                <div className="absolute top-4 right-4 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30">
-                  Good →
-                </div>
-              )}
-              {dragOffset < -20 && (
-                <div className="absolute top-4 left-4 rounded-full bg-rose-500/20 px-3 py-1 text-xs font-bold text-rose-400 border border-rose-500/30">
-                  ← Again
-                </div>
-              )}
+              {/* Swipe hints stay mounted; opacity follows the compositor gesture variables. */}
+              <div
+                className="absolute top-4 right-4 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30"
+                style={{ opacity: "var(--swipe-good-opacity, 0)" }}
+                aria-hidden="true"
+              >
+                Good →
+              </div>
+              <div
+                className="absolute top-4 left-4 rounded-full bg-rose-500/20 px-3 py-1 text-xs font-bold text-rose-400 border border-rose-500/30"
+                style={{ opacity: "var(--swipe-again-opacity, 0)" }}
+                aria-hidden="true"
+              >
+                ← Again
+              </div>
 
               {/* Card Meta Top */}
               <div className="flex items-center justify-between text-[0.68rem] uppercase tracking-wider text-muted-foreground">

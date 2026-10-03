@@ -129,6 +129,8 @@ function AuthenticatedApp({
   const pomodoroMins = Math.floor(pomodoro.timeLeft / 60);
   const pomodoroSecs = pomodoro.timeLeft % 60;
   const pomodoroTimeFormatted = `${String(pomodoroMins).padStart(2, "0")}:${String(pomodoroSecs).padStart(2, "0")}`;
+  // Dashboard cards display minutes/percentage, so update that subtree once per minute rather than every timer analytics flush.
+  const mobileDashboardFocusSeconds = Math.floor(pomodoro.todayFocusSeconds / 60) * 60;
 
   // Mobile-specific dialogs and sheets
   const [mobileNoteSheetOpen, setMobileNoteSheetOpen] = useState(false);
@@ -283,6 +285,65 @@ function AuthenticatedApp({
     if (!pomodoro.isRunning) pomodoro.togglePlay();
   }, [n.activeCourseId, n.courses, n.setActiveCourseId, enterFocus, pomodoro.isRunning, pomodoro.togglePlay]);
 
+  const handleMobileOpenSettings = useCallback(() => setSettingsOpen(true), []);
+  const handleMobileOpenMenu = useCallback(() => setSidebarOpen(true), []);
+  const handleMobileOpenNewCourse = useCallback(() => setNewCourseModalOpen(true), []);
+  const handleMobileOpenPomodoro = useCallback(() => setPomodoroDialogOpen(true), []);
+  const handleMobileOpenCheatsheet = useCallback(() => setShowCheatsheet(true), []);
+  const handleMobileOpenExamSimulator = useCallback(() => setExamSimulatorOpen(true), []);
+  const handleMobileOpenNotePolisher = useCallback(() => setNotePolisherOpen(true), []);
+  const handleMobileOpenFlashcards = useCallback(() => {
+    setFlashcardTargetNote(n.selected || n.visibleNotes[0] || null);
+    setFlashcardsDialogOpen(true);
+  }, [n.selected, n.visibleNotes]);
+  const handleMobileToggleFocus = useCallback(() => {
+    if (!n.activeCourseId && n.courses[0]) {
+      n.setActiveCourseId(n.courses[0].id);
+    }
+    setView("workspace");
+    enterFocus();
+  }, [n.activeCourseId, n.courses, enterFocus]);
+
+  const handleMobileNavigateCourses = useCallback(() => {
+    setSidebarOpen(false);
+    setView("dashboard");
+  }, []);
+  const handleMobileNavigateNotes = useCallback(() => {
+    setSidebarOpen(false);
+    if (!n.activeCourseId && n.courses[0]) {
+      openCourse(n.courses[0].id);
+    } else {
+      setView("workspace");
+      n.setSelectedId(null);
+    }
+  }, [n.activeCourseId, n.courses, n.setSelectedId, openCourse]);
+  const handleMobileNavigateEditor = useCallback(() => {
+    setSidebarOpen(false);
+    if (n.notes[0]) {
+      if (n.notes[0].collectionId) {
+        const parentCourse = n.collections.find((item) => item.id === n.notes[0].collectionId)?.parentId || n.notes[0].collectionId;
+        n.setActiveCourseId(parentCourse);
+      }
+      n.setSelectedId(n.notes[0].id);
+      setView("workspace");
+    }
+  }, [n.notes, n.collections, n.setActiveCourseId, n.setSelectedId]);
+  const handleMobileCreateNote = useCallback(() => {
+    setSidebarOpen(false);
+    setMobileDraftOpen(true);
+  }, []);
+  const handleMobileOpenMore = useCallback(() => setMobileToolsOpen(true), []);
+  const handleMobileSaveDraft = useCallback((title: string, body: string, colId?: string | null) => {
+    const id = n.createNote(title, body, colId);
+    if (colId) n.setActiveCourseId(colId);
+    n.setSelectedId(id);
+    setView("workspace");
+    showNotification({
+      message: "Note Created",
+      description: "\"" + (title || "Untitled") + "\" has been saved to your library.",
+      type: "success",
+    });
+  }, [n.createNote, n.setActiveCourseId, n.setSelectedId, showNotification]);
   // Dashboard view
   if (view === "dashboard") {
     return (

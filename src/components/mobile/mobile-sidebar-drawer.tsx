@@ -161,14 +161,14 @@ export function MobileSidebarDrawer({
       // Only engage if clear rightward horizontal swipe
       if (deltaX > 15 && deltaX > deltaY * 1.4) {
         currentDragMode.current = "left-to-right-open";
+        const currentX = Math.max(0, Math.min(drawerWidth, deltaX));
+
         if (!draggingRef.current) {
           draggingRef.current = true;
           setIsDragging(true);
           setMounted(true);
           setDragX(currentX);
         }
-
-        const currentX = Math.max(0, Math.min(drawerWidth, deltaX));
         dragTargetRef.current = currentX;
         if (dragFrameRef.current === null) {
           dragFrameRef.current = requestAnimationFrame(() => {

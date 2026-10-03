@@ -77,6 +77,7 @@ export function MobileSidebarDrawer({
     pomodoroEndAt,
     pomodoroRunning,
     Number(pomodoroTimeFormatted.split(":")[0] || 0) * 60 + Number(pomodoroTimeFormatted.split(":")[1] || 0),
+    open,
   );
   const liveMinutes = Math.floor(liveTimeLeft / 60);
   const liveSeconds = liveTimeLeft % 60;
@@ -164,6 +165,7 @@ export function MobileSidebarDrawer({
           draggingRef.current = true;
           setIsDragging(true);
           setMounted(true);
+          setDragX(currentX);
         }
 
         const currentX = Math.max(0, Math.min(drawerWidth, deltaX));

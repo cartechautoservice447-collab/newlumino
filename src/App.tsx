@@ -576,10 +576,6 @@ function AuthenticatedApp({
     );
   }
 
-  // Workspace view      </ThemeStage>
-    );
-  }
-
   // Workspace view
   const filter = n.filter;
   const listTitle =

@@ -13,6 +13,7 @@ import { SidebarPanel } from "@/components/notes/sidebar-panel";
 import { NoteList } from "@/components/notes/note-list";
 import { NoteEditor } from "@/components/notes/note-editor";
 import { CourseDashboard } from "@/components/courses/course-dashboard";
+import { MobileCourseDashboard } from "@/components/courses/mobile-course-dashboard";
 import { SpatialAuroraDashboard } from "@/components/courses/spatial-aurora-dashboard";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { MobileSidebarDrawer } from "@/components/mobile/mobile-sidebar-drawer";
@@ -269,6 +270,58 @@ function AuthenticatedApp({
             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
             onNavigateDailyGoal={navigateToDailyGoal}
+          />
+        ) : isMobile ? (
+          <MobileCourseDashboard
+            courses={n.courses}
+            notes={n.notes}
+            onOpenCourse={openCourse}
+            onAddCourse={async (name, description, color, category) => {
+              const id = await n.addCourse(name, description, color, category);
+              if (id) {
+                showNotification({
+                  message: "Course Created",
+                  description: "\"" + name + "\" is ready for notes.",
+                  type: "success",
+                });
+              }
+            }}
+            onDeleteCourse={(id) => {
+              const course = n.courses.find((c) => c.id === id);
+              void n.deleteCourse(id);
+              showNotification({
+                message: "Course Removed",
+                description: course ? "\"" + course.name + "\" and its notes were deleted." : "Course has been removed.",
+                type: "info",
+              });
+            }}
+            onOpenSettings={() => setSettingsOpen(true)}
+            onOpenMenu={() => setSidebarOpen(true)}
+            onOpenNote={(noteId, courseId) => {
+              if (courseId) n.setActiveCourseId(courseId);
+              n.setSelectedId(noteId);
+              setView("workspace");
+            }}
+            onOpenAllNotes={() => {
+              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              n.setFilter({ kind: "all" });
+              n.setSelectedId(null);
+              setView("workspace");
+            }}
+            onOpenFavorites={() => {
+              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              n.setFilter({ kind: "favorites" });
+              n.setSelectedId(null);
+              setView("workspace");
+            }}
+            onStartFocus={() => {
+              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              setView("workspace");
+              enterFocus();
+              if (!pomodoro.isRunning) pomodoro.togglePlay();
+            }}
+            todayFocusSeconds={pomodoro.todayFocusSeconds}
+            dailyGoalHours={pomodoro.dailyGoalHours}
           />
         ) : (
           <CourseDashboard

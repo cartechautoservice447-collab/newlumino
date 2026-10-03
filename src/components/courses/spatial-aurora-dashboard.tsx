@@ -165,7 +165,7 @@ export function SpatialAuroraDashboard({
   }, [category, courses, notes, query]);
 
   return (
-    <div className="relative h-full min-h-0 w-full overflow-hidden bg-[#070a10] text-[#dfe2ef]">
+    <div className="mobile-native-scroll-stage relative h-full min-h-0 w-full overflow-hidden bg-[#070a10] text-[#dfe2ef]">
       <div className="pointer-events-none absolute -top-28 left-1/2 h-[440px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-br from-emerald-400/20 via-cyan-500/10 to-violet-600/15 blur-[125px]" />
       <div className="pointer-events-none absolute -left-28 top-[460px] h-88 w-88 rounded-full bg-cyan-400/10 blur-[110px]" />
       <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-violet-400/10 blur-[130px]" />

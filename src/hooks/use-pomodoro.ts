@@ -178,7 +178,7 @@ export function usePomodoroTimer(
         updateTimerEndAt(null);
       }
     }
-  }, [settings, mode, isRunning, mobileOptimized]);
+  }, [settings, mode, isRunning, mobileOptimized, updateTimerEndAt]);
 
   // Save settings
   useEffect(() => {
@@ -285,8 +285,7 @@ export function usePomodoroTimer(
           setTimeLeft(settings.shortBreakMinutes * 60);
         } else {
           const nextEndAt = Date.now() + settings.focusMinutes * 60 * 1000;
-          timerEndAtRef.current = nextEndAt;
-          setTimerEndAt(nextEndAt);
+          updateTimerEndAt(nextEndAt);
           setMode("focus");
           setTimeLeft(settings.focusMinutes * 60);
         }
@@ -355,8 +354,7 @@ export function usePomodoroTimer(
           }
 
           const nextEndAt = Date.now() + settings.focusMinutes * 60 * 1000;
-          timerEndAtRef.current = nextEndAt;
-          setTimerEndAt(nextEndAt);
+          updateTimerEndAt(nextEndAt);
           setMode("focus");
           return settings.focusMinutes * 60;
         }
@@ -365,7 +363,7 @@ export function usePomodoroTimer(
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isRunning, mode, settings, activeContext, completedSessions, activePlan, mobileOptimized]);
+  }, [isRunning, mode, settings, activeContext, completedSessions, activePlan, mobileOptimized, updateTimerEndAt]);
 
   const togglePlay = useCallback(() => {
     setIsRunning((r) => {
@@ -385,7 +383,7 @@ export function usePomodoroTimer(
       }
       return next;
     });
-  }, [mobileOptimized, timeLeft]);
+  }, [mobileOptimized, timeLeft, updateTimerEndAt]);
 
   const addTime = useCallback((seconds = 300) => {
     const maxDuration =
@@ -407,7 +405,7 @@ export function usePomodoroTimer(
     }
 
     setTimeLeft((prev) => Math.min(maxDuration, prev + extra));
-  }, [isRunning, mobileOptimized, mode, settings]);
+  }, [isRunning, mobileOptimized, mode, settings, updateTimerEndAt]);
 
   const skipTime = useCallback((seconds = 300) => {
     const amount = Math.max(0, seconds);
@@ -423,11 +421,10 @@ export function usePomodoroTimer(
     }
 
     setTimeLeft((prev) => Math.max(0, prev - amount));
-  }, [isRunning, mobileOptimized]);
+  }, [isRunning, mobileOptimized, updateTimerEndAt]);
 
   const completeSession = useCallback(() => {
-    timerEndAtRef.current = null;
-    setTimerEndAt(null);
+    updateTimerEndAt(null);
     soundscapeEngine.stop();
     soundscapeEngine.playChime();
 
@@ -464,12 +461,12 @@ export function usePomodoroTimer(
     mode,
     settings.focusMinutes,
     settings.shortBreakMinutes,
+    updateTimerEndAt,
   ]);
 
   const resetTimer = useCallback(() => {
     setIsRunning(false);
-    timerEndAtRef.current = null;
-    setTimerEndAt(null);
+    updateTimerEndAt(null);
     soundscapeEngine.stop();
     const mins =
       mode === "focus"
@@ -478,7 +475,7 @@ export function usePomodoroTimer(
         ? settings.shortBreakMinutes
         : settings.longBreakMinutes;
     setTimeLeft(mins * 60);
-  }, [mode, settings]);
+  }, [mode, settings, updateTimerEndAt]);
 
   const switchMode = useCallback(
     (newMode: PomodoroMode) => {
@@ -495,12 +492,11 @@ export function usePomodoroTimer(
           : settings.longBreakMinutes;
       setTimeLeft(mins * 60);
     },
-    [settings]
+    [settings, updateTimerEndAt]
   );
 
   const setPreset = useCallback((focus: number, sBreak: number) => {
-    timerEndAtRef.current = null;
-    setTimerEndAt(null);
+    updateTimerEndAt(null);
     setSettings((prev) => ({
       ...prev,
       focusMinutes: focus,
@@ -510,7 +506,7 @@ export function usePomodoroTimer(
     soundscapeEngine.stop();
     setMode("focus");
     setTimeLeft(focus * 60);
-  }, []);
+  }, [updateTimerEndAt]);
 
   const applyAIPlan = useCallback((plan: PomodoroPlanResult) => {
     const endAt = Date.now() + plan.recommendedFocusMinutes * 60 * 1000;

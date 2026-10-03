@@ -389,13 +389,13 @@ function AuthenticatedApp({
             onOpenCourse={openCourse}
             onAddCourse={handleDashboardAddCourse}
             onDeleteCourse={handleDashboardDeleteCourse}
-            onOpenSettings={() => setSettingsOpen(true)}
-            onOpenMenu={() => setSidebarOpen(true)}
+            onOpenSettings={handleMobileOpenSettings}
+            onOpenMenu={handleMobileOpenMenu}
             onOpenNote={handleDashboardOpenNote}
             onOpenAllNotes={handleDashboardOpenAllNotes}
             onOpenFavorites={handleDashboardOpenFavorites}
             onStartFocus={handleDashboardStartFocus}
-            todayFocusSeconds={pomodoro.todayFocusSeconds}
+            todayFocusSeconds={mobileDashboardFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
           />
         ) : (

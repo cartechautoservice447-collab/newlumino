@@ -1056,13 +1056,14 @@ function MobileSwipeableSettingsSheet({
       if (deltaY > 6 && deltaY > deltaX) {
         // Engaged! The finger is swiping UP from bottom
         currentDragMode.current = "up-to-open";
+        const currentY = Math.max(0, sheetHeight - deltaY);
+
         if (!draggingRef.current) {
           draggingRef.current = true;
           setIsDragging(true);
           setMounted(true);
+          setDragY(currentY);
         }
-
-        const currentY = Math.max(0, sheetHeight - deltaY);
         dragTargetRef.current = currentY;
         if (dragFrameRef.current === null) {
           dragFrameRef.current = requestAnimationFrame(() => {

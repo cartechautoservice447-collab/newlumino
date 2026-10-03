@@ -426,29 +426,20 @@ function AuthenticatedApp({
           <MobileSidebarDrawer
             open={sidebarOpen}
             onOpenChange={setSidebarOpen}
-            onOpenSettings={() => setSettingsOpen(true)}
-            onOpenNewCourse={() => setNewCourseModalOpen(true)}
-            onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-            onOpenFlashcards={() => {
-              setFlashcardTargetNote(n.selected || n.visibleNotes[0] || null);
-              setFlashcardsDialogOpen(true);
-            }}
-            onOpenCheatsheet={() => setShowCheatsheet(true)}
+            onOpenSettings={handleMobileOpenSettings}
+            onOpenNewCourse={handleMobileOpenNewCourse}
+            onOpenPomodoro={handleMobileOpenPomodoro}
+            onOpenFlashcards={handleMobileOpenFlashcards}
+            onOpenCheatsheet={handleMobileOpenCheatsheet}
             onNavigateDailyGoal={navigateToDailyGoal}
-            onOpenExamSimulator={() => setExamSimulatorOpen(true)}
-            onOpenNotePolisher={() => setNotePolisherOpen(true)}
+            onOpenExamSimulator={handleMobileOpenExamSimulator}
+            onOpenNotePolisher={handleMobileOpenNotePolisher}
             pomodoroRunning={pomodoro.isRunning}
             pomodoroTimeFormatted={pomodoroTimeFormatted}
             pomodoroEndAt={pomodoro.timerEndAt}
-            onToggleFocus={() => {
-              if (!n.activeCourseId && n.courses[0]) {
-                n.setActiveCourseId(n.courses[0].id);
-              }
-              setView("workspace");
-              enterFocus();
-            }}
+            onToggleFocus={handleMobileToggleFocus}
             focusMode={focusMode}
-            todayFocusSeconds={pomodoro.todayFocusSeconds}
+            todayFocusSeconds={mobileDashboardFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
           />
         )}
@@ -460,61 +451,29 @@ function AuthenticatedApp({
             selectedNoteId={n.selectedId}
             activeFilterKind={n.filter.kind}
             notesCount={n.notes.length}
-            todayFocusSeconds={pomodoro.todayFocusSeconds}
+            todayFocusSeconds={mobileDashboardFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
-            onNavigateCourses={() => {
-              setSidebarOpen(false);
-              setView("dashboard");
-            }}
-            onNavigateNotes={() => {
-              setSidebarOpen(false);
-              if (!n.activeCourseId && n.courses[0]) {
-                openCourse(n.courses[0].id);
-              } else {
-                setView("workspace");
-                n.setSelectedId(null);
-              }
-            }}
-            onNavigateEditor={() => {
-              setSidebarOpen(false);
-              if (n.notes[0]) {
-                if (n.notes[0].collectionId) {
-                  const parentCourse = n.collections.find(c => c.id === n.notes[0].collectionId)?.parentId || n.notes[0].collectionId;
-                  n.setActiveCourseId(parentCourse);
-                }
-                n.setSelectedId(n.notes[0].id);
-                setView("workspace");
-              }
-            }}
+            onNavigateCourses={handleMobileNavigateCourses}
+            onNavigateNotes={handleMobileNavigateNotes}
+            onNavigateEditor={handleMobileNavigateEditor}
             onNavigateDailyGoal={navigateToDailyGoal}
-            onCreateNote={() => {
-              setSidebarOpen(false);
-              setMobileDraftOpen(true);
-            }}
-            onOpenMoreSheet={() => setMobileToolsOpen(true)}
-            onOpenSettings={() => setSettingsOpen(true)}
+            onCreateNote={handleMobileCreateNote}
+            onOpenMoreSheet={handleMobileOpenMore}
+            onOpenSettings={handleMobileOpenSettings}
           />
         )}
 
 {mobileDraftOpen && (
-                {/* Mobile Draft / Capture Sheet */}
-                <MobileQuickDraftSheet
-                  open={mobileDraftOpen}
-                  onOpenChange={setMobileDraftOpen}
-                  collections={n.collections}
-                  activeCourseId={n.activeCourseId}
-                  onSaveNote={(title, body, colId) => {
-                    const id = n.createNote(title, body, colId);
-                    if (colId) n.setActiveCourseId(colId);
-                    n.setSelectedId(id);
-                    setView("workspace");
-                    showNotification({
-                      message: "Note Created",
-                      description: `"${title || "Untitled"}" has been saved to your library.`,
-                      type: "success",
-                    });
-                  }}
-                />
+          <>
+            {/* Mobile Draft / Capture Sheet */}
+            <MobileQuickDraftSheet
+              open={mobileDraftOpen}
+              onOpenChange={setMobileDraftOpen}
+              collections={n.collections}
+              activeCourseId={n.activeCourseId}
+              onSaveNote={handleMobileSaveDraft}
+            />
+          </>
         )}
 
 {mobileToolsOpen && (

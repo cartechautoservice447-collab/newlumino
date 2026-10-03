@@ -647,6 +647,7 @@ function AuthenticatedApp({
           onOpenPomodoro={() => setPomodoroDialogOpen(true)}
           pomodoroRunning={pomodoro.isRunning}
           pomodoroTimeFormatted={pomodoroTimeFormatted}
+          pomodoroEndAt={pomodoro.timerEndAt}
         />
       )}
 

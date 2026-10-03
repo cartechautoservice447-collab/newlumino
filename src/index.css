@@ -778,4 +778,10 @@ html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px c
     overflow-x: hidden !important;
     overflow-y: visible !important;
   }
+
+  .mobile-native-scroll-stage {
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: visible !important;
+  }
 }

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState, useRef } from "react";
 import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
-import { SettingsDialog } from "@/components/settings/settings-dialog";
+const SettingsDialog = lazy(() => import("@/components/settings/settings-dialog").then((module) => ({ default: module.SettingsDialog })));
 import { AuthModal } from "@/components/auth/auth-modal";
 import { CustomizationProvider, useCustomization } from "@/context/customization-context";
 import { AuthProvider, useAuth } from "@/context/auth-context";
@@ -25,14 +25,14 @@ import { MobileNoteSheet } from "@/components/mobile/mobile-note-sheet";
 import { MobileMoreOptionsSheet } from "@/components/mobile/mobile-more-options-sheet";
 import { MobileQuickDraftSheet } from "@/components/mobile/mobile-quick-draft-sheet";
 import { usePomodoroTimer } from "@/hooks/use-pomodoro";
-import { FlashcardsDialog } from "@/components/tools/flashcards-dialog";
+const FlashcardsDialog = lazy(() => import("@/components/tools/flashcards-dialog").then((module) => ({ default: module.FlashcardsDialog })));
 const PomodoroFloatingPill = lazy(() => import("@/components/tools/pomodoro-floating-pill").then((module) => ({ default: module.PomodoroFloatingPill })));
 const PomodoroDialog = lazy(() => import("@/components/tools/pomodoro-dialog").then((module) => ({ default: module.PomodoroDialog })));
 const PomodoroSessionCompleteDialog = lazy(() => import("@/components/tools/pomodoro-session-complete-dialog").then((module) => ({ default: module.PomodoroSessionCompleteDialog })));
 import { DailyGoalView } from "@/components/tools/daily-goal-view";
 import { MarkdownCheatsheet } from "@/components/tools/markdown-cheatsheet";
-import { AiExamSimulatorDialog } from "@/components/tools/ai-exam-simulator-dialog";
-import { AiNotePolisherDialog } from "@/components/tools/ai-note-polisher-dialog";
+const AiExamSimulatorDialog = lazy(() => import("@/components/tools/ai-exam-simulator-dialog").then((module) => ({ default: module.AiExamSimulatorDialog })));
+const AiNotePolisherDialog = lazy(() => import("@/components/tools/ai-note-polisher-dialog").then((module) => ({ default: module.AiNotePolisherDialog })));
 import { NotificationBanner } from "@/components/ui/notification-banner";
 import { ZenFocusBar } from "@/components/zen/zen-focus-bar";
 import type { Note } from "@/lib/notes";
@@ -528,7 +528,8 @@ function AuthenticatedApp({
         )}
         
         {flashcardsDialogOpen && (
-        <FlashcardsDialog
+        <Suspense fallback={null}>
+<FlashcardsDialog
           open={flashcardsDialogOpen}
           onOpenChange={(val) => {
             setFlashcardsDialogOpen(val);
@@ -539,6 +540,7 @@ function AuthenticatedApp({
           activeCourseName={n.activeCourse?.name}
           autoAIGenerate={autoAIGenerateCards}
         />
+</Suspense>
         )}
 
         {sessionCompleteModalOpen && (
@@ -555,7 +557,8 @@ function AuthenticatedApp({
         )}
 
         {settingsOpen && (
-        <SettingsDialog
+        <Suspense fallback={null}>
+<SettingsDialog
           open={settingsOpen}
           onOpenChange={setSettingsOpen}
           realtimeStatus={n.realtimeStatus}
@@ -567,10 +570,12 @@ function AuthenticatedApp({
           focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
           dailyGoalHours={pomodoro.dailyGoalHours}
         />
+</Suspense>
         )}
 
         {examSimulatorOpen && (
-        <AiExamSimulatorDialog
+        <Suspense fallback={null}>
+<AiExamSimulatorDialog
           open={examSimulatorOpen}
           onOpenChange={setExamSimulatorOpen}
           notes={n.notes}
@@ -581,16 +586,19 @@ function AuthenticatedApp({
             setFlashcardsDialogOpen(true);
           }}
         />
+</Suspense>
         )}
 
         {notePolisherOpen && (
-        <AiNotePolisherDialog
+        <Suspense fallback={null}>
+<AiNotePolisherDialog
           open={notePolisherOpen}
           onOpenChange={setNotePolisherOpen}
           notes={n.notes}
           selectedNote={n.selected || n.notes[0] || null}
           onUpdateNote={n.updateNote}
         />
+</Suspense>
         )}
       </ThemeStage>
     );
@@ -1015,7 +1023,8 @@ function AuthenticatedApp({
         />
       </Suspense>
 
-      <FlashcardsDialog
+      <Suspense fallback={null}>
+<FlashcardsDialog
         open={flashcardsDialogOpen}
         onOpenChange={(val) => {
           setFlashcardsDialogOpen(val);
@@ -1026,6 +1035,7 @@ function AuthenticatedApp({
         activeCourseName={n.activeCourse?.name}
         autoAIGenerate={autoAIGenerateCards}
       />
+</Suspense>
 
       <Suspense fallback={null}>
         <PomodoroSessionCompleteDialog
@@ -1038,7 +1048,8 @@ function AuthenticatedApp({
         />
       </Suspense>
 
-      <SettingsDialog
+      <Suspense fallback={null}>
+<SettingsDialog
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
         realtimeStatus={n.realtimeStatus}
@@ -1050,10 +1061,12 @@ function AuthenticatedApp({
         focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
         dailyGoalHours={pomodoro.dailyGoalHours}
       />
+</Suspense>
 
       <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />
 
-      <AiExamSimulatorDialog
+      <Suspense fallback={null}>
+<AiExamSimulatorDialog
         open={examSimulatorOpen}
         onOpenChange={setExamSimulatorOpen}
         notes={n.notes}
@@ -1064,14 +1077,17 @@ function AuthenticatedApp({
           setFlashcardsDialogOpen(true);
         }}
       />
+</Suspense>
 
-      <AiNotePolisherDialog
+      <Suspense fallback={null}>
+<AiNotePolisherDialog
         open={notePolisherOpen}
         onOpenChange={setNotePolisherOpen}
         notes={n.notes}
         selectedNote={n.selected || n.visibleNotes[0] || null}
         onUpdateNote={n.updateNote}
       />
+</Suspense>
     </ThemeStage>
   );
 }

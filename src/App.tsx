@@ -435,54 +435,58 @@ function AuthenticatedApp({
           />
         )}
 
-        {/* Mobile Draft / Capture Sheet */}
-        <MobileQuickDraftSheet
-          open={mobileDraftOpen}
-          onOpenChange={setMobileDraftOpen}
-          collections={n.collections}
-          activeCourseId={n.activeCourseId}
-          onSaveNote={(title, body, colId) => {
-            const id = n.createNote(title, body, colId);
-            if (colId) n.setActiveCourseId(colId);
-            n.setSelectedId(id);
-            setView("workspace");
-            showNotification({
-              message: "Note Created",
-              description: `"${title || "Untitled"}" has been saved to your library.`,
-              type: "success",
-            });
-          }}
-        />
+{mobileDraftOpen && (
+                {/* Mobile Draft / Capture Sheet */}
+                <MobileQuickDraftSheet
+                  open={mobileDraftOpen}
+                  onOpenChange={setMobileDraftOpen}
+                  collections={n.collections}
+                  activeCourseId={n.activeCourseId}
+                  onSaveNote={(title, body, colId) => {
+                    const id = n.createNote(title, body, colId);
+                    if (colId) n.setActiveCourseId(colId);
+                    n.setSelectedId(id);
+                    setView("workspace");
+                    showNotification({
+                      message: "Note Created",
+                      description: `"${title || "Untitled"}" has been saved to your library.`,
+                      type: "success",
+                    });
+                  }}
+                />
+        )}
 
-        {/* Mobile More Options Sheet */}
-        <MobileMoreOptionsSheet
-          open={mobileToolsOpen}
-          onOpenChange={setMobileToolsOpen}
-          onOpenSettings={() => setSettingsOpen(true)}
-          onOpenNewCourse={() => {
-            const name = prompt("Course Name:");
-            if (name?.trim()) {
-              void n.addCourse(name.trim());
-            }
-          }}
-          onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-          onOpenFlashcards={() => {
-            setFlashcardTargetNote(null);
-            setFlashcardsDialogOpen(true);
-          }}
-          onOpenCheatsheet={() => setShowCheatsheet(true)}
-          pomodoroRunning={pomodoro.isRunning}
-          pomodoroTimeFormatted={pomodoroTimeFormatted}
-            pomodoroEndAt={pomodoro.timerEndAt}
-          onToggleFocus={() => {
-            if (!n.activeCourseId && n.courses[0]) {
-              n.setActiveCourseId(n.courses[0].id);
-            }
-            setView("workspace");
-            enterFocus();
-          }}
-          focusMode={focusMode}
-        />
+{mobileToolsOpen && (
+                {/* Mobile More Options Sheet */}
+                <MobileMoreOptionsSheet
+                  open={mobileToolsOpen}
+                  onOpenChange={setMobileToolsOpen}
+                  onOpenSettings={() => setSettingsOpen(true)}
+                  onOpenNewCourse={() => {
+                    const name = prompt("Course Name:");
+                    if (name?.trim()) {
+                      void n.addCourse(name.trim());
+                    }
+                  }}
+                  onOpenPomodoro={() => setPomodoroDialogOpen(true)}
+                  onOpenFlashcards={() => {
+                    setFlashcardTargetNote(null);
+                    setFlashcardsDialogOpen(true);
+                  }}
+                  onOpenCheatsheet={() => setShowCheatsheet(true)}
+                  pomodoroRunning={pomodoro.isRunning}
+                  pomodoroTimeFormatted={pomodoroTimeFormatted}
+                    pomodoroEndAt={pomodoro.timerEndAt}
+                  onToggleFocus={() => {
+                    if (!n.activeCourseId && n.courses[0]) {
+                      n.setActiveCourseId(n.courses[0].id);
+                    }
+                    setView("workspace");
+                    enterFocus();
+                  }}
+                  focusMode={focusMode}
+                />
+        )}
 
         {/* Unobtrusive Floating Pomodoro Pill */}
         <Suspense fallback={null}>
@@ -493,6 +497,7 @@ function AuthenticatedApp({
         </Suspense>
 
         {/* Study Tools Dialogs */}
+        {pomodoroDialogOpen && (
         <Suspense fallback={null}>
           <PomodoroDialog
             open={pomodoroDialogOpen}
@@ -500,7 +505,9 @@ function AuthenticatedApp({
             pomodoro={pomodoro}
           />
         </Suspense>
-
+        )}
+        
+        {flashcardsDialogOpen && (
         <FlashcardsDialog
           open={flashcardsDialogOpen}
           onOpenChange={(val) => {
@@ -512,7 +519,9 @@ function AuthenticatedApp({
           activeCourseName={n.activeCourse?.name}
           autoAIGenerate={autoAIGenerateCards}
         />
+        )}
 
+        {sessionCompleteModalOpen && (
         <Suspense fallback={null}>
           <PomodoroSessionCompleteDialog
             open={sessionCompleteModalOpen}
@@ -523,7 +532,9 @@ function AuthenticatedApp({
             onStartBreak={() => pomodoro.switchMode("shortBreak")}
           />
         </Suspense>
+        )}
 
+        {settingsOpen && (
         <SettingsDialog
           open={settingsOpen}
           onOpenChange={setSettingsOpen}
@@ -536,7 +547,9 @@ function AuthenticatedApp({
           focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
           dailyGoalHours={pomodoro.dailyGoalHours}
         />
+        )}
 
+        {examSimulatorOpen && (
         <AiExamSimulatorDialog
           open={examSimulatorOpen}
           onOpenChange={setExamSimulatorOpen}
@@ -548,7 +561,9 @@ function AuthenticatedApp({
             setFlashcardsDialogOpen(true);
           }}
         />
+        )}
 
+        {notePolisherOpen && (
         <AiNotePolisherDialog
           open={notePolisherOpen}
           onOpenChange={setNotePolisherOpen}
@@ -556,7 +571,12 @@ function AuthenticatedApp({
           selectedNote={n.selected || n.notes[0] || null}
           onUpdateNote={n.updateNote}
         />
+        )}
       </ThemeStage>
+    );
+  }
+
+  // Workspace view      </ThemeStage>
     );
   }
 

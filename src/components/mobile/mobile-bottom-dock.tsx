@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { FolderOpen, Layers, Target, Plus, MoreHorizontal, Sparkles, Settings, Flame, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
@@ -18,7 +19,7 @@ type Props = {
   onOpenSettings?: () => void;
 };
 
-export function MobileBottomDock({
+export const MobileBottomDock = memo(function MobileBottomDock({
   currentView,
   selectedNoteId,
   activeFilterKind,
@@ -165,4 +166,4 @@ export function MobileBottomDock({
       </nav>
     </div>
   );
-}
+});

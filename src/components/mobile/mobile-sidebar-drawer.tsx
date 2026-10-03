@@ -24,6 +24,7 @@ import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
+import { useLivePomodoroTime } from "@/hooks/use-live-pomodoro-time";
 
 interface MobileSidebarDrawerProps {
   open: boolean;
@@ -38,6 +39,7 @@ interface MobileSidebarDrawerProps {
   onOpenNotePolisher?: () => void;
   pomodoroRunning?: boolean;
   pomodoroTimeFormatted?: string;
+  pomodoroEndAt?: number | null;
   onToggleFocus?: () => void;
   focusMode?: boolean;
   todayFocusSeconds?: number;
@@ -62,6 +64,7 @@ export function MobileSidebarDrawer({
   onOpenNotePolisher,
   pomodoroRunning = false,
   pomodoroTimeFormatted = "25:00",
+  pomodoroEndAt = null,
   onToggleFocus,
   focusMode = false,
   todayFocusSeconds = 0,
@@ -69,6 +72,15 @@ export function MobileSidebarDrawer({
 }: MobileSidebarDrawerProps) {
   const { settings, update } = useCustomization();
   const { user, signOut } = useAuth();
+
+  const liveTimeLeft = useLivePomodoroTime(
+    pomodoroEndAt,
+    pomodoroRunning,
+    Number(pomodoroTimeFormatted.split(":")[0] || 0) * 60 + Number(pomodoroTimeFormatted.split(":")[1] || 0),
+  );
+  const liveMinutes = Math.floor(liveTimeLeft / 60);
+  const liveSeconds = liveTimeLeft % 60;
+  const liveTimeFormatted = `${String(liveMinutes).padStart(2, "0")}:${String(liveSeconds).padStart(2, "0")}`;
 
   const [mounted, setMounted] = useState(open);
   const [isDragging, setIsDragging] = useState(false);
@@ -559,7 +571,7 @@ export function MobileSidebarDrawer({
 
               <div className="flex items-center gap-1 shrink-0">
                 <span className="font-mono text-xs font-bold text-foreground bg-white/[0.06] border border-white/10 px-1.5 py-0.5 rounded-lg">
-                  {pomodoroTimeFormatted}
+                  {liveTimeFormatted}
                 </span>
                 <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-active:translate-x-1" />
               </div>

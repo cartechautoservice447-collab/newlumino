@@ -46,6 +46,8 @@ import {
 } from "@/lib/pomodoro-ai";
 import type { Course, Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useLivePomodoroTime } from "@/hooks/use-live-pomodoro-time";
 
 interface Props {
   open: boolean;
@@ -70,7 +72,7 @@ export function PomodoroDialog({
 }: Props) {
   const {
     mode,
-    timeLeft,
+    displayedTimeLeft,
     totalDuration,
     isRunning,
     soundscape,
@@ -92,6 +94,10 @@ export function PomodoroDialog({
     sessionHistory,
     totalTrackedSeconds,
   } = pomodoro;
+
+  const isMobile = useIsMobile();
+  const liveTimeLeft = useLivePomodoroTime(pomodoro.timerEndAt, isRunning, timeLeft);
+  const displayedTimeLeft = isMobile ? liveTimeLeft : displayedTimeLeft;
 
   // Active View Tab inside Pomodoro Dialog
   const [activeTab, setActiveTab] = useState<"timer" | "ai_planner" | "analytics">("timer");
@@ -142,12 +148,12 @@ export function PomodoroDialog({
   };
 
 
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
+  const minutes = Math.floor(displayedTimeLeft / 60);
+  const seconds = displayedTimeLeft % 60;
   const timeFormatted = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
   // SVG circular progress calculation
-  const progressPercent = Math.max(0, Math.min(100, (1 - timeLeft / totalDuration) * 100));
+  const progressPercent = Math.max(0, Math.min(100, (1 - displayedTimeLeft / totalDuration) * 100));
   const radius = 80;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
@@ -282,12 +288,12 @@ export function PomodoroDialog({
                         cx="130" cy="130" r="112" fill="none" filter="url(#newLuminoPomodoroGlow)"
                         stroke={isRunning ? "url(#newLuminoTimerGradient)" : "url(#newLuminoPausedGradient)"}
                         strokeDasharray="703.7"
-                        strokeDashoffset={Math.max(0, 703.7 * (1 - Math.min(1, totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0)))}
+                        strokeDashoffset={Math.max(0, 703.7 * (1 - Math.min(1, totalDuration > 0 ? (totalDuration - displayedTimeLeft) / totalDuration : 0)))}
                         strokeLinecap="round" strokeWidth="12"
                         style={{ transition: "stroke-dashoffset 0.85s cubic-bezier(0.4,0,0.2,1)", animation: isRunning ? "ringBreathing 3s ease-in-out infinite" : "pausedPulse 2.5s ease-in-out infinite" }}
                       />
                       <g
-                        transform={`rotate(${Math.round((totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0) * 360)} 130 130)`}
+                        transform={`rotate(${Math.round((totalDuration > 0 ? (totalDuration - displayedTimeLeft) / totalDuration : 0) * 360)} 130 130)`}
                         style={{ transition: "transform .85s cubic-bezier(.4,0,.2,1)", transformOrigin: "130px 130px" }}
                       >
                         <circle cx="242" cy="130" r="5" fill="#ffffff" stroke={isRunning ? "#4cd7f6" : "#fbbf24"} strokeWidth="2.5" style={{ animation: isRunning ? "headGlowPulse 2s ease-in-out infinite" : undefined }} />
@@ -298,7 +304,7 @@ export function PomodoroDialog({
                     <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
                       <div className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-white/[0.08] px-2.5 py-0.5 backdrop-blur-md">
                         <Clock className={cn("h-[13px] w-[13px]", isRunning ? "text-emerald-300" : "text-amber-300")} />
-                        <span className="text-[11px] font-medium text-slate-400">{Math.max(0, Math.floor((totalDuration - timeLeft) / 60))}m elapsed • {Math.round(totalDuration / 60)}m block</span>
+                        <span className="text-[11px] font-medium text-slate-400">{Math.max(0, Math.floor((totalDuration - displayedTimeLeft) / 60))}m elapsed • {Math.round(totalDuration / 60)}m block</span>
                       </div>
                       <div className="font-mono text-[48px] font-extrabold leading-none tracking-tighter text-white drop-shadow-[0_0_20px_rgba(78,222,163,.35)] sm:text-[54px]">{timeFormatted}</div>
                       <span className="mt-1 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">{isRunning ? "Remaining Target" : "Paused"}</span>

@@ -580,7 +580,7 @@ function AuthenticatedApp({
   );
 
   return (
-    <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] flex flex-col", isFluidGlass && !isMobile && "p-[10px]")}>
+    <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] flex flex-col", isMobile && view === "daily-goal" && "mobile-daily-goal-stage", isFluidGlass && !isMobile && "p-[10px]")}>
       <NotificationBanner />
 
       {/* Daily Goal View */}

@@ -356,7 +356,8 @@ function AuthenticatedApp({
             onOpenExamSimulator={() => setExamSimulatorOpen(true)}
             onOpenNotePolisher={() => setNotePolisherOpen(true)}
             pomodoroRunning={pomodoro.isRunning}
-            pomodoroTimeFormatted={pomodoroTimeFormatted}\n            pomodoroEndAt={pomodoro.timerEndAt}
+            pomodoroTimeFormatted={pomodoroTimeFormatted}
+            pomodoroEndAt={pomodoro.timerEndAt}
             onToggleFocus={() => {
               if (!n.activeCourseId && n.courses[0]) {
                 n.setActiveCourseId(n.courses[0].id);
@@ -450,7 +451,8 @@ function AuthenticatedApp({
           }}
           onOpenCheatsheet={() => setShowCheatsheet(true)}
           pomodoroRunning={pomodoro.isRunning}
-          pomodoroTimeFormatted={pomodoroTimeFormatted}\n            pomodoroEndAt={pomodoro.timerEndAt}
+          pomodoroTimeFormatted={pomodoroTimeFormatted}
+            pomodoroEndAt={pomodoro.timerEndAt}
           onToggleFocus={() => {
             if (!n.activeCourseId && n.courses[0]) {
               n.setActiveCourseId(n.courses[0].id);
@@ -703,6 +705,7 @@ function AuthenticatedApp({
               onNavigateDailyGoal={navigateToDailyGoal}
               pomodoroRunning={pomodoro.isRunning}
               pomodoroTimeFormatted={pomodoroTimeFormatted}
+              pomodoroEndAt={pomodoro.timerEndAt}
               onToggleFocus={focusMode ? exitFocus : enterFocus}
               focusMode={focusMode}
               todayFocusSeconds={pomodoro.todayFocusSeconds}
@@ -910,6 +913,7 @@ function AuthenticatedApp({
         onOpenNotePolisher={() => setNotePolisherOpen(true)}
         pomodoroRunning={pomodoro.isRunning}
         pomodoroTimeFormatted={pomodoroTimeFormatted}
+        pomodoroEndAt={pomodoro.timerEndAt}
         todayFocusSeconds={pomodoro.todayFocusSeconds}
         dailyGoalHours={pomodoro.dailyGoalHours}
         onToggleFocus={enterFocus}

@@ -87,6 +87,83 @@ type Props = {
   dailyGoalHours?: number;
 };
 
+const MobileCourseCard = memo(function MobileCourseCard({
+  course,
+  noteCount,
+  lastUpdated,
+  onOpen,
+  onDelete,
+}: {
+  course: Course;
+  noteCount: number;
+  lastUpdated: number;
+  onOpen: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const style = ACCENT_STYLES[course.color] ?? ACCENT_STYLES.sky;
+
+  return (
+    <article
+      onClick={() => {
+        haptic("light");
+        onOpen(course.id);
+      }}
+      className="mobile-dashboard-course-card glass-panel group relative flex w-full cursor-pointer select-none flex-col justify-between overflow-hidden rounded-[1.75rem] border border-white/12 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4.5 text-left shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_12px_36px_0_rgba(0,0,0,0.4)] transition-transform duration-150 active:scale-[0.975]"
+    >
+      <button
+        type="button"
+        aria-label={"Delete " + course.name}
+        onClick={(event) => {
+          event.stopPropagation();
+          onDelete(course.id);
+        }}
+        className="absolute right-3.5 top-3.5 z-10 rounded-xl border border-white/10 bg-black/40 p-2 text-muted-foreground backdrop-blur-md active:scale-90 transition-transform duration-150"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+
+      <div>
+        <div className="flex items-start justify-between gap-3 pr-8">
+          <span className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border shadow-md", style.border, style.bg, style.text, style.glow)}>
+            <FolderOpen className="h-5 w-5" />
+          </span>
+          <span className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-0.5 text-xs font-mono font-medium tabular-nums text-muted-foreground">
+            {noteCount} {noteCount === 1 ? "note" : "notes"}
+          </span>
+        </div>
+
+        <h3 className="mt-3 truncate text-[1.05rem] font-bold tracking-tight text-foreground">{course.name}</h3>
+        {course.description ? (
+          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground/80">{course.description}</p>
+        ) : (
+          <p className="mt-1 text-xs italic text-muted-foreground/40">No description provided</p>
+        )}
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className={cn("inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[0.68rem] font-semibold uppercase tracking-[0.16em]", style.border, style.bg, style.text)}>
+            <span className={cn("h-1.5 w-1.5 rounded-full", style.dot)} />
+            {course.color}
+          </span>
+          {course.category && course.category !== course.description?.slice(0, 30) && (
+            <span className="inline-block rounded-lg border border-white/5 bg-white/[0.05] px-2.5 py-0.5 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
+              {course.category}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
+        <span className="text-xs text-muted-foreground/70">
+          {lastUpdated ? "Edited " + formatDate(lastUpdated) : "No notes yet"}
+        </span>
+        <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
+          Open Workspace <ArrowRight className="h-3.5 w-3.5" />
+        </span>
+      </div>
+    </article>
+  );
+});
+
 const getGreeting = (name: string) => {
   const hour = new Date().getHours();
 
@@ -204,6 +281,11 @@ export const MobileCourseDashboard = memo(function MobileCourseDashboard({
     setCategory("");
     setAdding(false);
   };
+
+  const requestDeleteCourse = useCallback((id: string) => {
+    const target = courses.find((course) => course.id === id);
+    if (target) setDeletingCourse(target);
+  }, [courses]);
 
   const confirmDelete = () => {
     if (!deletingCourse) return;
@@ -411,62 +493,15 @@ export const MobileCourseDashboard = memo(function MobileCourseDashboard({
           <div className="mt-5 flex w-full flex-col gap-3.5">
             {filteredCourses.map((course) => {
               const stats = courseStats.get(course.id);
-              const noteCount = stats?.count ?? 0;
-              const last = stats?.lastUpdated ?? course.updatedAt ?? course.createdAt;
-              const style = ACCENT_STYLES[course.color] ?? ACCENT_STYLES.sky;
-
               return (
-                <article
+                <MobileCourseCard
                   key={course.id}
-                  onClick={() => { haptic("light"); onOpenCourse(course.id); }}
-                  className="glass-panel group relative flex w-full cursor-pointer select-none flex-col justify-between overflow-hidden rounded-[1.75rem] border border-white/12 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4.5 text-left shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_12px_36px_0_rgba(0,0,0,0.4)] transition-transform duration-150 active:scale-[0.975]"
-                >
-                  <button
-                    type="button"
-                    aria-label={"Delete " + course.name}
-                    onClick={(event) => { event.stopPropagation(); setDeletingCourse(course); }}
-                    className="absolute right-3.5 top-3.5 z-10 rounded-xl border border-white/10 bg-black/40 p-2 text-muted-foreground backdrop-blur-md active:scale-90 transition-transform duration-150"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-
-                  <div>
-                    <div className="flex items-start justify-between gap-3 pr-8">
-                      <span className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border shadow-md", style.border, style.bg, style.text, style.glow)}>
-                        <FolderOpen className="h-5 w-5" />
-                      </span>
-                      <span className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-0.5 text-xs font-mono font-medium tabular-nums text-muted-foreground">
-                        {noteCount} {noteCount === 1 ? "note" : "notes"}
-                      </span>
-                    </div>
-
-                    <h3 className="mt-3 truncate text-[1.05rem] font-bold tracking-tight text-foreground">{course.name}</h3>
-                    {course.description ? (
-                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground/80">{course.description}</p>
-                    ) : (
-                      <p className="mt-1 text-xs italic text-muted-foreground/40">No description provided</p>
-                    )}
-
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className={cn("inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[0.68rem] font-semibold uppercase tracking-[0.16em]", style.border, style.bg, style.text)}>
-                        <span className={cn("h-1.5 w-1.5 rounded-full", style.dot)} />
-                        {course.color}
-                      </span>
-                      {course.category && course.category !== course.description?.slice(0, 30) && (
-                        <span className="inline-block rounded-lg border border-white/5 bg-white/[0.05] px-2.5 py-0.5 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
-                          {course.category}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
-                    <span className="text-xs text-muted-foreground/70">{last ? "Edited " + formatDate(last) : "No notes yet"}</span>
-                    <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
-                      Open Workspace <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
-                  </div>
-                </article>
+                  course={course}
+                  noteCount={stats?.count ?? 0}
+                  lastUpdated={stats?.lastUpdated ?? course.updatedAt ?? course.createdAt}
+                  onOpen={onOpenCourse}
+                  onDelete={requestDeleteCourse}
+                />
               );
             })}
           </div>

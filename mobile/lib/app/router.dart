@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../shared/glass/glass_background.dart';
+
 class NewLuminoRouter {
   static const home = '/';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case home:
-      default:
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (_) => const _FoundationScreen(),
-        );
-    }
+    return MaterialPageRoute(
+      settings: settings,
+      builder: (_) => const _FoundationScreen(),
+    );
   }
 }
 
@@ -21,12 +19,16 @@ class _FoundationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(
-        child: Text(
-          'NewLumino',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w600,
+      backgroundColor: Colors.transparent,
+      body: NewLuminoBackground(
+        child: Center(
+          child: Text(
+            'NewLumino',
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
         ),
       ),

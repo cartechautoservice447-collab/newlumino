@@ -130,6 +130,7 @@ export function SidebarPanel({
   todayFocusSeconds = 0,
   dailyGoalHours = 2,
 }: Props) {
+  const { user, signOut } = useAuth();
   const { settings } = useCustomization();
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
   const isMobile = useIsMobile();

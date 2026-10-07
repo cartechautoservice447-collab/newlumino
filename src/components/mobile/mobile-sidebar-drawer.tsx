@@ -141,8 +141,14 @@ export function MobileSidebarDrawer({
       const deltaX = touch.clientX - touchStartX.current; // positive = moving RIGHT
       const deltaY = Math.abs(touch.clientY - touchStartY.current);
 
+      // If user is scrolling vertically, cancel drawer gesture tracking immediately to allow seamless vertical scroll
+      if (deltaY > 8 && deltaY >= Math.abs(deltaX)) {
+        trackingGesture = false;
+        return;
+      }
+
       // Only engage if clear rightward horizontal swipe
-      if (deltaX > 15 && deltaX > deltaY * 1.4) {
+      if (deltaX > 20 && deltaX > deltaY * 1.5) {
         currentDragMode.current = "left-to-right-open";
         setIsDragging(true);
         setMounted(true);

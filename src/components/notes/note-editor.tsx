@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import {
   Bold,
   Code,
@@ -51,7 +51,7 @@ const actions: { label: string; icon: React.ReactNode; wrap: Wrap }[] = [
   { label: "Link", icon: <Link2 className="h-3.5 w-3.5" />, wrap: { before: "[", after: "](https://)", placeholder: "label" } },
 ];
 
-export function NoteEditor({
+function NoteEditorComponent({
   note,
   collections,
   onChange,
@@ -430,7 +430,7 @@ export function NoteEditor({
       {/* Main Body Canvas - Expansive, Edge-to-Edge & High Room */}
       <div
         key={`${note.id}-${mode}`}
-        className="animate-fade-swap scroll-sleek min-h-0 flex-1 overflow-y-auto bg-code-bg/75 p-3 sm:p-6 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-6"
+        className="animate-fade-swap min-h-0 flex-1 vertical-scroll-only overscroll-contain bg-code-bg/75 p-3 sm:p-6 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-6"
       >
         {mode === "write" ? (
           <textarea
@@ -457,3 +457,5 @@ export function NoteEditor({
     </section>
   );
 }
+
+export const NoteEditor = memo(NoteEditorComponent);

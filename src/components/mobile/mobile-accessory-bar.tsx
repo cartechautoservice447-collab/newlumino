@@ -61,7 +61,10 @@ export function MobileAccessoryBar({
         </div>
       ) : (
         <div className="glass-panel flex items-center justify-between gap-1 rounded-2xl border border-white/15 bg-black/80 p-1.5 shadow-2xl backdrop-blur-3xl">
-          <div className="flex items-center gap-1.5 overflow-x-auto scroll-sleek px-1 py-0.5">
+          <div
+            className="flex items-center gap-1.5 overflow-x-auto scroll-sleek px-1 py-0.5 overscroll-x-contain"
+            style={{ touchAction: "pan-x pan-y", overscrollBehaviorX: "contain" }}
+          >
             {/* H1 */}
             <button
               type="button"

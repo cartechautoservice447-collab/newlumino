@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Star, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate, snippet, type Note } from "@/lib/notes";
@@ -29,7 +30,7 @@ function oldRelativeDate(timestamp: number) {
   return new Date(timestamp).toLocaleDateString();
 }
 
-export function NoteCard({
+function NoteCardComponent({
   note,
   active,
   index,
@@ -86,7 +87,6 @@ export function NoteCard({
           <span
             aria-hidden
             className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] border border-white/35 mix-blend-screen opacity-25"
-            style={{ filter: "url(#liquid-refraction)" }}
           />
           <span aria-hidden className="liquid-veil pointer-events-none absolute inset-0 -z-10 rounded-[inherit]" />
         </>
@@ -163,3 +163,15 @@ export function NoteCard({
     </div>
   );
 }
+
+export const NoteCard = memo(NoteCardComponent, (prev, next) => {
+  return (
+    prev.note.id === next.note.id &&
+    prev.note.title === next.note.title &&
+    prev.note.body === next.note.body &&
+    prev.note.favorite === next.note.favorite &&
+    prev.note.updatedAt === next.note.updatedAt &&
+    prev.active === next.active &&
+    prev.collectionName === next.collectionName
+  );
+});

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, useRef } from "react";
+import { lazy, Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { PanelLeftOpen, PanelRightOpen, Minimize2 } from "lucide-react";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { AuthModal } from "@/components/auth/auth-modal";
@@ -34,7 +34,7 @@ import { AiExamSimulatorDialog } from "@/components/tools/ai-exam-simulator-dial
 import { AiNotePolisherDialog } from "@/components/tools/ai-note-polisher-dialog";
 import { NotificationBanner } from "@/components/ui/notification-banner";
 import { ZenFocusBar } from "@/components/zen/zen-focus-bar";
-import type { Note } from "@/lib/notes";
+import type { Note, CourseAccent } from "@/lib/notes";
 
 export default function App() {
   return (
@@ -189,7 +189,7 @@ function AuthenticatedApp({
     setListOpen(true);
   };
 
-  const openCourse = (id: string) => {
+  const openCourse = useCallback((id: string) => {
     n.setActiveCourseId(id);
     n.setFilter({ kind: "all" });
     n.setSelectedId(null);
@@ -197,25 +197,83 @@ function AuthenticatedApp({
     setView("workspace");
     setSidebarOpen(!isMobile && isFluidGlass);
     setListOpen(true);
-  };
+  }, [n.setActiveCourseId, n.setFilter, n.setSelectedId, n.setQuery, isMobile, isFluidGlass]);
 
-  const backToCourses = () => {
+  const backToCourses = useCallback(() => {
     n.setActiveCourseId(null);
     n.setFilter({ kind: "all" });
     n.setSelectedId(null);
     setSidebarOpen(false);
     setView("dashboard");
-  };
+  }, [n.setActiveCourseId, n.setFilter, n.setSelectedId]);
 
-  const navigateToDailyGoal = () => {
+  const navigateToDailyGoal = useCallback(() => {
     setView("daily-goal");
     setSidebarOpen(false);
-  };
+  }, []);
 
-  const handleMobileOpenNoteSheet = (note: Note) => {
+  const handleMobileOpenNoteSheet = useCallback((note: Note) => {
     setSelectedMobileNote(note);
     setMobileNoteSheetOpen(true);
-  };
+  }, []);
+
+  const handleAddCourse = useCallback(async (name: string, description?: string, color?: CourseAccent, category?: string) => {
+    const id = await n.addCourse(name, description, color, category);
+    if (id) {
+      showNotification({
+        message: "Course Created",
+        description: `"${name}" is ready for notes.`,
+        type: "success",
+      });
+    }
+  }, [n.addCourse, showNotification]);
+
+  const handleDeleteCourse = useCallback((id: string) => {
+    const course = n.courses.find(c => c.id === id);
+    void n.deleteCourse(id);
+    showNotification({
+      message: "Course Removed",
+      description: course ? `"${course.name}" and its notes were deleted.` : "Course has been removed.",
+      type: "info",
+    });
+  }, [n.courses, n.deleteCourse, showNotification]);
+
+  const handleOpenNote = useCallback((noteId: string, courseId?: string) => {
+    if (courseId) {
+      n.setActiveCourseId(courseId);
+    }
+    n.setSelectedId(noteId);
+    setView("workspace");
+  }, [n.setActiveCourseId, n.setSelectedId]);
+
+  const handleOpenAllNotes = useCallback(() => {
+    if (!n.activeCourseId && n.courses[0]) {
+      n.setActiveCourseId(n.courses[0].id);
+    }
+    n.setFilter({ kind: "all" });
+    n.setSelectedId(null);
+    setView("workspace");
+  }, [n.activeCourseId, n.courses, n.setFilter, n.setSelectedId]);
+
+  const handleOpenFavorites = useCallback(() => {
+    if (!n.activeCourseId && n.courses[0]) {
+      n.setActiveCourseId(n.courses[0].id);
+    }
+    n.setFilter({ kind: "favorites" });
+    n.setSelectedId(null);
+    setView("workspace");
+  }, [n.activeCourseId, n.courses, n.setFilter, n.setSelectedId]);
+
+  const handleStartFocus = useCallback(() => {
+    if (!n.activeCourseId && n.courses[0]) {
+      n.setActiveCourseId(n.courses[0].id);
+    }
+    setView("workspace");
+    enterFocus();
+    if (!pomodoro.isRunning) {
+      pomodoro.togglePlay();
+    }
+  }, [n.activeCourseId, n.courses, enterFocus, pomodoro.isRunning, pomodoro.togglePlay]);
 
   // Quick insertion handler for mobile markdown accessory bar
   const handleMobileInsertMarkdown = (before: string, after: string, placeholder = "text") => {
@@ -235,7 +293,7 @@ function AuthenticatedApp({
   // Dashboard view
   if (view === "dashboard") {
     return (
-      <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && !isMobile && "p-[10px]")}>
+      <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full max-w-full overflow-hidden overflow-x-hidden", isFluidGlass && !isMobile && "p-[10px]")}>
         {settings.dashboardDesign === "spatial-aurora-bento" ? (
           <SpatialAuroraDashboard
             courses={n.courses}
@@ -243,29 +301,10 @@ function AuthenticatedApp({
             onOpenCourse={openCourse}
             onOpenMenu={() => setSidebarOpen(true)}
             onQuickNewNote={() => setMobileDraftOpen(true)}
-            onOpenNote={(noteId, courseId) => {
-              if (courseId) n.setActiveCourseId(courseId);
-              n.setSelectedId(noteId);
-              setView("workspace");
-            }}
-            onOpenAllNotes={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
-              n.setFilter({ kind: "all" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onOpenFavorites={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
-              n.setFilter({ kind: "favorites" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onStartFocus={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
-              setView("workspace");
-              enterFocus();
-              if (!pomodoro.isRunning) pomodoro.togglePlay();
-            }}
+            onOpenNote={handleOpenNote}
+            onOpenAllNotes={handleOpenAllNotes}
+            onOpenFavorites={handleOpenFavorites}
+            onStartFocus={handleStartFocus}
             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
             onNavigateDailyGoal={navigateToDailyGoal}
@@ -275,61 +314,15 @@ function AuthenticatedApp({
             courses={n.courses}
             notes={n.notes}
             onOpenCourse={openCourse}
-            onAddCourse={async (name, description, color, category) => {
-              const id = await n.addCourse(name, description, color, category);
-              if (id) {
-                showNotification({
-                  message: "Course Created",
-                  description: `"${name}" is ready for notes.`,
-                  type: "success",
-                });
-              }
-            }}
-            onDeleteCourse={(id) => {
-              const course = n.courses.find(c => c.id === id);
-              void n.deleteCourse(id);
-              showNotification({
-                message: "Course Removed",
-                description: course ? `"${course.name}" and its notes were deleted.` : "Course has been removed.",
-                type: "info",
-              });
-            }}
+            onAddCourse={handleAddCourse}
+            onDeleteCourse={handleDeleteCourse}
             onOpenSettings={() => setSettingsOpen(true)}
             onOpenMenu={() => setSidebarOpen(true)}
             onQuickNewNote={() => setMobileDraftOpen(true)}
-            onOpenNote={(noteId, courseId) => {
-              if (courseId) {
-                n.setActiveCourseId(courseId);
-              }
-              n.setSelectedId(noteId);
-              setView("workspace");
-            }}
-            onOpenAllNotes={() => {
-              if (!n.activeCourseId && n.courses[0]) {
-                n.setActiveCourseId(n.courses[0].id);
-              }
-              n.setFilter({ kind: "all" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onOpenFavorites={() => {
-              if (!n.activeCourseId && n.courses[0]) {
-                n.setActiveCourseId(n.courses[0].id);
-              }
-              n.setFilter({ kind: "favorites" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onStartFocus={() => {
-              if (!n.activeCourseId && n.courses[0]) {
-                n.setActiveCourseId(n.courses[0].id);
-              }
-              setView("workspace");
-              enterFocus();
-              if (!pomodoro.isRunning) {
-                pomodoro.togglePlay();
-              }
-            }}
+            onOpenNote={handleOpenNote}
+            onOpenAllNotes={handleOpenAllNotes}
+            onOpenFavorites={handleOpenFavorites}
+            onStartFocus={handleStartFocus}
             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
             realtimeStatus={n.realtimeStatus}
@@ -580,7 +573,7 @@ function AuthenticatedApp({
   );
 
   return (
-    <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] flex flex-col", isFluidGlass && !isMobile && "p-[10px]")}>
+    <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full max-w-full overflow-hidden overflow-x-hidden flex flex-col", isFluidGlass && !isMobile && "p-[10px]")}>
       <NotificationBanner />
 
       {/* Daily Goal View */}
@@ -679,12 +672,12 @@ function AuthenticatedApp({
       {/* Main Responsive Grid */}
       {view === "workspace" && (
         <div className={cn(
-          "relative mx-auto flex-1 min-h-0 w-full max-w-[1700px] flex gap-4 transition-all",
+          "relative mx-auto flex-1 min-h-0 w-full max-w-[1700px] flex gap-4 transition-all overflow-x-hidden",
           isMobile && n.selectedId
             ? "h-full p-1.5 sm:p-4 pb-0 md:pb-4"
             : isMobile
               ? "h-full p-2 sm:p-4 md:pb-4"
-              : "h-screen p-2 sm:p-4 pb-4 md:pb-4"
+              : "h-full p-2 sm:p-4 pb-4 md:pb-4"
         )}>
         {/* Mobile Slide-in Drawer: NewLumino mobile workspace only. Fluid Glass keeps the original three-panel layout. */}
           {isMobile ? (

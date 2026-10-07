@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type Collection,
   type Course,
@@ -37,6 +37,19 @@ export function useNotes(userId?: string | null) {
   const [activeCourseId, setActiveCourseId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [realtimeStatus, setRealtimeStatus] = useState<"connected" | "connecting" | "offline">("offline");
+  const remoteSaveTimerRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  const queueRemoteNoteSave = useCallback((note: Note, uid: string) => {
+    const existing = remoteSaveTimerRef.current.get(note.id);
+    if (existing) clearTimeout(existing);
+
+    const timer = setTimeout(() => {
+      void saveRemoteNote(note, uid);
+      remoteSaveTimerRef.current.delete(note.id);
+    }, 450);
+
+    remoteSaveTimerRef.current.set(note.id, timer);
+  }, []);
 
   // Initial load: local storage first
   useEffect(() => {
@@ -367,8 +380,8 @@ export function useNotes(userId?: string | null) {
 
   const updateNote = useCallback(
     (id: string, patch: Partial<Note>) => {
+      let updatedNote: Note | null = null;
       setState((s) => {
-        let updatedNote: Note | null = null;
         const newNotes = s.notes.map((n) => {
           if (n.id === id) {
             updatedNote = { ...n, ...patch, updatedAt: Date.now() };
@@ -376,15 +389,14 @@ export function useNotes(userId?: string | null) {
           }
           return n;
         });
-
-        if (userId && updatedNote) {
-          void saveRemoteNote(updatedNote, userId);
-        }
-
         return { ...s, notes: newNotes };
       });
+
+      if (userId && updatedNote) {
+        queueRemoteNoteSave(updatedNote, userId);
+      }
     },
-    [userId],
+    [userId, queueRemoteNoteSave],
   );
 
   const deleteNote = useCallback(

@@ -320,33 +320,38 @@ export function FlashcardsDialog({
         onOpenChange(val);
       }}
     >
-      <DialogContent className="glass-panel max-h-[92vh] overflow-y-auto rounded-3xl border border-white/15 bg-black/90 p-4 sm:p-6 shadow-2xl backdrop-blur-3xl scroll-sleek sm:max-w-[560px]">
-        {/* Header */}
-        <DialogHeader className="text-left space-y-1">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-500/20 text-purple-300 shadow-[0_0_12px_-2px_rgba(168,85,247,0.6)]">
-                <Brain className="h-4 w-4" />
-              </span>
-              <div>
-                <DialogTitle className="text-lg font-bold tracking-tight text-foreground">
-                  Smart Flashcards
-                </DialogTitle>
-                <p className="text-[0.68rem] text-muted-foreground">
-                  FSRS Spaced Repetition • Note-Grounded Accuracy
-                </p>
-              </div>
+      <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 border-0 bg-slate-950/98 text-foreground backdrop-blur-3xl flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0">
+        {/* Pinned Top Navigation Bar */}
+        <div className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-white/10 bg-white/[0.02] backdrop-blur-md shrink-0">
+          <div className="flex items-center gap-3 pr-10">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-500/20 text-purple-300 shadow-[0_0_15px_-2px_rgba(168,85,247,0.6)] shrink-0">
+              <Brain className="h-5 w-5" />
+            </span>
+            <div>
+              <DialogTitle className="text-base sm:text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+                <span>Smart Flashcards &amp; Active Recall</span>
+                <span className="rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-[0.62rem] font-semibold text-purple-300 uppercase tracking-wider">
+                  FSRS Spaced Repetition
+                </span>
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground hidden sm:block mt-0.5">
+                Multi-archetype recall drills grounded directly in your notes and course topics.
+              </p>
             </div>
+          </div>
 
+          <div className="flex items-center gap-3 mr-10 sm:mr-12">
             {deck.length > 0 && !completed && (
-              <span className="font-mono text-xs font-bold text-muted-foreground bg-white/[0.06] border border-white/10 px-2 py-0.5 rounded-lg">
+              <span className="font-mono text-xs font-bold text-muted-foreground bg-white/[0.06] border border-white/10 px-3 py-1 rounded-xl">
                 {currentIndex + 1} / {deck.length}
               </span>
             )}
           </div>
-        </DialogHeader>
+        </div>
 
-        {/* Source Scope Bar */}
+        {/* Scrollable Workstation Body */}
+        <div className="flex-1 overflow-y-auto scroll-sleek p-4 sm:p-6 lg:p-8 space-y-6 max-w-3xl mx-auto w-full flex flex-col justify-start">
+          {/* Source Scope Bar */}
         <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-0.5 scroll-sleek">
           {selectedNote && (
             <button
@@ -810,6 +815,7 @@ export function FlashcardsDialog({
             </div>
           </div>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );

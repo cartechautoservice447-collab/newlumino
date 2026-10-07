@@ -32,6 +32,7 @@ import { DailyGoalView } from "@/components/tools/daily-goal-view";
 import { MarkdownCheatsheet } from "@/components/tools/markdown-cheatsheet";
 import { AiExamSimulatorDialog } from "@/components/tools/ai-exam-simulator-dialog";
 import { AiNotePolisherDialog } from "@/components/tools/ai-note-polisher-dialog";
+import { AiCollectionExamDialog } from "@/components/tools/ai-collection-exam-dialog";
 import { NotificationBanner } from "@/components/ui/notification-banner";
 import type { Note } from "@/lib/notes";
 
@@ -104,6 +105,7 @@ function AuthenticatedApp({
   const [autoAIGenerateCards, setAutoAIGenerateCards] = useState(false);
   const [examSimulatorOpen, setExamSimulatorOpen] = useState(false);
   const [notePolisherOpen, setNotePolisherOpen] = useState(false);
+  const [collectionExamOpen, setCollectionExamOpen] = useState(false);
 
   // Listen for Pomodoro focus session completion
   useEffect(() => {
@@ -331,6 +333,7 @@ function AuthenticatedApp({
             }}
             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
+            onOpenCollectionExam={() => setCollectionExamOpen(true)}
             realtimeStatus={n.realtimeStatus}
             isSyncing={n.isSyncing}
             onRefresh={() => void n.refreshFromCloud()}
@@ -354,6 +357,7 @@ function AuthenticatedApp({
             onNavigateDailyGoal={navigateToDailyGoal}
             onOpenExamSimulator={() => setExamSimulatorOpen(true)}
             onOpenNotePolisher={() => setNotePolisherOpen(true)}
+            onOpenCollectionExam={() => setCollectionExamOpen(true)}
             pomodoroRunning={pomodoro.isRunning}
             pomodoroTimeFormatted={pomodoroTimeFormatted}
             onToggleFocus={() => {
@@ -523,6 +527,12 @@ function AuthenticatedApp({
             setFlashcardTargetNote(note);
             setFlashcardsDialogOpen(true);
           }}
+          onCreateNote={(title, body) => n.createNote(title, body, null)}
+          onOpenNotePolisher={(note) => {
+            n.setSelectedId(note.id);
+            setNotePolisherOpen(true);
+          }}
+          onOpenCollectionExam={() => setCollectionExamOpen(true)}
         />
 
         <AiNotePolisherDialog
@@ -531,6 +541,24 @@ function AuthenticatedApp({
           notes={n.notes}
           selectedNote={n.selected || n.notes[0] || null}
           onUpdateNote={n.updateNote}
+          onLaunchExam={(note) => {
+            n.setSelectedId(note.id);
+            setExamSimulatorOpen(true);
+          }}
+        />
+
+        <AiCollectionExamDialog
+          open={collectionExamOpen}
+          onOpenChange={setCollectionExamOpen}
+          collections={n.collections}
+          notes={n.notes}
+          initialCollectionId={n.selected?.collectionId || null}
+          activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
+          onCreateNote={(title, body, colId) => n.createNote(title, body, colId)}
+          onOpenNotePolisher={(note) => {
+            n.setSelectedId(note.id);
+            setNotePolisherOpen(true);
+          }}
         />
       </ThemeStage>
     );
@@ -556,6 +584,7 @@ function AuthenticatedApp({
         setFlashcardsDialogOpen(true);
       }}
       onNavigateDailyGoal={navigateToDailyGoal}
+      onOpenCollectionExam={() => setCollectionExamOpen(true)}
       onToggleFocus={focusMode ? exitFocus : enterFocus}
       onOpenCheatsheet={() => setShowCheatsheet(true)}
       focusMode={focusMode}
@@ -860,6 +889,7 @@ function AuthenticatedApp({
         onNavigateDailyGoal={navigateToDailyGoal}
         onOpenExamSimulator={() => setExamSimulatorOpen(true)}
         onOpenNotePolisher={() => setNotePolisherOpen(true)}
+        onOpenCollectionExam={() => setCollectionExamOpen(true)}
         pomodoroRunning={pomodoro.isRunning}
         pomodoroTimeFormatted={pomodoroTimeFormatted}
         todayFocusSeconds={pomodoro.todayFocusSeconds}
@@ -954,6 +984,12 @@ function AuthenticatedApp({
           setFlashcardTargetNote(note);
           setFlashcardsDialogOpen(true);
         }}
+        onCreateNote={(title, body) => n.createNote(title, body, null)}
+        onOpenNotePolisher={(note) => {
+          n.setSelectedId(note.id);
+          setNotePolisherOpen(true);
+        }}
+        onOpenCollectionExam={() => setCollectionExamOpen(true)}
       />
 
       <AiNotePolisherDialog
@@ -962,6 +998,24 @@ function AuthenticatedApp({
         notes={n.notes}
         selectedNote={n.selected || n.visibleNotes[0] || null}
         onUpdateNote={n.updateNote}
+        onLaunchExam={(note) => {
+          n.setSelectedId(note.id);
+          setExamSimulatorOpen(true);
+        }}
+      />
+
+      <AiCollectionExamDialog
+        open={collectionExamOpen}
+        onOpenChange={setCollectionExamOpen}
+        collections={n.collections}
+        notes={n.notes}
+        initialCollectionId={n.selected?.collectionId || null}
+        activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
+        onCreateNote={(title, body, colId) => n.createNote(title, body, colId)}
+        onOpenNotePolisher={(note) => {
+          n.setSelectedId(note.id);
+          setNotePolisherOpen(true);
+        }}
       />
     </ThemeStage>
   );

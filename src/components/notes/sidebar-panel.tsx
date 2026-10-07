@@ -42,6 +42,7 @@ type Props = {
   onBackToCourses: () => void;
   onOpenPomodoro?: () => void;
   onOpenFlashcards?: () => void;
+  onOpenCollectionExam?: () => void;
   onNavigateDailyGoal?: () => void;
   onToggleFocus?: () => void;
   onOpenCheatsheet?: () => void;
@@ -120,6 +121,7 @@ export function SidebarPanel({
   onBackToCourses,
   onOpenPomodoro,
   onOpenFlashcards,
+  onOpenCollectionExam,
   onNavigateDailyGoal,
   onToggleFocus,
   onOpenCheatsheet,
@@ -172,6 +174,9 @@ export function SidebarPanel({
         <nav className="flex flex-col gap-1">
           <NavRow icon={<Files className="size-4" />} label="All Notes" count={counts.all} active={filter.kind === "all"} onClick={() => onFilterChange({ kind: "all" })} />
           <NavRow icon={<Star className="size-4" />} label="Favorites" count={counts.favorites} active={filter.kind === "favorites"} onClick={() => onFilterChange({ kind: "favorites" })} />
+          {onOpenCollectionExam && (
+            <NavRow icon={<Sparkles className="size-4 text-amber-400" />} label="AI Mastery Exam" active={false} onClick={onOpenCollectionExam} />
+          )}
         </nav>
 
         <div className="flex min-h-0 flex-1 flex-col gap-2">
@@ -296,6 +301,14 @@ export function SidebarPanel({
           active={onNavigateDailyGoal === undefined ? false : false} // Placeholder logic
           onClick={onNavigateDailyGoal || (() => {})}
         />
+        {onOpenCollectionExam && (
+          <NavRow
+            icon={<Sparkles className="h-4 w-4 text-amber-400" />}
+            label="4-Stage AI Exam"
+            active={false}
+            onClick={onOpenCollectionExam}
+          />
+        )}
       </nav>
 
       <div className="flex min-h-0 flex-1 flex-col">

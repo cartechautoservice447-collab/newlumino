@@ -186,9 +186,11 @@ export function SpatialAuroraDashboard({
                   <span className="h-1 w-1 rounded-full bg-white/20" />
                   <span className="text-xs text-slate-400">{new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }).format(new Date())}</span>
                 </div>
-                <div className="leading-tight mt-0.5">
-                  <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight text-white/90 whitespace-normal">Welcome back,</h1>
-                  <span className="block text-xl sm:text-3xl font-black tracking-tight text-emerald-300 whitespace-normal">{firstName}</span>
+                <div className="leading-snug mt-0.5">
+                  <h1 className="text-base sm:text-2xl font-extrabold tracking-tight text-white/90 flex flex-wrap items-baseline gap-1.5">
+                    <span>Welcome back,</span>
+                    <span className="text-emerald-300">{firstName}</span>
+                  </h1>
                 </div>
                 <p className="mt-1 text-xs sm:text-sm italic tracking-wide text-emerald-200/80 whitespace-normal">"Quiet craft leads to compounding mastery"</p>
               </div>

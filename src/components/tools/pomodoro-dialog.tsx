@@ -137,25 +137,25 @@ export function PomodoroDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-panel max-h-[92vh] sm:max-h-[85vh] w-[95vw] sm:max-w-[560px] p-0 overflow-hidden border border-white/15 bg-black/90 text-foreground shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 flex flex-col rounded-3xl">
-        {/* Header Bar */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/10 shrink-0 bg-white/[0.02]">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/20 text-primary border border-primary/30 shadow-[0_0_12px_-2px_hsl(var(--primary)/0.5)]">
+      <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 border-0 bg-slate-950/98 text-foreground backdrop-blur-3xl flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0">
+        {/* Pinned Header Bar */}
+        <div className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-white/10 shrink-0 bg-white/[0.02] backdrop-blur-md">
+          <div className="flex items-center gap-3 pr-10">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 text-primary border border-primary/30 shadow-[0_0_15px_-2px_hsl(var(--primary)/0.5)] shrink-0">
               <Timer className="h-5 w-5" />
             </span>
             <div>
               <DialogTitle className="text-base sm:text-lg font-extrabold tracking-tight text-foreground leading-tight">
-                Pomodoro Focus
+                Pomodoro Focus &amp; AI Planner
               </DialogTitle>
-              <p className="text-[0.68rem] text-muted-foreground">
+              <p className="text-xs text-muted-foreground hidden sm:block">
                 {mode === "focus" ? "Deep study session" : mode === "shortBreak" ? "Short breather" : "Long recovery interval"}
               </p>
             </div>
           </div>
 
           {/* Segment Navigation */}
-          <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-black/40 p-1">
+          <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-black/40 p-1 mr-10 sm:mr-12">
             <button
               type="button"
               onClick={() => {
@@ -163,7 +163,7 @@ export function PomodoroDialog({
                 setActiveTab("timer");
               }}
               className={cn(
-                "rounded-xl px-3 py-1 text-xs font-bold transition-all cursor-pointer active:scale-95 touch-manipulation",
+                "rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer active:scale-95 touch-manipulation",
                 activeTab === "timer"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -178,13 +178,13 @@ export function PomodoroDialog({
                 setActiveTab("planner");
               }}
               className={cn(
-                "rounded-xl px-3 py-1 text-xs font-bold transition-all cursor-pointer active:scale-95 touch-manipulation flex items-center gap-1",
+                "rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer active:scale-95 touch-manipulation flex items-center gap-1",
                 activeTab === "planner"
                   ? "bg-purple-600 text-white shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Sparkles className="h-3 w-3" />
+              <Sparkles className="h-3.5 w-3.5" />
               AI Plan
             </button>
             <button
@@ -194,7 +194,7 @@ export function PomodoroDialog({
                 setActiveTab("stats");
               }}
               className={cn(
-                "rounded-xl px-3 py-1 text-xs font-bold transition-all cursor-pointer active:scale-95 touch-manipulation",
+                "rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer active:scale-95 touch-manipulation",
                 activeTab === "stats"
                   ? "bg-white/15 text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -206,7 +206,7 @@ export function PomodoroDialog({
         </div>
 
         {/* Scrollable Container */}
-        <div className="flex-1 overflow-y-auto scroll-sleek overscroll-contain p-4 sm:p-6 space-y-5">
+        <div className="flex-1 overflow-y-auto scroll-sleek overscroll-contain p-4 sm:p-8 space-y-6 max-w-3xl mx-auto w-full">
           {activeTab === "timer" && (
             <div className="flex flex-col items-center space-y-6">
               {/* Mode Switcher Buttons */}

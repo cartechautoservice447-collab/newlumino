@@ -17,6 +17,7 @@ import {
   Clock,
   Flame,
   Zap,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
@@ -85,6 +86,7 @@ type Props = {
   onOpenAllNotes?: () => void;
   onOpenFavorites?: () => void;
   onStartFocus?: () => void;
+  onOpenCollectionExam?: () => void;
   todayFocusSeconds?: number;
   dailyGoalHours?: number;
   realtimeStatus?: "connected" | "connecting" | "offline";
@@ -106,6 +108,7 @@ export function CourseDashboard({
   onOpenAllNotes,
   onOpenFavorites,
   onStartFocus,
+  onOpenCollectionExam,
   todayFocusSeconds = 0,
   dailyGoalHours = 2,
   realtimeStatus = "connected",
@@ -216,10 +219,10 @@ export function CourseDashboard({
     >
       <div className="relative mx-auto w-full max-w-[1240px] px-4 sm:px-8 py-6 sm:py-10">
 
-        {/* Header Bar: Large, Grand & Premium Welcoming without glass container, perfectly aligned */}
-        <header className="animate-panel-in flex items-start sm:items-center justify-between gap-4 py-2 sm:py-4 px-1 sm:px-2">
-          <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0 flex-1">
-            {/* Very Large Brand Logo Icon Button */}
+        {/* Header Bar: Sleek, Responsive Welcoming tailored for Mobile & Desktop */}
+        <header className="animate-panel-in flex items-center justify-between gap-3 sm:gap-5 py-2 sm:py-4">
+          <div className="flex items-center gap-3 sm:gap-4.5 min-w-0 flex-1">
+            {/* Brand Logo Icon Button */}
             <button
               type="button"
               aria-label="Open study tools"
@@ -227,38 +230,37 @@ export function CourseDashboard({
                 haptic("medium");
                 onOpenMenu?.();
               }}
-              className="flex h-14 w-14 sm:h-18 sm:w-18 items-center justify-center rounded-[1.35rem] sm:rounded-[1.75rem] border border-primary/35 bg-gradient-to-br from-primary/25 via-primary/10 to-transparent text-primary shrink-0 active:scale-90 hover:scale-105 hover:border-primary transition-all duration-200 cursor-pointer shadow-md mt-1 sm:mt-0"
+              className="flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-2xl sm:rounded-[1.4rem] border border-primary/35 bg-gradient-to-br from-primary/25 via-primary/10 to-transparent text-primary shrink-0 active:scale-90 hover:scale-105 hover:border-primary transition-all duration-200 cursor-pointer shadow-md"
               title="Open Study Tools"
             >
-              <Sparkles className="h-7 w-7 sm:h-9 sm:w-9 text-primary animate-pulse" />
+              <Sparkles className="h-5 w-5 sm:h-7 sm:w-7 text-primary animate-pulse" />
             </button>
 
             <div className="min-w-0 flex-1">
-              {/* 2-line fully shown greeting with large letters, no truncation */}
-              <div className="leading-tight">
-                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground whitespace-normal break-words">
-                  {greetingInfo.salutation}
+              <div className="leading-snug sm:leading-tight">
+                <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                  <span>{greetingInfo.salutation}</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-400 to-cyan-400">
+                    {greetingInfo.userName}
+                  </span>
                 </h1>
-                <span className="block mt-0.5 text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 whitespace-normal break-words">
-                  {greetingInfo.userName}
-                </span>
               </div>
 
-              <p className="mt-1.5 text-sm sm:text-base text-muted-foreground/90 font-medium whitespace-normal">
+              <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-muted-foreground/85 font-medium line-clamp-1 sm:line-clamp-none">
                 {greetingInfo.subtitle}
               </p>
             </div>
           </div>
 
-          {/* Action Buttons: Settings Gear Icon perfectly aligned */}
-          <div className="flex items-center gap-2.5 shrink-0 mt-1 sm:mt-0">
+          {/* Action Buttons: Settings Gear Icon & Log out */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             <button
               type="button"
               aria-label="Settings"
               onClick={onOpenSettings}
-              className="flex h-12 w-12 sm:h-14 sm:w-auto items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.05] sm:px-4.5 text-muted-foreground transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:text-foreground active:scale-95 cursor-pointer shadow-sm"
+              className="flex h-11 w-11 sm:h-12 sm:w-auto items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.05] sm:px-4 text-muted-foreground transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:text-foreground active:scale-95 cursor-pointer shadow-sm"
             >
-              <Settings className="h-5 w-5 sm:h-6 sm:w-6" />
+              <Settings className="h-5 w-5 text-muted-foreground" />
               <span className="hidden sm:inline text-xs sm:text-sm font-semibold">Settings</span>
             </button>
             {user ? (
@@ -266,9 +268,9 @@ export function CourseDashboard({
                 type="button"
                 aria-label="Log out"
                 onClick={() => void signOut()}
-                className="hidden sm:flex h-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-4 text-muted-foreground transition-all duration-200 hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive active:scale-95 cursor-pointer"
+                className="hidden sm:flex h-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-3.5 text-muted-foreground transition-all duration-200 hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive active:scale-95 cursor-pointer"
               >
-                <LogOut className="h-5 w-5" />
+                <LogOut className="h-4.5 w-4.5" />
               </button>
             ) : null}
           </div>
@@ -391,25 +393,25 @@ export function CourseDashboard({
           </div>
         </div>
 
-        {/* Mobile-Only Feature 1: "Continue Studying" / Recent Notes Shelf - Grand, Highly Visible & Premium Sizing */}
+        {/* Feature 1: "Continue Studying" Recent Notes Shelf - Perfectly Sized & Aligned with other Glass Panels */}
         {recentNotes.length > 0 && (
-          <div className="sm:hidden mt-10 sm:mt-13 space-y-4">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-7 w-7 items-center justify-center rounded-xl border border-primary/30 bg-primary/15 text-primary shadow-sm">
-                  <Clock className="h-4 w-4" />
+          <div className="mt-7 sm:mt-10 space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-primary/30 bg-primary/15 text-primary shadow-sm">
+                  <Clock className="h-3.5 w-3.5" />
                 </span>
-                <h3 className="text-sm font-extrabold uppercase tracking-widest text-foreground">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
                   Continue Studying
                 </h3>
               </div>
-              <span className="text-xs font-mono text-muted-foreground/80">
+              <span className="text-[11px] font-mono text-muted-foreground/80">
                 {recentNotes.length} recent {recentNotes.length === 1 ? "note" : "notes"}
               </span>
             </div>
 
-            {/* Horizontal Swipeable Track with edge bleed, isolated touch pan, and full visibility */}
-            <div className="mobile-touch-track-x -mx-4 flex gap-4 overflow-x-auto pb-4 pt-1.5 px-4 scrollbar-none snap-x snap-mandatory overscroll-x-contain touch-pan-x max-w-full">
+            {/* Responsive Track/Grid: Aligned perfectly with all dashboard glass cards. Never bleeds into screen borders. */}
+            <div className="w-full flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4.5 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 pt-0.5 scrollbar-none snap-x snap-mandatory overscroll-x-contain touch-pan-x">
               {recentNotes.map((note) => {
                 const course = courses.find((c) => c.id === note.courseId);
                 const accent = course ? (ACCENT_STYLES[course.color] ?? ACCENT_STYLES.sky) : ACCENT_STYLES.sky;
@@ -430,38 +432,40 @@ export function CourseDashboard({
                         onOpenNote?.(note.id, note.courseId || undefined);
                       }
                     }}
-                    className="glass-panel group relative snap-start shrink-0 w-[315px] max-w-[88vw] min-h-[190px] rounded-[1.85rem] p-5 sm:p-5.5 border border-white/12 bg-gradient-to-b from-white/[0.08] via-white/[0.04] to-white/[0.02] backdrop-blur-2xl shadow-[0_14px_38px_rgba(0,0,0,0.38),inset_0_1px_1px_rgba(255,255,255,0.18)] active:scale-[0.98] transition-all duration-300 cursor-pointer flex flex-col justify-between select-none"
+                    className={`glass-panel group relative snap-start shrink-0 sm:shrink ${
+                      recentNotes.length === 1 ? "w-full" : "w-[245px] xs:w-[265px] sm:w-full"
+                    } min-h-[148px] sm:min-h-[156px] rounded-2xl sm:rounded-[1.35rem] p-4 border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-2xl shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_24px_0_rgba(0,0,0,0.3)] hover:border-primary/45 hover:bg-white/[0.09] hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col justify-between select-none`}
                   >
                     <div>
-                      <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <div className="flex items-center justify-between gap-1.5 mb-1.5">
                         <span
-                          className={`inline-flex items-center gap-1.5 rounded-xl border ${accent.border} ${accent.bg} px-2.5 py-1 text-xs font-bold ${accent.text} truncate max-w-[180px] shadow-sm`}
+                          className={`inline-flex items-center gap-1 rounded-lg border ${accent.border} ${accent.bg} px-2 py-0.5 text-[10px] font-bold ${accent.text} truncate max-w-[150px] shadow-sm`}
                         >
-                          <span className={`h-2 w-2 rounded-full ${accent.dot} animate-pulse shrink-0`} />
+                          <span className={`h-1.5 w-1.5 rounded-full ${accent.dot} shrink-0`} />
                           <span className="truncate">{course?.name || "General"}</span>
                         </span>
                         {note.favorite && (
-                          <Star className="h-4 w-4 text-amber-400 fill-amber-400 shrink-0" />
+                          <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400 shrink-0" />
                         )}
                       </div>
 
-                      <h4 className="text-base font-extrabold text-foreground tracking-tight line-clamp-1 group-hover:text-primary transition-colors mt-2">
+                      <h4 className="text-xs sm:text-[13px] font-bold text-foreground tracking-tight line-clamp-1 group-hover:text-primary transition-colors mt-1">
                         {note.title || "Untitled Note"}
                       </h4>
 
-                      <p className="text-xs sm:text-[13px] text-muted-foreground/90 line-clamp-2 mt-2 leading-relaxed font-normal">
-                        {note.body?.replace(/[#*`>_-]/g, "").slice(0, 110) || "Empty note snippet..."}
+                      <p className="text-[11px] text-muted-foreground/80 line-clamp-2 mt-1 leading-relaxed">
+                        {note.body?.replace(/[#*`>_-]/g, "").slice(0, 85) || "Empty note snippet..."}
                       </p>
                     </div>
 
-                    <div className="mt-4 pt-3.5 border-t border-white/[0.08] flex items-center justify-between text-xs text-muted-foreground/80">
-                      <span className="font-mono text-[11px] text-muted-foreground/70 flex items-center gap-1.5">
-                        <Clock className="h-3 w-3 text-muted-foreground/50" />
+                    <div className="pt-2.5 border-t border-white/[0.06] flex items-center justify-between text-[10px] text-muted-foreground/75">
+                      <span className="font-mono flex items-center gap-1 truncate">
+                        <Clock className="h-2.5 w-2.5 opacity-60 shrink-0" />
                         {formatDate(note.updatedAt)}
                       </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-xl border border-primary/35 bg-primary/20 px-3 py-1.5 text-xs font-bold text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-200">
-                        Resume Note
-                        <ArrowRight className="h-3.5 w-3.5" />
+                      <span className="inline-flex items-center gap-1 font-semibold text-primary group-hover:underline">
+                        Resume
+                        <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
                       </span>
                     </div>
                   </div>
@@ -532,16 +536,14 @@ export function CourseDashboard({
           </button>
         </div>
 
-        {/* MOBILE VIEW: Mobile Liquid Glass Course Cards with Subject Pulse & Direct Actions */}
+        {/* MOBILE VIEW: Mobile Liquid Glass Course Cards */}
         <div className="sm:hidden mt-7 sm:mt-8 flex flex-col gap-5 sm:gap-6 w-full">
           {filteredCourses.map((c, i) => {
             const courseNotes = notes.filter((n) => n.courseId === c.id);
-            const favCount = courseNotes.filter((n) => n.favorite).length;
             const last = courseNotes.length > 0
               ? Math.max(...courseNotes.map((n) => n.updatedAt))
               : c.updatedAt || c.createdAt;
             const style = ACCENT_STYLES[c.color] ?? ACCENT_STYLES.sky;
-            const activityPercent = Math.min(100, Math.max(15, courseNotes.length * 20));
 
             return (
               <div
@@ -562,52 +564,54 @@ export function CourseDashboard({
                 style={{ animationDelay: `${i * 35}ms` }}
                 className="glass-panel animate-panel-in group relative cursor-pointer overflow-hidden rounded-[2rem] p-5 text-left border border-white/12 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-3xl shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_12px_36px_0_rgba(0,0,0,0.4)] active:scale-[0.975] transition-all duration-300 select-none flex flex-col justify-between w-full"
               >
-                {/* Header Action Row: + Quick Note Shortcut & Delete Button */}
-                <div className="absolute right-4 top-4 z-10 flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    aria-label={`Add note in ${c.name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      haptic("medium");
-                      if (onQuickNewNote) {
-                        onQuickNewNote();
-                      } else {
-                        onOpenCourse(c.id);
-                      }
-                    }}
-                    className="flex items-center gap-1 rounded-xl border border-primary/30 bg-primary/20 px-2.5 py-1.5 text-[11px] font-semibold text-primary backdrop-blur-md transition-all active:scale-90 hover:bg-primary/30 cursor-pointer"
-                  >
-                    <Plus className="h-3 w-3" />
-                    <span>Note</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    aria-label={`Delete ${c.name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeletingCourse(c);
-                    }}
-                    className="rounded-xl border border-white/10 bg-black/40 p-1.5 text-muted-foreground backdrop-blur-md transition-all duration-200 hover:border-destructive/40 hover:bg-destructive/20 hover:text-destructive active:scale-90 cursor-pointer"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div>
-                  <div className="flex items-start justify-between gap-3 pr-24">
+                {/* Header Row: Folder Icon + Note Count Pill on Left, Actions on Right */}
+                <div className="flex items-center justify-between gap-2.5 mb-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <span
-                      className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${style.border} ${style.bg} ${style.text} ${style.glow} shadow-md transition-transform group-hover:scale-105 shrink-0`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl border ${style.border} ${style.bg} ${style.text} ${style.glow} shadow-sm shrink-0`}
                     >
-                      <FolderOpen className="h-6 w-6" />
+                      <FolderOpen className="h-5 w-5" />
                     </span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.08] px-3.5 py-1 text-xs font-mono font-medium tabular-nums text-muted-foreground">
+                    <span className="rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-0.5 text-xs font-mono font-medium tabular-nums text-muted-foreground shrink-0">
                       {courseNotes.length} {courseNotes.length === 1 ? "note" : "notes"}
                     </span>
                   </div>
 
-                  <h3 className="mt-3.5 truncate text-[1.12rem] font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      aria-label={`Add note in ${c.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        haptic("medium");
+                        if (onQuickNewNote) {
+                          onQuickNewNote();
+                        } else {
+                          onOpenCourse(c.id);
+                        }
+                      }}
+                      className="flex items-center gap-1 rounded-xl border border-primary/30 bg-primary/20 px-2.5 py-1 text-[11px] font-semibold text-primary backdrop-blur-md transition-all active:scale-90 hover:bg-primary/30 cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>Note</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      aria-label={`Delete ${c.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingCourse(c);
+                      }}
+                      className="rounded-xl border border-white/10 bg-black/40 p-1.5 text-muted-foreground backdrop-blur-md transition-all duration-200 hover:border-destructive/40 hover:bg-destructive/20 hover:text-destructive active:scale-90 cursor-pointer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="mt-2.5 truncate text-[1.12rem] font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
                     {c.name}
                   </h3>
 
@@ -621,37 +625,7 @@ export function CourseDashboard({
                     </p>
                   )}
 
-                  {/* Feature 4: Subject Pulse Indicator */}
-                  <div className="mt-3.5 space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground/80 font-mono">
-                      <span className="flex items-center gap-1.5">
-                        <span className={`h-1.5 w-1.5 rounded-full ${style.dot} animate-pulse`} />
-                        <span className="text-foreground/90 font-medium">{courseNotes.length} notes</span>
-                        {favCount > 0 && (
-                          <>
-                            <span className="text-white/20">·</span>
-                            <span className="text-amber-300 flex items-center gap-0.5">
-                              <Star className="h-2.5 w-2.5 fill-amber-300" />
-                              {favCount}
-                            </span>
-                          </>
-                        )}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground/60">
-                        {last ? `Active ${formatDate(last)}` : "Fresh"}
-                      </span>
-                    </div>
-
-                    {/* Hairline Subject Pulse Progress Line */}
-                    <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-400 transition-all duration-500"
-                        style={{ width: `${activityPercent}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                  <div className="mt-3.5 flex items-center gap-2 flex-wrap">
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-lg border ${style.border} ${style.bg} px-2.5 py-0.5 text-[0.7rem] uppercase tracking-[0.16em] font-semibold ${style.text}`}
                     >

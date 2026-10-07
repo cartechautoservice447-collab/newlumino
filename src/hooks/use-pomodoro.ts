@@ -96,27 +96,17 @@ export function usePomodoroTimer(activeContext?: {
     }
   }, []);
 
-  // Save today's seconds (throttled while running, immediate on pause)
+  // Save today's seconds
   useEffect(() => {
-    const save = () => {
-      try {
-        localStorage.setItem(
-          TODAY_SECONDS_KEY,
-          JSON.stringify({ date: getTodayKey(), seconds: todayFocusSeconds })
-        );
-      } catch {
-        // ignore
-      }
-    };
-
-    if (!isRunning) {
-      save();
-      return;
+    try {
+      localStorage.setItem(
+        TODAY_SECONDS_KEY,
+        JSON.stringify({ date: getTodayKey(), seconds: todayFocusSeconds })
+      );
+    } catch {
+      // ignore
     }
-
-    const t = setTimeout(save, 10000);
-    return () => clearTimeout(t);
-  }, [todayFocusSeconds, isRunning]);
+  }, [todayFocusSeconds]);
 
   // Active AI Plan (if scheduled)
   const [activePlan, setActivePlan] = useState<PomodoroPlanResult | null>(null);
@@ -148,27 +138,17 @@ export function usePomodoroTimer(activeContext?: {
     return [];
   });
 
-  // Persist analytics (throttled while running, immediate on pause)
+  // Persist analytics
   useEffect(() => {
-    const save = () => {
-      try {
-        localStorage.setItem(
-          ANALYTICS_STORAGE_KEY,
-          JSON.stringify({ notes: noteTimeSpent, history: sessionHistory })
-        );
-      } catch {
-        // ignore
-      }
-    };
-
-    if (!isRunning) {
-      save();
-      return;
+    try {
+      localStorage.setItem(
+        ANALYTICS_STORAGE_KEY,
+        JSON.stringify({ notes: noteTimeSpent, history: sessionHistory })
+      );
+    } catch {
+      // ignore
     }
-
-    const t = setTimeout(save, 15000);
-    return () => clearTimeout(t);
-  }, [noteTimeSpent, sessionHistory, isRunning]);
+  }, [noteTimeSpent, sessionHistory]);
 
   // Sync timeLeft when duration settings change if timer is not active
   useEffect(() => {

@@ -49,7 +49,7 @@ export function DailyGoalView({
   const PRESETS = [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0];
 
   return (
-    <div className="flex flex-1 flex-col h-full vertical-scroll-only p-3.5 sm:p-8 space-y-6 max-w-4xl mx-auto w-full pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-12">
+    <div className="flex flex-1 flex-col h-full overflow-y-auto scroll-sleek p-4 sm:p-8 space-y-6 max-w-4xl mx-auto w-full">
       {/* Top Header Wrapped in Glass Panel */}
       <div className="shrink-0 z-30 mb-2">
         <div className="glass-panel animate-panel-in rounded-3xl p-4 shadow-2xl backdrop-blur-3xl border border-white/15">

@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -87,7 +87,7 @@ function CodeBlockHeader({ lang, code }: { lang: string; code: string }) {
   );
 }
 
-function MarkdownPreviewComponent({
+export function MarkdownPreview({
   content,
   fontSize = "md",
   onToggleTask,
@@ -208,5 +208,3 @@ function MarkdownPreviewComponent({
     </div>
   );
 }
-
-export const MarkdownPreview = memo(MarkdownPreviewComponent);

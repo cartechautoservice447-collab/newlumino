@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { PanelLeftClose, Plus, Search, Star, Layers, Sparkles } from "lucide-react";
 import { NoteCard } from "./note-card";
 import { useCustomization } from "@/context/customization-context";
@@ -18,7 +17,7 @@ type Props = {
   totalNotesCount?: number;
 };
 
-function NoteListComponent({
+export function NoteList({
   title,
   notes,
   collections,
@@ -69,7 +68,7 @@ function NoteListComponent({
         </div>
       </header>
 
-      <div className={`min-h-0 flex-1 space-y-2.5 vertical-scroll-only overscroll-contain p-3 ${isMobile ? "pb-[calc(7rem+env(safe-area-inset-bottom,0px))]" : ""}`}>
+      <div className={`scroll-sleek min-h-0 flex-1 space-y-2.5 overflow-y-auto p-3 ${isMobile ? "pb-[calc(7rem+env(safe-area-inset-bottom,0px))]" : ""}`}>
         {notes.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-muted-foreground/60 mb-3">
@@ -110,5 +109,3 @@ function NoteListComponent({
     </section>
   );
 }
-
-export const NoteList = memo(NoteListComponent);

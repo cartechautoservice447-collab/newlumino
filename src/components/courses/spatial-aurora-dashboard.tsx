@@ -1,4 +1,4 @@
-import { useMemo, useState, memo } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowRight,
   Bell,
@@ -72,9 +72,9 @@ function ProgressRing({ percent }: { percent: number }) {
   const safe = Math.max(0, Math.min(100, percent));
   const circumference = 257.6;
   return (
-    <div className="relative h-[118px] w-[118px] shrink-0">
-      <svg className="-rotate-90 h-full w-full drop-shadow-[0_0_12px_rgba(78,222,163,.45)]" viewBox="0 0 100 100" aria-hidden>
-        <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="8.5" />
+    <div className="relative h-[114px] w-[114px] shrink-0">
+      <svg className="-rotate-90 h-full w-full" viewBox="0 0 100 100" aria-hidden>
+        <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,255,255,.07)" strokeWidth="7.5" />
         <circle
           cx="50"
           cy="50"
@@ -84,7 +84,7 @@ function ProgressRing({ percent }: { percent: number }) {
           strokeDasharray={circumference}
           strokeDashoffset={circumference - (circumference * safe) / 100}
           strokeLinecap="round"
-          strokeWidth="8.5"
+          strokeWidth="7.5"
         />
         <defs>
           <linearGradient id="spatial-aurora-gradient" x1="0%" x2="100%" y1="0%" y2="100%">
@@ -94,17 +94,17 @@ function ProgressRing({ percent }: { percent: number }) {
           </linearGradient>
         </defs>
       </svg>
-      <div className="absolute inset-[13px] rounded-full bg-white/[0.08] backdrop-blur-md border border-white/20 shadow-[inset_0_1.5px_3px_rgba(255,255,255,0.4),inset_0_-2px_4px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center select-none">
-        <span className="text-[25px] font-black leading-none text-white">
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-[27px] font-black leading-none text-white">
           {safe}<span className="text-xs text-emerald-300">%</span>
         </span>
-        <span className="mt-1 text-[9px] font-bold tracking-widest text-slate-300">REACHED</span>
+        <span className="mt-1 text-[9px] font-bold tracking-widest text-slate-400">REACHED</span>
       </div>
     </div>
   );
 }
 
-function SpatialAuroraDashboardComponent({
+export function SpatialAuroraDashboard({
   courses,
   notes,
   onOpenCourse,
@@ -170,7 +170,7 @@ function SpatialAuroraDashboardComponent({
       <div className="pointer-events-none absolute -left-28 top-[460px] h-88 w-88 rounded-full bg-cyan-400/10 blur-[110px]" />
       <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-violet-400/10 blur-[130px]" />
 
-      <div id="spatial-aurora-scroller" className="relative z-10 h-full vertical-scroll-only pb-28">
+      <div className="relative z-10 h-full overflow-y-auto overscroll-contain pb-28">
         <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#070a10]/80 px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] backdrop-blur-2xl">
           <div className="mx-auto flex w-full max-w-[480px] items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -356,12 +356,3 @@ function SpatialAuroraDashboardComponent({
     </div>
   );
 }
-
-export const SpatialAuroraDashboard = memo(SpatialAuroraDashboardComponent, (prev, next) => {
-  return (
-    prev.courses === next.courses &&
-    prev.notes === next.notes &&
-    prev.dailyGoalHours === next.dailyGoalHours &&
-    Math.floor((prev.todayFocusSeconds || 0) / 60) === Math.floor((next.todayFocusSeconds || 0) / 60)
-  );
-});

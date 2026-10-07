@@ -18,10 +18,7 @@ export function MobileCategoryChips({
   counts,
 }: Props) {
   return (
-    <div
-      className="md:hidden flex items-center gap-1.5 overflow-x-auto px-2.5 pb-2 pt-1 scroll-sleek select-none border-t border-white/5 mt-0.5 overscroll-x-contain"
-      style={{ touchAction: "pan-x pan-y", overscrollBehaviorX: "contain" }}
-    >
+    <div className="md:hidden flex items-center gap-1.5 overflow-x-auto px-2.5 pb-2 pt-1 scroll-sleek select-none border-t border-white/5 mt-0.5">
       {/* Chip 1: All Notes */}
       <button
         type="button"

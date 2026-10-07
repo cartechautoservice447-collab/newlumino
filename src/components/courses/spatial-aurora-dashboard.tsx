@@ -21,7 +21,6 @@ import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import type { Course, CourseAccent, Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
-import { MobileMomentumAndActivity } from "./mobile-momentum-and-activity";
 
 type Props = {
   courses: Course[];
@@ -119,7 +118,6 @@ export function SpatialAuroraDashboard({
   onNavigateDailyGoal,
 }: Props) {
   const { user } = useAuth();
-  const [soundscape, setSoundscape] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
 
@@ -170,46 +168,33 @@ export function SpatialAuroraDashboard({
       <div className="pointer-events-none absolute -left-28 top-[460px] h-88 w-88 rounded-full bg-cyan-400/10 blur-[110px]" />
       <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-violet-400/10 blur-[130px]" />
 
-      <div className="relative z-10 h-full overflow-y-auto overscroll-contain pb-28">
-        <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#070a10]/80 px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] backdrop-blur-2xl">
-          <div className="mx-auto flex w-full max-w-[480px] items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
+      <div className="dashboard-vertical-scroll relative z-10 h-full w-full max-w-full overflow-y-auto overflow-x-hidden overscroll-y-contain overscroll-x-none touch-pan-y pb-28">
+        <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#070a10]/80 px-4 sm:px-6 pb-3.5 pt-[calc(0.85rem+env(safe-area-inset-top,0px))] backdrop-blur-2xl">
+          <div className="mx-auto flex w-full max-w-[720px] lg:max-w-[960px] items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
               <div className="relative shrink-0">
-                <div className="rounded-2xl bg-gradient-to-tr from-emerald-400 via-teal-400 to-indigo-500 p-[1.5px] shadow-[0_0_18px_rgba(78,222,163,.35)]">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-[#0c111c] text-sm font-bold text-emerald-300">
+                <div className="rounded-2xl bg-gradient-to-tr from-emerald-400 via-teal-400 to-indigo-500 p-[1.5px] shadow-[0_0_20px_rgba(78,222,163,.4)]">
+                  <div className="flex h-13 w-13 sm:h-15 sm:w-15 items-center justify-center rounded-[14px] bg-[#0c111c] text-base sm:text-lg font-black text-emerald-300">
                     {initials(name)}
                   </div>
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-300 ring-2 ring-[#070a10]" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-300 ring-2 ring-[#070a10]" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-bold tracking-wider text-emerald-300">SPATIAL AURORA</span>
+                  <span className="text-xs font-bold tracking-wider text-emerald-300">SPATIAL AURORA</span>
                   <span className="h-1 w-1 rounded-full bg-white/20" />
-                  <span className="text-[11px] text-slate-400">{new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }).format(new Date())}</span>
+                  <span className="text-xs text-slate-400">{new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }).format(new Date())}</span>
                 </div>
-                <h1 className="truncate text-[17px] font-bold tracking-tight text-white">Welcome back, {firstName}</h1>
-                <p className="truncate text-[11px] italic tracking-wide text-emerald-200/70">"Quiet craft leads to compounding mastery"</p>
+                <div className="leading-tight mt-0.5">
+                  <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight text-white/90 whitespace-normal">Welcome back,</h1>
+                  <span className="block text-xl sm:text-3xl font-black tracking-tight text-emerald-300 whitespace-normal">{firstName}</span>
+                </div>
+                <p className="mt-1 text-xs sm:text-sm italic tracking-wide text-emerald-200/80 whitespace-normal">"Quiet craft leads to compounding mastery"</p>
               </div>
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                aria-pressed={soundscape}
-                aria-label="Toggle Soundscape"
-                onClick={() => {
-                  haptic("light");
-                  setSoundscape((value) => !value);
-                }}
-                className={cn(
-                  "flex h-9 items-center gap-2 rounded-full border px-3 text-[11px] font-semibold transition-transform duration-150 active:scale-95",
-                  soundscape ? "border-emerald-300/40 bg-emerald-300/10" : "border-white/[0.08] bg-white/[0.05]",
-                )}
-              >
-                <Volume2 className="h-3.5 w-3.5 text-slate-400" />
-                <span className="hidden text-white sm:inline">40Hz Binaural</span>
-              </button>
               <button type="button" aria-label="Notifications" onClick={() => haptic("light")} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.05] text-slate-400 active:scale-95">
                 <Bell className="h-[19px] w-[19px]" />
               </button>
@@ -217,8 +202,8 @@ export function SpatialAuroraDashboard({
           </div>
         </header>
 
-        <div className="mx-auto flex w-full max-w-[480px] flex-col gap-9 px-5 pt-8">
-          <section className="relative overflow-hidden rounded-[30px] border border-white/[0.08] bg-[linear-gradient(135deg,rgba(28,36,54,.65),rgba(14,18,29,.82))] p-6 shadow-[0_18px_44px_-14px_rgba(0,0,0,.55)] shadow-[0_12px_32px_-8px_rgba(0,0,0,.55)] backdrop-blur-[28px]">
+        <div className="mx-auto flex w-full max-w-[720px] lg:max-w-[960px] flex-col gap-9 px-4 sm:px-6 pt-6 sm:pt-8">
+          <section className="relative overflow-hidden rounded-[30px] border border-white/[0.08] bg-[linear-gradient(135deg,rgba(28,36,54,.65),rgba(14,18,29,.82))] p-6 shadow-[0_18px_44px_-14px_rgba(0,0,0,.55)] backdrop-blur-[28px]">
             <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-gradient-to-br from-emerald-300/30 via-cyan-300/20 to-transparent blur-2xl" />
             <div className="pointer-events-none absolute -bottom-20 -left-12 h-48 w-48 rounded-full bg-violet-300/20 blur-2xl" />
             <div className="relative z-10 flex items-center justify-between gap-3">
@@ -248,8 +233,17 @@ export function SpatialAuroraDashboard({
               </div>
             </div>
 
-            <button type="button" onClick={() => { haptic("medium"); onStartFocus?.(); }} className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-300 via-teal-400 to-cyan-300 px-4 text-[15px] font-bold text-[#022115] shadow-[0_8px_24px_rgba(78,222,163,.35)] active:scale-[0.98]">
-              <Sparkles className="h-[22px] w-[22px]" /> Immerse into Study <span className="rounded-full bg-black/20 px-2 py-0.5 text-[11px] font-black">25m block</span>
+            <button
+              type="button"
+              onClick={() => {
+                haptic("medium");
+                onStartFocus?.();
+              }}
+              className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary px-4 text-[15px] font-semibold text-primary-foreground shadow-sm active:scale-[0.98] transition-all duration-200 hover:scale-[1.01]"
+            >
+              <Sparkles className="h-5 w-5 text-primary-foreground" />
+              <span>Immerse into Study</span>
+              <span className="rounded-full bg-black/20 px-2 py-0.5 text-[11px] font-bold text-primary-foreground">25m block</span>
             </button>
           </section>
 
@@ -297,21 +291,13 @@ export function SpatialAuroraDashboard({
             </section>
           ) : null}
 
-          <div className="sm:hidden mt-2 mb-1">
-            <MobileMomentumAndActivity
-              notes={notes}
-              todayFocusSeconds={todayFocusSeconds}
-              dailyGoalHours={dailyGoalHours}
-            />
-          </div>
-
           <section className="flex flex-col gap-3">
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
               <input value={query} onChange={(event) => setQuery(event.target.value)} className="h-12 w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] pl-11 pr-11 text-sm text-white outline-none backdrop-blur-xl focus:border-emerald-300/50" placeholder="Search courses, tags, and topics..." type="search" />
               <button type="button" aria-label="Focus search" onClick={() => haptic("light")} className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl bg-white/[0.06] text-emerald-300 active:scale-95"><Mic className="h-[17px] w-[17px]" /></button>
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto py-0.5">
+            <div className="flex items-center gap-2 overflow-x-auto py-0.5 max-w-full overscroll-x-contain touch-pan-x scrollbar-none">
               {categories.map((item) => (
                 <button key={item} type="button" onClick={() => setCategory(item)} className={cn("shrink-0 rounded-xl px-3.5 py-1.5 text-xs font-bold active:scale-95", category === item ? "bg-emerald-300 text-[#002b1b]" : "border border-white/[0.06] bg-white/[0.05] text-slate-400")}>{item === "all" ? "General" : item}</button>
               ))}

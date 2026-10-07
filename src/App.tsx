@@ -33,7 +33,6 @@ import { MarkdownCheatsheet } from "@/components/tools/markdown-cheatsheet";
 import { AiExamSimulatorDialog } from "@/components/tools/ai-exam-simulator-dialog";
 import { AiNotePolisherDialog } from "@/components/tools/ai-note-polisher-dialog";
 import { NotificationBanner } from "@/components/ui/notification-banner";
-import { ZenFocusBar } from "@/components/zen/zen-focus-bar";
 import type { Note } from "@/lib/notes";
 
 export default function App() {
@@ -580,7 +579,7 @@ function AuthenticatedApp({
   );
 
   return (
-    <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] flex flex-col", isFluidGlass && !isMobile && "p-[10px]")}>
+    <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full max-w-full overflow-hidden flex flex-col", isFluidGlass && !isMobile && "p-[10px]")}>
       <NotificationBanner />
 
       {/* Daily Goal View */}
@@ -602,52 +601,6 @@ function AuthenticatedApp({
             onOpenPomodoro={() => setPomodoroDialogOpen(true)}
           />
         </div>
-      )}
-
-      {/* Zen Focus Mode Top Bar (Scoped to active course with collections and notes drawer) */}
-      {focusMode && (
-        <ZenFocusBar
-          courses={n.courses}
-          activeCourse={n.activeCourse}
-          activeCourseId={n.activeCourseId}
-          onSelectCourse={(courseId) => {
-            n.setActiveCourseId(courseId);
-            n.setFilter({ kind: "all" });
-            const childColIds = new Set(
-              n.collections
-                .filter((c) => c.courseId === courseId || c.parentId === courseId)
-                .map((c) => c.id)
-            );
-            const courseNote = n.notes.find(
-              (note) => note.courseId === courseId || (note.collectionId && childColIds.has(note.collectionId))
-            );
-            if (courseNote) {
-              n.setSelectedId(courseNote.id);
-            }
-          }}
-          collections={n.collections}
-          notes={n.notes}
-          selectedNoteId={n.selectedId}
-          onSelectNote={(noteId) => n.setSelectedId(noteId)}
-          onCreateNote={(title, body, colId) => {
-            const id = n.createNote(title, body, colId);
-            n.setSelectedId(id);
-          }}
-          onAddCollection={(name, category) => {
-            n.addCollection(name, category, n.activeCourseId);
-          }}
-          onToggleFavorite={n.toggleFavorite}
-          onExitFocus={exitFocus}
-          editorMode={mobileEditorMode}
-          onModeChange={setMobileEditorMode}
-          onOpenFlashcards={(note) => {
-            setFlashcardTargetNote(note);
-            setFlashcardsDialogOpen(true);
-          }}
-          onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-          pomodoroRunning={pomodoro.isRunning}
-          pomodoroTimeFormatted={pomodoroTimeFormatted}
-        />
       )}
 
       {/* Mobile Top Header (Luminous Glass Header when browsing notes list) */}
@@ -679,7 +632,7 @@ function AuthenticatedApp({
       {/* Main Responsive Grid */}
       {view === "workspace" && (
         <div className={cn(
-          "relative mx-auto flex-1 min-h-0 w-full max-w-[1700px] flex gap-4 transition-all",
+          "relative mx-auto flex-1 min-h-0 w-full max-w-[1700px] flex gap-4 transition-all overflow-hidden",
           isMobile && n.selectedId
             ? "h-full p-1.5 sm:p-4 pb-0 md:pb-4"
             : isMobile

@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { soundscapeEngine, type SoundscapeType } from "@/lib/soundscapes";
 import type { NoteTimeEntry, PomodoroSessionRecord, PomodoroPlanResult } from "@/lib/pomodoro-ai";
 
 export type PomodoroMode = "focus" | "shortBreak" | "longBreak";
@@ -53,8 +52,6 @@ export function usePomodoroTimer(activeContext?: {
   const [mode, setMode] = useState<PomodoroMode>("focus");
   const [timeLeft, setTimeLeft] = useState<number>(settings.focusMinutes * 60);
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [soundscape, setSoundscape] = useState<SoundscapeType>("rain");
-  const [soundVolume, setSoundVolume] = useState<number>(0.4);
   const [completedSessions, setCompletedSessions] = useState<number>(0);
   const [sessionCompletedSignal, setSessionCompletedSignal] = useState<{ id: number; timestamp: number } | null>(null);
   const [miniPillDismissed, setMiniPillDismissed] = useState<boolean>(false);
@@ -96,20 +93,34 @@ export function usePomodoroTimer(activeContext?: {
     }
   }, []);
 
-  // Save today's seconds
-  useEffect(() => {
+  const activeContextRef = useRef(activeContext);
+  activeContextRef.current = activeContext;
+
+  // Throttled persistence helper for today's focus seconds
+  const lastSavedSecondsRef = useRef(todayFocusSeconds);
+  const saveTodaySeconds = useCallback((seconds: number) => {
     try {
       localStorage.setItem(
         TODAY_SECONDS_KEY,
-        JSON.stringify({ date: getTodayKey(), seconds: todayFocusSeconds })
+        JSON.stringify({ date: getTodayKey(), seconds })
       );
+      lastSavedSecondsRef.current = seconds;
     } catch {
       // ignore
     }
-  }, [todayFocusSeconds]);
+  }, []);
+
+  // Flush today seconds on unmount or pause
+  useEffect(() => {
+    if (!isRunning && todayFocusSeconds !== lastSavedSecondsRef.current) {
+      saveTodaySeconds(todayFocusSeconds);
+    }
+  }, [isRunning, todayFocusSeconds, saveTodaySeconds]);
 
   // Active AI Plan (if scheduled)
   const [activePlan, setActivePlan] = useState<PomodoroPlanResult | null>(null);
+  const activePlanRef = useRef(activePlan);
+  activePlanRef.current = activePlan;
 
   // Note-by-note and Overall App Time Tracking
   const [noteTimeSpent, setNoteTimeSpent] = useState<Record<string, NoteTimeEntry>>(() => {
@@ -138,17 +149,55 @@ export function usePomodoroTimer(activeContext?: {
     return [];
   });
 
-  // Persist analytics
-  useEffect(() => {
+  // Throttled save for analytics
+  const saveAnalytics = useCallback((notes: Record<string, NoteTimeEntry>, history: PomodoroSessionRecord[]) => {
     try {
       localStorage.setItem(
         ANALYTICS_STORAGE_KEY,
-        JSON.stringify({ notes: noteTimeSpent, history: sessionHistory })
+        JSON.stringify({ notes, history })
       );
     } catch {
       // ignore
     }
-  }, [noteTimeSpent, sessionHistory]);
+  }, []);
+
+  // Accumulator for note seconds to avoid state churn every 1s
+  const noteAccumulatorRef = useRef<{ id: string; title: string; course: string; seconds: number } | null>(null);
+
+  const flushNoteAccumulator = useCallback(() => {
+    const acc = noteAccumulatorRef.current;
+    if (!acc || acc.seconds <= 0) return;
+    const { id, title, course, seconds } = acc;
+    acc.seconds = 0;
+    setNoteTimeSpent((prev) => {
+      const current = prev[id] || {
+        noteId: id,
+        noteTitle: title,
+        courseName: course,
+        seconds: 0,
+        lastStudied: Date.now(),
+      };
+      const updated = {
+        ...prev,
+        [id]: {
+          ...current,
+          noteTitle: title,
+          courseName: course,
+          seconds: current.seconds + seconds,
+          lastStudied: Date.now(),
+        },
+      };
+      saveAnalytics(updated, sessionHistory);
+      return updated;
+    });
+  }, [saveAnalytics, sessionHistory]);
+
+  // Flush when pausing or switching modes
+  useEffect(() => {
+    if (!isRunning) {
+      flushNoteAccumulator();
+    }
+  }, [isRunning, flushNoteAccumulator]);
 
   // Sync timeLeft when duration settings change if timer is not active
   useEffect(() => {
@@ -172,77 +221,74 @@ export function usePomodoroTimer(activeContext?: {
     }
   }, [settings]);
 
-  // Audio engine handling
-  useEffect(() => {
-    if (isRunning && soundscape !== "none") {
-      soundscapeEngine.play(soundscape, soundVolume);
-    } else {
-      soundscapeEngine.stop();
-    }
-  }, [isRunning, soundscape]);
-
-  useEffect(() => {
-    soundscapeEngine.setVolume(soundVolume);
-  }, [soundVolume]);
-
   // Timer Tick & Live Note + Daily Goal Monitoring
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
+    let ticks = 0;
+
     if (isRunning) {
       timer = setInterval(() => {
+        ticks++;
         // Track time on active note and daily goal during focus
         if (mode === "focus") {
-          setTodayFocusSeconds((s) => s + 1);
+          setTodayFocusSeconds((s) => {
+            const next = s + 1;
+            if (ticks % 10 === 0) {
+              saveTodaySeconds(next);
+            }
+            return next;
+          });
 
-          if (activeContext?.activeNoteId) {
-            const nId = activeContext.activeNoteId;
-            const nTitle = activeContext.activeNoteTitle || "Untitled Note";
-            const cName = activeContext.activeCourseName || "General Study";
+          const currentCtx = activeContextRef.current;
+          if (currentCtx?.activeNoteId) {
+            const nId = currentCtx.activeNoteId;
+            const nTitle = currentCtx.activeNoteTitle || "Untitled Note";
+            const cName = currentCtx.activeCourseName || "General Study";
 
-            setNoteTimeSpent((prev) => {
-              const current = prev[nId] || {
-                noteId: nId,
-                noteTitle: nTitle,
-                courseName: cName,
-                seconds: 0,
-                lastStudied: Date.now(),
-              };
-              return {
-                ...prev,
-                [nId]: {
-                  ...current,
-                  noteTitle: nTitle,
-                  courseName: cName,
-                  seconds: current.seconds + 1,
-                  lastStudied: Date.now(),
-                },
-              };
-            });
+            if (!noteAccumulatorRef.current || noteAccumulatorRef.current.id !== nId) {
+              flushNoteAccumulator();
+              noteAccumulatorRef.current = { id: nId, title: nTitle, course: cName, seconds: 1 };
+            } else {
+              noteAccumulatorRef.current.seconds += 1;
+            }
+
+            if (ticks % 10 === 0) {
+              flushNoteAccumulator();
+            }
           }
         }
 
         setTimeLeft((prev) => {
           if (prev <= 1) {
             // Timer Finished
-            soundscapeEngine.stop();
-            soundscapeEngine.playChime();
+            flushNoteAccumulator();
 
             if (mode === "focus") {
-              setCompletedSessions((c) => c + 1);
+              setCompletedSessions((c) => {
+                const nextSessionCount = c + 1;
+                const currentCtx = activeContextRef.current;
+                const currentPlan = activePlanRef.current;
+
+                // Record Session History
+                const record: PomodoroSessionRecord = {
+                  id: `sess-${Date.now()}`,
+                  timestamp: Date.now(),
+                  courseName: currentCtx?.activeCourseName || "General Study",
+                  noteTitle: currentCtx?.activeNoteTitle || "Workspace Study",
+                  durationMinutes: settings.focusMinutes,
+                  efficiencyScore: currentPlan ? currentPlan.efficiencyScore : 95,
+                  intervalsCompleted: nextSessionCount,
+                };
+                setSessionHistory((prevHistory) => {
+                  const updatedHistory = [record, ...prevHistory.slice(0, 49)];
+                  saveAnalytics(noteTimeSpent, updatedHistory);
+                  return updatedHistory;
+                });
+
+                return nextSessionCount;
+              });
+
               setSessionCompletedSignal({ id: Date.now(), timestamp: Date.now() });
-
-              // Record Session History
-              const record: PomodoroSessionRecord = {
-                id: `sess-${Date.now()}`,
-                timestamp: Date.now(),
-                courseName: activeContext?.activeCourseName || "General Study",
-                noteTitle: activeContext?.activeNoteTitle || "Workspace Study",
-                durationMinutes: settings.focusMinutes,
-                efficiencyScore: activePlan ? activePlan.efficiencyScore : 95,
-                intervalsCompleted: completedSessions + 1,
-              };
-              setSessionHistory((prev) => [record, ...prev.slice(0, 49)]);
-
               setMode("shortBreak");
               return settings.shortBreakMinutes * 60;
             } else {
@@ -257,7 +303,7 @@ export function usePomodoroTimer(activeContext?: {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isRunning, mode, settings, activeContext, completedSessions, activePlan]);
+  }, [isRunning, mode, settings, saveTodaySeconds, flushNoteAccumulator, saveAnalytics, noteTimeSpent]);
 
   const togglePlay = useCallback(() => {
     setIsRunning((r) => {
@@ -282,9 +328,6 @@ export function usePomodoroTimer(activeContext?: {
   }, []);
 
   const completeSession = useCallback(() => {
-    soundscapeEngine.stop();
-    soundscapeEngine.playChime();
-
     if (mode === "focus") {
       const durationMinutes =
         settings.focusMinutes;
@@ -322,7 +365,6 @@ export function usePomodoroTimer(activeContext?: {
 
   const resetTimer = useCallback(() => {
     setIsRunning(false);
-    soundscapeEngine.stop();
     const mins =
       mode === "focus"
         ? settings.focusMinutes
@@ -335,7 +377,6 @@ export function usePomodoroTimer(activeContext?: {
   const switchMode = useCallback(
     (newMode: PomodoroMode) => {
       setIsRunning(false);
-      soundscapeEngine.stop();
       setMode(newMode);
       const mins =
         newMode === "focus"
@@ -355,7 +396,6 @@ export function usePomodoroTimer(activeContext?: {
       shortBreakMinutes: sBreak,
     }));
     setIsRunning(false);
-    soundscapeEngine.stop();
     setMode("focus");
     setTimeLeft(focus * 60);
   }, []);
@@ -389,15 +429,11 @@ export function usePomodoroTimer(activeContext?: {
     totalDuration,
     isRunning,
     settings,
-    soundscape,
-    soundVolume,
     completedSessions,
     sessionCompletedSignal,
     clearSessionCompletedSignal: () => setSessionCompletedSignal(null),
     miniPillDismissed,
     setMiniPillDismissed,
-    setSoundscape,
-    setSoundVolume,
     togglePlay,
     addTime,
     skipTime,

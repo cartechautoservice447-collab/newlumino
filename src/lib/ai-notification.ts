@@ -1,4 +1,4 @@
-export type AiNotificationPersona = "coach" | "professor" | "zen" | "hacker";
+export type AiNotificationPersona = "coach" | "professor" | "mentor" | "hacker";
 
 export type AiNotificationCategory =
   | "study_nudge"
@@ -119,10 +119,10 @@ export async function generateAiNotification(options: {
 
   // Graceful local fallback
   const localFallback: AiNotificationResult = {
-    title: persona === "zen" ? "🧘 Mindful Breath" : "⚡ Active Recall Prompt",
-    message: "Test your recall: explain one core mechanism aloud before reading your notes!",
+    title: persona === "mentor" ? "🌱 Study Insight" : "⚡ Focus Boost",
+    message: "Keep momentum going: review the core summary before jumping to the next section!",
     type: "info",
-    categoryBadge: "Active Recall",
+    categoryBadge: "Study Boost",
     timestamp: Date.now(),
   };
 

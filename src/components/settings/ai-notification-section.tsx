@@ -37,12 +37,12 @@ import {
 const PERSONAS: { id: AiNotificationPersona; label: string; desc: string; icon: React.ElementType }[] = [
   { id: "coach", label: "Coach", desc: "High energy & focus drive", icon: Zap },
   { id: "professor", label: "Professor", desc: "Socratic inquiry & depth", icon: GraduationCap },
-  { id: "zen", label: "Zen Master", desc: "Mindful flow & breath", icon: Coffee },
+  { id: "mentor", label: "Mentor", desc: "Mindful pacing & clarity", icon: Coffee },
   { id: "hacker", label: "Tech Lead", desc: "Edge cases & logic probe", icon: Terminal },
 ];
 
 const CATEGORIES: { id: AiNotificationCategory; label: string; icon: React.ElementType }[] = [
-  { id: "study_nudge", label: "Recall Nudge", icon: Brain },
+  { id: "study_nudge", label: "Study Nudge", icon: Brain },
   { id: "daily_goal", label: "Goal Boost", icon: Target },
   { id: "break_reminder", label: "Mindful Break", icon: Coffee },
   { id: "retention_quiz", label: "Mini Quiz", icon: Sparkles },
@@ -135,7 +135,7 @@ export function AiNotificationSection({
               AI-Integrated Notification System
             </h3>
             <p className="text-[0.68rem] text-muted-foreground/70">
-              Contextual Gemini micro-nudges, active recall drills &amp; milestone celebrations
+              Contextual Gemini study micro-nudges, goal reminders &amp; milestone celebrations
             </p>
           </div>
         </div>
@@ -156,7 +156,7 @@ export function AiNotificationSection({
           <div>
             <p className="text-xs font-semibold text-foreground">AI Smart Nudges (Gemini)</p>
             <p className="text-[0.65rem] text-muted-foreground">
-              Intelligent active recall prompts and memory retention drills
+              Intelligent study prompts and memory retention reminders
             </p>
           </div>
           <Switch

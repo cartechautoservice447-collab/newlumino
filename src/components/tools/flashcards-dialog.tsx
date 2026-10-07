@@ -52,7 +52,7 @@ interface Props {
 }
 
 const ARCHETYPES: { id: FlashcardArchetype; label: string; icon: React.ElementType; desc: string }[] = [
-  { id: "mixed", label: "Mixed Recall", icon: Target, desc: "Balanced blend of theory, code, and conceptual cards" },
+  { id: "mixed", label: "Mixed Study", icon: Target, desc: "Balanced blend of theory, code, and conceptual cards" },
   { id: "conceptual", label: "Concepts & Terms", icon: Lightbulb, desc: "Definitions, theoretical mechanisms & principles" },
   { id: "code_cloze", label: "Code & Cloze", icon: Code2, desc: "Output prediction, syntax fill-in-blanks & bugs" },
   { id: "contrast", label: "Contrast & Compare", icon: Scale, desc: "Differentiating confusable functions & mechanisms" },
@@ -77,7 +77,7 @@ export function FlashcardsDialog({
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [aiGeneratedCount, setAiGeneratedCount] = useState(0);
 
-  // 3. Multi-Archetype Active Recall State
+  // 3. Multi-Archetype Study State
   const [activeArchetype, setActiveArchetype] = useState<FlashcardArchetype>("mixed");
 
   // 5. Adaptive Spaced Repetition (FSRS / Weak Cards) State
@@ -183,7 +183,7 @@ export function FlashcardsDialog({
         confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
         showNotification({
           message: "Flashcards Synthesized",
-          description: `Generated ${aiCards.length} verified active recall cards via Gemini AI.`,
+          description: `Generated ${aiCards.length} verified study flashcards via Gemini AI.`,
           type: "success",
         });
       }
@@ -330,7 +330,7 @@ export function FlashcardsDialog({
               </span>
               <div>
                 <DialogTitle className="text-lg font-bold tracking-tight text-foreground">
-                  Active Recall Flashcards
+                  Smart Flashcards
                 </DialogTitle>
                 <p className="text-[0.68rem] text-muted-foreground">
                   FSRS Spaced Repetition • Note-Grounded Accuracy
@@ -437,7 +437,7 @@ export function FlashcardsDialog({
               </span>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-bold text-foreground">Gemini Active Recall</p>
+                  <p className="text-xs font-bold text-foreground">Gemini AI Deck</p>
                   <span className="rounded-full bg-purple-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-purple-300">
                     Batch #{batchIndex + 1}
                   </span>
@@ -447,7 +447,7 @@ export function FlashcardsDialog({
                     ? batchFeedback
                     : aiGeneratedCount > 0
                     ? `${aiGeneratedCount} cards generated • ${activeArchetype}`
-                    : `Generate ${batchSize} verified active recall cards`}
+                    : `Generate ${batchSize} study flashcards`}
                 </p>
               </div>
             </div>
@@ -590,7 +590,7 @@ export function FlashcardsDialog({
 
             <div>
               <h3 className="text-xl font-bold tracking-tight text-foreground">
-                Recall Interval Complete!
+                Study Interval Complete!
               </h3>
               <p className="mt-1 text-xs text-muted-foreground">
                 Spaced repetition review finished for {deck.length} cards
@@ -665,7 +665,7 @@ export function FlashcardsDialog({
             <Brain className="h-10 w-10 text-muted-foreground/50 mb-3" />
             <p className="text-sm font-semibold text-foreground">No flashcards found</p>
             <p className="mt-1 text-xs text-muted-foreground max-w-xs">
-              Tap <span className="font-bold text-purple-300">+ Batch ({batchSize})</span> above to let AI automatically generate active recall flashcards from your study notes!
+              Tap <span className="font-bold text-purple-300">+ Batch ({batchSize})</span> above to let AI automatically generate study flashcards from your notes!
             </p>
           </div>
         ) : (

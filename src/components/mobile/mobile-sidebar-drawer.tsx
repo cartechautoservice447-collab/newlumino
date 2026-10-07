@@ -142,7 +142,7 @@ export function MobileSidebarDrawer({
       const deltaY = Math.abs(touch.clientY - touchStartY.current);
 
       // Only engage if clear rightward horizontal swipe
-      if (deltaX > 15 && deltaX > deltaY * 1.4) {
+      if (deltaX > 24 && deltaX > deltaY * 2.2) {
         currentDragMode.current = "left-to-right-open";
         setIsDragging(true);
         setMounted(true);
@@ -210,8 +210,8 @@ export function MobileSidebarDrawer({
     const deltaX = touch.clientX - touchStartX.current; // negative = moving LEFT
     const deltaY = Math.abs(touch.clientY - touchStartY.current);
 
-    // Only engage horizontal drag-to-close if moving left and horizontal delta dominates vertical
-    if (deltaX < -6 && Math.abs(deltaX) > deltaY * 1.1) {
+    // Only engage horizontal drag-to-close if moving left and horizontal delta clearly dominates vertical
+    if (deltaX < -24 && Math.abs(deltaX) > deltaY * 2.2) {
       setIsDragging(true);
       // Drawer follows finger to the left in real time
       const currentX = Math.max(0, Math.min(drawerWidth, drawerWidth + deltaX));
@@ -308,7 +308,7 @@ export function MobileSidebarDrawer({
                 Study Tools &amp; Focus
               </h2>
               <p className="text-[0.65rem] text-muted-foreground">
-                Zen Focus • MD Cheatsheet • Flashcards • Pomodoro
+                MD Cheatsheet • Flashcards • Pomodoro
               </p>
             </div>
           </div>
@@ -325,70 +325,7 @@ export function MobileSidebarDrawer({
 
         {/* Content: Study Tools Modules */}
         <div className="flex-1 overflow-y-auto scroll-sleek p-2.5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] space-y-2.5 min-h-0">
-          {/* Tool 1: Zen Focus */}
-          {onToggleFocus && (
-            <button
-              type="button"
-              onClick={() => {
-                haptic("medium");
-                onOpenChange(false);
-                onToggleFocus();
-              }}
-              className={cn(
-                "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                "hover:border-emerald-500/40 hover:bg-white/[0.06]",
-                "active:scale-[0.96] active:translate-y-0.5 active:bg-emerald-500/20 active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] active:border-emerald-500/50",
-                focusMode
-                  ? "border-emerald-500/40 bg-emerald-500/10 shadow-[0_0_12px_-4px_rgba(16,185,129,0.3)]"
-                  : "border-white/10 bg-white/[0.03]"
-              )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div
-                  className={cn(
-                    "flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 group-active:scale-90",
-                    focusMode
-                      ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-400"
-                      : "border-emerald-500/30 bg-emerald-500/15 text-emerald-400"
-                  )}
-                >
-                  <Maximize2 className="h-4 w-4" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-xs font-bold text-foreground truncate">
-                      Zen Focus
-                    </h4>
-                    {focusMode && (
-                      <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.58rem] font-bold text-emerald-400">
-                        Active
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[0.65rem] text-muted-foreground truncate">
-                    Distraction-free edge-to-edge writing
-                  </p>
-                </div>
-              </div>
-
-              <div
-                className={cn(
-                  "flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors",
-                  focusMode ? "bg-emerald-500" : "bg-white/15"
-                )}
-              >
-                <div
-                  className={cn(
-                    "h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
-                    focusMode ? "translate-x-4" : "translate-x-0"
-                  )}
-                />
-              </div>
-            </button>
-          )}
-
-          {/* Tool 2: MD Cheatsheet */}
+          {/* Tool 1: MD Cheatsheet */}
           {onOpenCheatsheet && (
             <button
               type="button"
@@ -427,7 +364,7 @@ export function MobileSidebarDrawer({
             </button>
           )}
 
-          {/* Tool 3: Flashcard & Active Recall */}
+          {/* Tool 2: Flashcards */}
           {onOpenFlashcards && (
             <button
               type="button"
@@ -450,14 +387,14 @@ export function MobileSidebarDrawer({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <h4 className="text-xs font-bold text-foreground truncate">
-                      Flashcard &amp; Active Recall
+                      Study Flashcards
                     </h4>
                     <span className="rounded-full bg-purple-500/20 px-1.5 py-0.2 text-[0.58rem] font-bold text-purple-300">
                       AI ✨
                     </span>
                   </div>
                   <p className="text-[0.65rem] text-muted-foreground truncate">
-                    FSRS spaced repetition &amp; recall review
+                    FSRS spaced repetition &amp; study decks
                   </p>
                 </div>
               </div>
@@ -466,7 +403,7 @@ export function MobileSidebarDrawer({
             </button>
           )}
 
-          {/* Tool 4: Pomodoro & Soundscape */}
+          {/* Tool 3: Pomodoro Focus Timer */}
           {onOpenPomodoro && (
             <button
               type="button"
@@ -499,7 +436,7 @@ export function MobileSidebarDrawer({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <h4 className="text-xs font-bold text-foreground truncate">
-                      Pomodoro &amp; Soundscape
+                      Pomodoro Focus Timer
                     </h4>
                     {pomodoroRunning && (
                       <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.58rem] font-bold text-emerald-400">
@@ -508,7 +445,7 @@ export function MobileSidebarDrawer({
                     )}
                   </div>
                   <p className="text-[0.65rem] text-muted-foreground truncate">
-                    {todayMinutes}m focused • Timer &amp; soundscapes
+                    {todayMinutes}m focused today
                   </p>
                 </div>
               </div>

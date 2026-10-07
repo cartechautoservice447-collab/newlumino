@@ -275,7 +275,7 @@ export async function requestAIFlashcards({
       noteId,
       noteTitle,
       front: `What is the primary objective of your study session on "${noteTitle}"?`,
-      back: `Core topic: ${noteTitle}. Active recall technique: Record key equations, definitions, and code patterns to build your deck!`,
+      back: `Core topic: ${noteTitle}. Study technique: Record key equations, definitions, and code patterns to build your deck!`,
       type: "concept",
       difficulty: "easy",
     },

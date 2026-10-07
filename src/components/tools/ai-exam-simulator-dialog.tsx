@@ -227,7 +227,7 @@ export function AiExamSimulatorDialog({
                   AI Adaptive Exam Simulator
                 </DialogTitle>
                 <p className="text-[0.68rem] text-muted-foreground">
-                  Diagnostic active-recall mock exams synthesized with Gemini
+                  Diagnostic mock exams synthesized with Gemini
                 </p>
               </div>
             </div>
@@ -309,7 +309,7 @@ export function AiExamSimulatorDialog({
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: "balanced", label: "Balanced Recall" },
+                  { id: "balanced", label: "Standard Core" },
                   { id: "challenging", label: "Deep Conceptual" },
                   { id: "code_heavy", label: "Code & Logic Audit" },
                 ].map((item) => {
@@ -364,7 +364,7 @@ export function AiExamSimulatorDialog({
             <div>
               <h3 className="text-sm font-bold text-foreground">Synthesizing Diagnostic Drill</h3>
               <p className="text-xs text-muted-foreground max-w-xs mt-1">
-                Gemini is parsing "{targetNote?.title}" to engineer high-yield active-recall questions...
+                Gemini is parsing "{targetNote?.title}" to engineer high-yield practice questions...
               </p>
             </div>
           </div>

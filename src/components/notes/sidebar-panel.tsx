@@ -131,6 +131,7 @@ export function SidebarPanel({
   dailyGoalHours = 2,
 }: Props) {
   const { settings } = useCustomization();
+  const { user, signOut } = useAuth();
   const isFluidGlass = settings.websiteTheme === "fluid-glass";
   const isMobile = useIsMobile();
   const useFluidStudioUi = isFluidGlass && !isMobile;

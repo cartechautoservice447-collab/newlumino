@@ -104,7 +104,7 @@ export function MobileMoreOptionsSheet({
   const [isDragging, setIsDragging] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [sheetHeight, setSheetHeight] = useState(
-    typeof window !== "undefined" ? window.innerHeight * 0.9 : 640
+    typeof window !== "undefined" ? window.innerHeight : 800
   );
 
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -116,7 +116,7 @@ export function MobileMoreOptionsSheet({
   // Sync viewport height
   useEffect(() => {
     const updateHeight = () => {
-      setSheetHeight(window.innerHeight * 0.9);
+      setSheetHeight(window.innerHeight);
     };
     updateHeight();
     window.addEventListener("resize", updateHeight);
@@ -221,7 +221,7 @@ export function MobileMoreOptionsSheet({
         className="absolute inset-0 bg-black backdrop-blur-md cursor-pointer"
       />
 
-      {/* Bottom Sheet Container */}
+      {/* Bottom Sheet Container (Full height to top touch) */}
       <div
         ref={sheetRef}
         onTouchStart={handleTouchStart}
@@ -235,10 +235,10 @@ export function MobileMoreOptionsSheet({
             ? "none"
             : "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
-        className="glass-panel absolute inset-x-0 bottom-0 flex flex-col rounded-t-[2.25rem] border-t border-x border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden"
+        className="glass-panel absolute inset-x-0 bottom-0 top-0 h-full max-h-screen flex flex-col rounded-t-none sm:rounded-t-[2.25rem] border-t border-x border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden"
       >
-        {/* Top Grab Zone & Header */}
-        <div className="flex flex-col items-center pt-3 pb-2.5 px-4 border-b border-white/10 shrink-0 bg-white/[0.02]">
+        {/* Top Grab Zone & Header with safe area padding */}
+        <div className="flex flex-col items-center pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-2.5 px-4 border-b border-white/10 shrink-0 bg-white/[0.02]">
           {/* Tactile Pull Pill */}
           <div className="h-1.5 w-12 rounded-full bg-white/30 active:bg-primary/60 transition-all mb-2" />
 
@@ -552,7 +552,7 @@ export function MobileMoreOptionsSheet({
           {/* TAB 2: QUICK TOOLS UTILITIES */}
           {activeTab === "tools" && (
             <div className="space-y-2.5 animate-panel-in">
-              {/* Option 1: Pomodoro & Soundscape */}
+              {/* Option 1: Pomodoro Focus Timer */}
               <button
                 type="button"
                 onClick={() => {
@@ -584,7 +584,7 @@ export function MobileMoreOptionsSheet({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <h4 className="text-xs font-bold text-foreground truncate">
-                        Pomodoro &amp; Soundscape
+                        Pomodoro Focus Timer
                       </h4>
                       {pomodoroRunning && (
                         <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-emerald-400">
@@ -593,7 +593,7 @@ export function MobileMoreOptionsSheet({
                       )}
                     </div>
                     <p className="text-[0.68rem] text-muted-foreground truncate">
-                      {todayMinutes}m logged • Binaural beats
+                      {todayMinutes}m logged today • Deep focus intervals
                     </p>
                   </div>
                 </div>
@@ -606,7 +606,7 @@ export function MobileMoreOptionsSheet({
                 </div>
               </button>
 
-              {/* Option 2: Active Recall & Flashcards */}
+              {/* Option 2: Flashcards */}
               <button
                 type="button"
                 onClick={() => {
@@ -628,83 +628,20 @@ export function MobileMoreOptionsSheet({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <h4 className="text-xs font-bold text-foreground truncate">
-                        Active Recall &amp; Flashcards
+                        Study Flashcards
                       </h4>
                       <span className="rounded-full bg-purple-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-purple-300">
                         AI ✨
                       </span>
                     </div>
                     <p className="text-[0.68rem] text-muted-foreground truncate">
-                      FSRS spaced repetition • Note verification
+                      FSRS spaced repetition &amp; study decks
                     </p>
                   </div>
                 </div>
 
                 <ChevronRight className="h-3.5 w-3.5 text-purple-300/70 transition-transform group-active:translate-x-1 shrink-0" />
               </button>
-
-              {/* Option 3: Zen Focus Mode */}
-              {onToggleFocus && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("medium");
-                    handleClose();
-                    onToggleFocus();
-                  }}
-                  className={cn(
-                    "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all duration-200 ease-out cursor-pointer",
-                    "hover:border-emerald-500/40 hover:bg-white/[0.06]",
-                    "active:scale-[0.96] active:translate-y-1 active:bg-emerald-500/20 active:shadow-[inset_0_3px_12px_rgba(0,0,0,0.5)] active:border-emerald-500/50",
-                    focusMode
-                      ? "border-emerald-500/40 bg-emerald-500/10 shadow-[0_0_14px_-4px_rgba(16,185,129,0.3)]"
-                      : "border-white/10 bg-white/[0.03]"
-                  )}
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div
-                      className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 group-active:scale-90",
-                        focusMode
-                          ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-400"
-                          : "border-white/10 bg-white/[0.05] text-muted-foreground"
-                      )}
-                    >
-                      <Maximize2 className="h-4 w-4" />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs font-bold text-foreground truncate">
-                          Zen Focus Canvas
-                        </h4>
-                        {focusMode && (
-                          <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.6rem] font-bold text-emerald-400">
-                            ON
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[0.68rem] text-muted-foreground truncate">
-                        Distraction-free edge-to-edge writing
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={cn(
-                      "flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors",
-                      focusMode ? "bg-emerald-500" : "bg-white/15"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
-                        focusMode ? "translate-x-4" : "translate-x-0"
-                      )}
-                    />
-                  </div>
-                </button>
-              )}
 
               {/* Option 4: Daily Goal & Analytics */}
               {onNavigateDailyGoal && (

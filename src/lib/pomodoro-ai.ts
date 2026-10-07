@@ -10,7 +10,7 @@ export interface PomodoroPlanRequest {
   difficulty: PomodoroDifficulty;
   sessionGoal: string;
   rhythm: PomodoroRhythm;
-  activeRecallStrategy: PomodoroRecallStrategy;
+  activeRecallStrategy?: PomodoroRecallStrategy;
   noteTitle?: string;
   noteSnippet?: string;
 }
@@ -94,13 +94,13 @@ export async function requestAIPomodoroPlan(
   const milestones: string[] = [];
   for (let i = 1; i <= cyclesCount; i++) {
     if (i === 1) {
-      milestones.push(`Cycle 1: Core reading, syntax breakdown & note outlining for ${req.courseName}`);
-    } else if (i === cyclesCount && req.activeRecallStrategy !== "none") {
-      milestones.push(`Cycle ${i}: Final active recall testing, flashcard drill & summary consolidation`);
+      milestones.push(`Cycle 1: Core reading, breakdown & note outlining for ${req.courseName}`);
+    } else if (i === cyclesCount) {
+      milestones.push(`Cycle ${i}: Final review, flashcard practice & summary consolidation`);
     } else if (i === 2) {
       milestones.push(`Cycle 2: Deep problem solving, practice implementation & edge cases`);
     } else {
-      milestones.push(`Cycle ${i}: Concept refinement and targeted code verification`);
+      milestones.push(`Cycle ${i}: Concept refinement and targeted note verification`);
     }
   }
 
@@ -113,7 +113,7 @@ export async function requestAIPomodoroPlan(
     totalWorkMinutes: calculatedTotalWork,
     totalBreakMinutes: calculatedTotalBreak,
     milestones,
-    cognitivePacingAdvice: `Keep hydration near, take screen-off breaks during the ${breakMin}m intervals, and finish with active recall.`,
+    cognitivePacingAdvice: `Keep hydration near, take screen-off breaks during the ${breakMin}m intervals, and finish with a quick summary review.`,
     efficiencyScore: 94,
     fallback: true,
   };

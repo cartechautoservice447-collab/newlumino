@@ -180,7 +180,7 @@ export function DailyGoalView({
             <div>
               <h4 className="text-xs font-bold text-foreground">Ready to focus?</h4>
               <p className="text-[0.68rem] text-muted-foreground mt-0.5">
-                Start a timed session with ambient soundscapes
+                Start a structured focus session with Pomodoro timer
               </p>
             </div>
             <button

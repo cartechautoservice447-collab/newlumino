@@ -122,6 +122,9 @@
   html {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: clip;
   }
 
   * {
@@ -138,8 +141,91 @@
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     scroll-behavior: smooth;
-    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: clip;
   }
+
+  #root {
+    width: 100%;
+    max-width: 100vw;
+    min-height: 100dvh;
+    overflow-x: clip;
+  }
+}
+
+/* Guaranteed strict vertical scrolling with no horizontal page shifting */
+.dashboard-vertical-scroll {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  touch-action: pan-y !important;
+  overscroll-behavior-y: contain !important;
+  overscroll-behavior-x: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  max-width: 100% !important;
+}
+
+/* Isolated horizontal touch tracks (prevents horizontal jitter & diagonal scrolling drift) */
+.mobile-touch-track-x {
+  touch-action: pan-x !important;
+  overscroll-behavior-x: contain !important;
+  overscroll-behavior-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Mobile Touch Response: Completely remove all vertical and horizontal scrollbars and cursors */
+@media (max-width: 768px), (pointer: coarse) {
+  html, body {
+    overscroll-behavior-y: contain !important;
+    overscroll-behavior-x: none !important;
+  }
+  html, body, #root, * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  .scroll-sleek,
+  .glass-scrollbar,
+  .dashboard-vertical-scroll,
+  .gh-code pre,
+  [data-theme="fluid-glass"] .glass-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .scroll-sleek::-webkit-scrollbar,
+  .glass-scrollbar::-webkit-scrollbar,
+  .dashboard-vertical-scroll::-webkit-scrollbar,
+  .gh-code pre::-webkit-scrollbar,
+  [data-theme="fluid-glass"] .glass-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  /* Remove pointer/grab cursors on mobile screens to prioritize touch response */
+  button, a, [role="button"], input, textarea, select {
+    cursor: default !important;
+  }
+  /* Ensure instant, smooth hardware-accelerated touch momentum */
+  .dashboard-vertical-scroll,
+  .overflow-y-auto,
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+.scrollbar-none {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .glass-panel {
@@ -416,10 +502,13 @@
 .liquid-orb {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(60px) !important;
+  filter: blur(50px) !important;
   opacity: 0.75;
   pointer-events: none;
   animation: liquid-drift 18s ease-in-out infinite;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  contain: strict;
 }
 
 .liquid-orb-a {
@@ -678,7 +767,12 @@
   border: 1px solid rgba(255, 255, 255, 0.35);
   mix-blend-mode: screen;
   opacity: 0.25;
-  filter: url(#liquid-refraction);
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  [data-theme="fluid-glass"][data-liquid-glass="on"] .glass-panel::after {
+    filter: url(#liquid-refraction);
+  }
 }
 
 /* Exact Fluid Glass Studio Note Card styling */

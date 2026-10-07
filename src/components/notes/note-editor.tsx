@@ -305,7 +305,7 @@ export function NoteEditor({
             <span className="font-mono">A{fontSize === "sm" ? "↓" : fontSize === "lg" ? "↑" : ""}</span>
           </button>
 
-          {/* Interactive Active Recall Flashcard Trigger */}
+          {/* Interactive Flashcard Study Trigger */}
           {onOpenFlashcards && (
             <button
               type="button"

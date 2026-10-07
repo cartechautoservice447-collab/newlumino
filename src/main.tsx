@@ -8,14 +8,14 @@ type ErrorBoundaryState = { hasError: boolean; message: string };
 class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBoundaryState> {
   state = { hasError: false, message: "" };
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: unknown) {
     return {
       hasError: true,
       message: error instanceof Error ? error.message : "The application encountered an unexpected error.",
     };
   }
 
-  componentDidCatch(error, info) {
+  componentDidCatch(error: unknown, info: React.ErrorInfo) {
     console.error("[NewLumino] Unhandled render error:", error, info.componentStack);
   }
 

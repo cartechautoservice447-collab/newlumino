@@ -1,7 +1,6 @@
 import React from "react";
-import { Play, Pause, X, Sparkles, Volume2, RotateCcw } from "lucide-react";
+import { Play, Pause, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SOUNDSCAPE_OPTIONS } from "@/lib/soundscapes";
 import type { PomodoroState } from "@/hooks/use-pomodoro";
 import { haptic } from "@/lib/haptics";
 
@@ -16,7 +15,6 @@ export function PomodoroFloatingPill({ pomodoro, onOpenFullDialog, className }: 
     mode,
     timeLeft,
     isRunning,
-    soundscape,
     miniPillDismissed,
     setMiniPillDismissed,
     togglePlay,
@@ -28,8 +26,6 @@ export function PomodoroFloatingPill({ pomodoro, onOpenFullDialog, className }: 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const timeFormatted = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-
-  const currentSound = SOUNDSCAPE_OPTIONS.find((s) => s.id === soundscape);
 
   return (
     <div
@@ -80,13 +76,6 @@ export function PomodoroFloatingPill({ pomodoro, onOpenFullDialog, className }: 
         <span className="font-mono text-xs font-bold tabular-nums text-foreground">
           {timeFormatted}
         </span>
-
-        {/* Soundscape Emoji */}
-        {soundscape !== "none" && currentSound && (
-          <span className="text-xs opacity-80" title={currentSound.name}>
-            {currentSound.icon}
-          </span>
-        )}
 
         {/* Play/Pause Quick Toggle */}
         <button

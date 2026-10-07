@@ -63,7 +63,7 @@ export function PomodoroSessionCompleteDialog({
               Focus Session Hit!
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-xs mx-auto">
-              Ready to lock in what you just learned? Let Gemini AI generate active recall questions from your notes.
+              Ready to lock in what you just learned? Let Gemini AI generate study flashcards from your notes.
             </p>
           </div>
 

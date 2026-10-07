@@ -124,14 +124,14 @@ function synthesizeFallbackCards(title: string, body: string, count = 8, batchIn
     });
   }
 
-  // If candidate pool is still smaller than needed, generate structured conceptual active recall cards
+  // If candidate pool is still smaller than needed, generate structured conceptual study flashcards
   if (candidatePool.length < count * (batchIndex + 1)) {
     const batchThemes = [
       {
         style: "Core Principles",
         front: (t: string) => `What is the core objective and fundamental principle behind "${t}"?`,
         back: (b: string, t: string) =>
-          b.slice(0, 300) || `Active recall for ${t}: Recall foundational terms, architecture, and primary trade-offs.`,
+          b.slice(0, 300) || `Study summary for ${t}: Review foundational terms, architecture, and primary trade-offs.`,
       },
       {
         style: "Application & Edge Cases",
@@ -214,7 +214,7 @@ app.post("/api/ai/flashcards", async (req, res) => {
       batchIndex: currentBatch,
       archetype,
       fallback: true,
-      message: "Generated active recall cards from note content.",
+      message: "Generated study flashcards from note content.",
     });
   }
 
@@ -229,10 +229,10 @@ app.post("/api/ai/flashcards", async (req, res) => {
   } else if (archetype === "practical") {
     archetypeInstruction = "Focus heavily on Practical Application & Problem Solving: Pose realistic programming / engineering scenarios and ask how to solve them using the principles in the notes.";
   } else {
-    archetypeInstruction = "Create a balanced blend of Conceptual Recall, Syntax/Code Cloze, and Contrast questions.";
+    archetypeInstruction = "Create a balanced blend of Conceptual, Syntax/Code Cloze, and Contrast questions.";
   }
 
-  const prompt = `You are an elite professor and active recall expert creating high-precision study flashcards.
+  const prompt = `You are an elite professor creating high-precision study flashcards.
 Target Topic / Note Title: "${title}"
 Batch Number: ${currentBatch + 1}
 Archetype Mode: ${archetype.toUpperCase()}
@@ -246,8 +246,8 @@ ${
 
 Session context: ${
     sessionType === "pomodoro"
-      ? "A focused Pomodoro study interval just completed. Generate high-yield active recall questions based on what the student studied in this session."
-      : "Generate interactive flashcards for active recall study and exam preparation."
+      ? "A focused Pomodoro study interval just completed. Generate high-yield study questions based on what the student studied in this session."
+      : "Generate interactive flashcards for study and exam preparation."
   }
 ${
   Array.isArray(existingPrompts) && existingPrompts.length > 0
@@ -261,7 +261,7 @@ ${(noteBody || "").slice(0, 14000)}
 """
 
 Strict Requirements for 100% Accuracy:
-1. Generate exactly ${numCards} NEW, distinct active recall flashcards for Batch #${currentBatch + 1}.
+1. Generate exactly ${numCards} NEW, distinct study flashcards for Batch #${currentBatch + 1}.
 2. Note-Grounded Verification: For every flashcard, extract a "sourceExcerpt" which is the EXACT 1-2 sentence quote or snippet from the note above that proves the answer.
 3. Make the "front" concise, engaging, and clear.
 4. Make the "back" accurate, definitive, and easy to memorize (use markdown formatting, bullet points, or code blocks where helpful).
@@ -345,7 +345,6 @@ app.post("/api/ai/pomodoro-plan", async (req, res) => {
     difficulty = "high_code",
     sessionGoal = "Deep study & note mastery",
     rhythm = "ai_adaptive",
-    activeRecallStrategy = "session_end",
     noteTitle = "",
     noteSnippet = "",
   } = req.body;
@@ -387,7 +386,6 @@ Create an optimal Pomodoro execution plan based on these user specifications:
 5. Primary Goal: "${sessionGoal}"
 6. Target Note: "${noteTitle}" ${noteSnippet ? `(Snippet: ${noteSnippet.slice(0, 300)})` : ""}
 7. Rhythm Preference: ${rhythm}
-8. Active Recall Trigger: ${activeRecallStrategy}
 
 Instructions:
 1. Provide an executive summary of why this schedule maximizes cognitive retention.
@@ -456,13 +454,13 @@ Instructions:
   const fallbackMilestones: string[] = [];
   for (let i = 1; i <= cyclesCount; i++) {
     if (i === 1) {
-      fallbackMilestones.push(`Cycle 1: Core reading, syntax breakdown & note outlining for ${courseName}`);
-    } else if (i === cyclesCount && activeRecallStrategy !== "none") {
-      fallbackMilestones.push(`Cycle ${i}: Final active recall testing, flashcard drill & summary consolidation`);
+      fallbackMilestones.push(`Cycle 1: Core reading, breakdown & note outlining for ${courseName}`);
+    } else if (i === cyclesCount) {
+      fallbackMilestones.push(`Cycle ${i}: Final review, flashcard practice & summary consolidation`);
     } else if (i === 2) {
       fallbackMilestones.push(`Cycle 2: Deep problem solving, practice implementation & edge cases`);
     } else {
-      fallbackMilestones.push(`Cycle ${i}: Concept refinement and targeted code verification`);
+      fallbackMilestones.push(`Cycle ${i}: Concept refinement and targeted note verification`);
     }
   }
 
@@ -475,7 +473,7 @@ Instructions:
     totalWorkMinutes: calculatedTotalWork,
     totalBreakMinutes: calculatedTotalBreak,
     milestones: fallbackMilestones,
-    cognitivePacingAdvice: `Keep hydration near, take screen-off breaks during the ${breakMin}m intervals, and finish with active recall.`,
+    cognitivePacingAdvice: `Keep hydration near, take screen-off breaks during the ${breakMin}m intervals, and finish with a quick summary review.`,
     efficiencyScore: 95,
     fallback: true,
   });
@@ -501,14 +499,14 @@ app.post("/api/ai/notification", async (req, res) => {
   const personaPrompts: Record<string, string> = {
     coach: "Energetic, inspiring, high-performance athletic coach pushing the student to level up their intellectual stamina and retention.",
     professor: "Distinguished academic professor using socratic questioning, intellectual rigor, and deep conceptual insight.",
-    zen: "Calm, mindful Zen master emphasizing deep breath, flow state, single-tasking, and tranquil cognitive clarity.",
+    mentor: "Calm, thoughtful mentor emphasizing mindful pacing, flow state, single-tasking, and tranquil cognitive clarity.",
     hacker: "Pragmatic, sharp software engineer / tech lead focusing on systematic problem-solving, debugging edge cases, and high-efficiency shipping.",
   };
 
   const categoryPrompts: Record<string, string> = {
-    study_nudge: "A micro-nudge prompting active recall or deeper retention on what they're studying.",
+    study_nudge: "A micro-nudge prompting focus or deeper understanding of what they're studying.",
     milestone: "A celebratory acknowledgement of focus progress and intellectual stamina.",
-    retention_quiz: "A quick mental quiz question or recall check prompt.",
+    retention_quiz: "A quick mental quiz question or concept check prompt.",
     break_reminder: "A gentle nudge to step away, rest their eyes, hydrate, and consolidate memories.",
     daily_goal: "A motivating status check on their daily study target and progress.",
   };
@@ -519,15 +517,15 @@ app.post("/api/ai/notification", async (req, res) => {
   // Fallback notifications if API key is absent or upstream is busy
   const fallbackPresets: Record<string, Array<{ title: string; message: string; type: "info" | "success" | "warning"; categoryBadge: string }>> = {
     coach: [
-      { title: "⚡ Peak Retention Mode", message: "You've logged solid focus. Test yourself on 3 key formulas before checking the note!", type: "info", categoryBadge: "Active Recall" },
+      { title: "⚡ Peak Focus Mode", message: "You've logged solid focus. Review key ideas before checking the note!", type: "info", categoryBadge: "Study Boost" },
       { title: "🔥 Momentum Unleashed", message: "Great consistency today. Push through the next 15 minutes to lock in long-term memory.", type: "success", categoryBadge: "Goal Sprint" },
     ],
     professor: [
-      { title: "🎓 Socratic Check", message: `Can you explain the core mechanism of "${noteTitle}" in simple terms without reading?`, type: "info", categoryBadge: "Conceptual Recall" },
+      { title: "🎓 Socratic Check", message: `Can you explain the core mechanism of "${noteTitle}" in simple terms without reading?`, type: "info", categoryBadge: "Concept Check" },
       { title: "📖 Deep Synthesis", message: `Reviewing ${activeCourseName}: identify one counter-example to solidify your mental model.`, type: "info", categoryBadge: "Deep Theory" },
     ],
-    zen: [
-      { title: "🧘 Mindful Clarity", message: "Take one slow breath. Release eye tension. Allow the concepts to settle organically.", type: "info", categoryBadge: "Zen Flow" },
+    mentor: [
+      { title: "🌱 Mindful Clarity", message: "Take one slow breath. Release eye tension. Allow the concepts to settle organically.", type: "info", categoryBadge: "Clarity Flow" },
       { title: "🍃 Single-Task Focus", message: "One idea at a time. Quality of contemplation beats hurried skimming.", type: "success", categoryBadge: "Mindfulness" },
     ],
     hacker: [
@@ -561,7 +559,7 @@ Student Context:
 - Total Notes: ${notesCount} across ${coursesCount} courses
 
 Strict formatting requirements:
-1. "title": Catchy, short title with an emoji (max 28 chars, e.g. "⚡ Active Recall Drill")
+1. "title": Catchy, short title with an emoji (max 28 chars, e.g. "⚡ Focus Drill")
 2. "message": Concise, punchy 1-2 sentence alert (max 110 chars)
 3. "type": exactly one of "info", "success", "warning"
 4. "categoryBadge": short 2-3 word label (e.g. "Spaced Repetition", "Mindful Break")
@@ -680,14 +678,14 @@ app.post("/api/ai/exam-simulate", async (req, res) => {
         id: `q-${idx}`,
         question: `Which fundamental principle of "${noteTitle}" is most critical for long-term retention?`,
         options: [
-          "Consistent active recall and testing without referencing source material immediately",
+          "Consistent self-testing and deliberate retrieval practice without referencing source material immediately",
           "Passive re-reading of highlight passages without self-explanation",
           "Memorizing exact syntax without understanding underlying control flow",
           "Skipping problem edge cases to maximize reading velocity",
         ],
         correctIndex: 0,
-        explanation: "Active recall and deliberate retrieval practice are proven to maximize retention and conceptual mastery.",
-        topicTag: "Active Recall",
+        explanation: "Deliberate retrieval practice is proven to maximize retention and conceptual mastery.",
+        topicTag: "Study Strategy",
       });
     }
 
@@ -821,7 +819,7 @@ app.post("/api/ai/note-polish", async (req, res) => {
     const summary: string[] = [];
 
     if (mode === "study_guide") {
-      result = `# ${noteTitle}\n\n> 🎯 **Executive Summary**: Core concepts and high-yield principles for active study.\n\n${noteBody}\n\n## 💡 Key Takeaways\n- Master foundational definitions and terminology\n- Test retention through active recall practice\n- Review code edge cases and practical implementations`;
+      result = `# ${noteTitle}\n\n> 🎯 **Executive Summary**: Core concepts and high-yield principles for active study.\n\n${noteBody}\n\n## 💡 Key Takeaways\n- Master foundational definitions and terminology\n- Test retention through flashcard practice\n- Review code edge cases and practical implementations`;
       summary.push("Added Executive Summary block", "Structured headings and bullet formatting", "Added Key Takeaways section");
     } else if (mode === "code_debug") {
       result = `${noteBody}\n\n### ⚡ Code Verification & Edge-Case Audit\n- ✅ Syntax validated against standard conventions\n- ⚠️ Ensure bounds checking and null safety on inputs\n- 💡 Recommended: add unit test coverage for edge values`;
@@ -856,7 +854,7 @@ app.post("/api/ai/note-polish", async (req, res) => {
 - Add a bold 1-2 sentence '> 🎯 **Executive Summary**' callout at the top
 - Structure definitions using bold terms with clear explanations
 - Turn tabular data or comparisons into clean Markdown tables
-- Add a '## 💡 Key Takeaways & Active Recall Checks' section at the end
+- Add a '## 💡 Key Takeaways & Review Checklist' section at the end
 - Preserve all existing factual knowledge and code snippets accurately!`;
   } else if (mode === "code_debug") {
     modeInstruction = `Perform a comprehensive Code Audit & Debugging check on all code snippets in this note:
@@ -870,7 +868,7 @@ app.post("/api/ai/note-polish", async (req, res) => {
 - Form vivid mental imagery and spatial visual anchors
 - Include quick self-test memory prompts to lock in long-term retention.`;
   } else {
-    modeInstruction = `Extract the essential High-Yield Takeaways and active recall summary from this note.`;
+    modeInstruction = `Extract the essential High-Yield Takeaways and review summary from this note.`;
   }
 
   const prompt = `You are NewLumino's Elite Academic Editor & Code Specialist.

@@ -998,7 +998,7 @@ function MobileSwipeableSettingsSheet({
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
   const touchStartTime = useRef(0);
-  const currentDragMode = useRef<"up-to-open" | "down-to-close" | null>(null);
+  const currentDragMode = useRef<"down-to-close" | null>(null);
 
   // Keep sheetHeight in sync with viewport
   useEffect(() => {
@@ -1026,83 +1026,6 @@ function MobileSwipeableSettingsSheet({
       return () => clearTimeout(timer);
     }
   }, [open, sheetHeight, isDragging]);
-
-  // Global bottom-edge touch listener for "Swipe up from bottom to open"
-  useEffect(() => {
-    let trackingGesture = false;
-
-    const handleWindowTouchStart = (e: TouchEvent) => {
-      if (open || e.touches.length !== 1) return;
-      const touch = e.touches[0];
-      // Check if touch begins near bottom of screen (bottom 130px)
-      if (touch.clientY >= window.innerHeight - 130) {
-        touchStartY.current = touch.clientY;
-        touchStartX.current = touch.clientX;
-        touchStartTime.current = Date.now();
-        trackingGesture = true;
-      }
-    };
-
-    const handleWindowTouchMove = (e: TouchEvent) => {
-      if (!trackingGesture || open || e.touches.length !== 1) return;
-      const touch = e.touches[0];
-      const deltaY = touchStartY.current - touch.clientY; // positive = moving UP
-      const deltaX = Math.abs(touch.clientX - touchStartX.current);
-
-      if (deltaY > 6 && deltaY > deltaX) {
-        // Engaged! The finger is swiping UP from bottom
-        currentDragMode.current = "up-to-open";
-        setIsDragging(true);
-        setMounted(true);
-
-        // Calculate sheet position in REAL TIME tracking finger exactly!
-        // At deltaY = 0, dragY = sheetHeight (fully hidden)
-        // As deltaY increases, dragY decreases towards 0 (fully open)
-        const currentY = Math.max(0, sheetHeight - deltaY);
-        setDragY(currentY);
-      }
-    };
-
-    const handleWindowTouchEnd = (e: TouchEvent) => {
-      if (!trackingGesture) return;
-      trackingGesture = false;
-
-      if (currentDragMode.current === "up-to-open") {
-        const touch = e.changedTouches[0];
-        const deltaY = touchStartY.current - touch.clientY;
-        const duration = Math.max(1, Date.now() - touchStartTime.current);
-        const velocity = deltaY / duration; // px per ms
-
-        setIsDragging(false);
-        currentDragMode.current = null;
-
-        // If swiped up past 80px or upward flick velocity > 0.35px/ms
-        if (deltaY > 80 || velocity > 0.35) {
-          haptic("medium");
-          setDragY(0);
-          onOpenChange(true);
-        } else {
-          // Snap back down
-          setDragY(sheetHeight);
-          setTimeout(() => {
-            setMounted(false);
-          }, 300);
-        }
-      }
-    };
-
-    window.addEventListener("touchstart", handleWindowTouchStart, { capture: true, passive: true });
-    window.addEventListener("touchmove", handleWindowTouchMove, { capture: true, passive: true });
-    window.addEventListener("touchend", handleWindowTouchEnd, { capture: true, passive: true });
-    window.addEventListener("touchcancel", handleWindowTouchEnd, { capture: true, passive: true });
-
-    return () => {
-      window.removeEventListener("touchstart", handleWindowTouchStart, { capture: true });
-      window.removeEventListener("touchmove", handleWindowTouchMove, { capture: true });
-      window.removeEventListener("touchend", handleWindowTouchEnd, { capture: true });
-      window.removeEventListener("touchcancel", handleWindowTouchEnd, { capture: true });
-    };
-  }, [open, sheetHeight, onOpenChange]);
 
   // Touch listener on the sheet for "Swipe down to close"
   const handleSheetTouchStart = (e: React.TouchEvent) => {

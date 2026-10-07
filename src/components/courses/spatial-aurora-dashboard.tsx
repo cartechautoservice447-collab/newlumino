@@ -169,12 +169,12 @@ export function SpatialAuroraDashboard({
       <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-violet-400/10 blur-[130px]" />
 
       <div className="dashboard-vertical-scroll relative z-10 h-full w-full max-w-full overflow-y-auto overflow-x-hidden overscroll-y-contain overscroll-x-none touch-pan-y pb-28">
-        <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#070a10]/80 px-4 sm:px-6 pb-4 sm:pb-3.5 pt-[calc(0.9rem+env(safe-area-inset-top,0px))] backdrop-blur-2xl">
+        <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#070a10]/80 px-4 sm:px-6 pb-5 sm:pb-3.5 pt-[calc(1rem+env(safe-area-inset-top,0px))] backdrop-blur-2xl">
           <div className="mx-auto flex w-full max-w-[720px] lg:max-w-[960px] items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
+            <div className="flex min-w-0 items-center gap-4 sm:gap-4">
               <div className="relative shrink-0">
                 <div className="rounded-2xl bg-gradient-to-tr from-emerald-400 via-teal-400 to-indigo-500 p-[1.5px] shadow-[0_0_20px_rgba(78,222,163,.4)]">
-                  <div className="flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center rounded-[14px] bg-[#0c111c] text-base sm:text-lg font-black text-emerald-300">
+                  <div className="flex h-16 w-16 sm:h-15 sm:w-15 items-center justify-center rounded-[14px] bg-[#0c111c] text-base sm:text-lg font-black text-emerald-300">
                     {initials(name)}
                   </div>
                 </div>
@@ -187,12 +187,12 @@ export function SpatialAuroraDashboard({
                   <span className="text-xs text-slate-400">{new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }).format(new Date())}</span>
                 </div>
                 <div className="leading-snug mt-0.5">
-                  <h1 className="text-[20px] leading-tight sm:text-2xl font-extrabold tracking-tight text-white/90 flex flex-wrap items-baseline gap-1.5">
+                  <h1 className="text-[26px] leading-[1.08] sm:text-2xl font-extrabold tracking-tight text-white/90 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                     <span>Welcome back,</span>
                     <span className="text-emerald-300">{firstName}</span>
                   </h1>
                 </div>
-                <p className="mt-1 text-[11px] leading-4 sm:text-sm italic tracking-wide text-emerald-200/80 whitespace-normal">"Quiet craft leads to compounding mastery"</p>
+                <p className="mt-2 text-[13px] leading-5 sm:text-sm italic tracking-wide text-emerald-200/80 whitespace-normal">"Quiet craft leads to compounding mastery"</p>
               </div>
             </div>
 

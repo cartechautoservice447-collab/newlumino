@@ -510,20 +510,81 @@ const MobileRecentActivity = memo(function MobileRecentActivity({
   onOpenNote: (noteId: string, courseId?: string) => void;
 }) {
   if (!notes.length) return null;
-  return <section>
-    <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-bold text-foreground">Recent activity</h2><span className="text-[11px] text-muted-foreground">Pick up quickly</span></div>
-    <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 pr-1 scrollbar-none overscroll-x-contain">
-      {notes.map((note) => {
-        const course = note.courseId ? coursesById.get(note.courseId) : undefined;
-        const accent = course ? ACCENT_STYLES[course.color] : ACCENT_STYLES.sky;
-        return <button key={note.id} type="button" onClick={() => { haptic("light"); onOpenNote(note.id, note.courseId || undefined); }} className="mobile-glass-lite w-[205px] shrink-0 snap-start rounded-2xl p-3 text-left transition-transform active:scale-[0.98]">
-          <span className={cn("inline-flex max-w-full items-center gap-1.5 truncate rounded-md border px-1.5 py-0.5 text-[10px] font-semibold", accent.border, accent.bg, accent.text)}><span className={cn("h-1.5 w-1.5 rounded-full", accent.dot)} />{course?.name || "General"}</span>
-          <strong className="mt-2 block truncate text-xs text-foreground">{note.title || "Untitled note"}</strong>
-          <span className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground"><Clock3 className="h-3 w-3" />{formatDate(note.updatedAt)}</span>
-        </button>;
-      })}
-    </div>
-  </section>;
+
+  return (
+    <section className="space-y-3.5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-bold text-foreground">Recent activity</h2>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Continue where you left off</p>
+        </div>
+        <span className="shrink-0 text-[10px] font-mono text-muted-foreground/80">
+          {notes.length} {notes.length === 1 ? "recent note" : "recent notes"}
+        </span>
+      </div>
+
+      <div className="w-full flex snap-x snap-mandatory gap-3.5 overflow-x-auto pb-2 pt-0.5 scrollbar-none overscroll-x-contain touch-pan-x">
+        {notes.map((note) => {
+          const course = note.courseId ? coursesById.get(note.courseId) : undefined;
+          const accent = course ? (ACCENT_STYLES[course.color] ?? ACCENT_STYLES.sky) : ACCENT_STYLES.sky;
+
+          return (
+            <button
+              key={note.id}
+              type="button"
+              onClick={() => {
+                haptic("light");
+                onOpenNote(note.id, note.courseId || undefined);
+              }}
+              className="group relative flex min-h-[148px] w-[245px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4 text-left shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_24px_0_rgba(0,0,0,0.3)] backdrop-blur-2xl transition-all duration-200 active:scale-[0.98] min-[375px]:w-[265px]"
+              aria-label={"Open " + (note.title || "Untitled Note")}
+            >
+              <div>
+                <div className="mb-1.5 flex items-center justify-between gap-1.5">
+                  <span
+                    className={cn(
+                      "inline-flex max-w-[170px] items-center gap-1 truncate rounded-lg border px-2 py-0.5 text-[10px] font-bold shadow-sm",
+                      accent.border,
+                      accent.bg,
+                      accent.text,
+                    )}
+                  >
+                    <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", accent.dot)} />
+                    <span className="truncate">{course?.name || "General"}</span>
+                  </span>
+
+                  {note.favorite ? (
+                    <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />
+                  ) : (
+                    <span className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  )}
+                </div>
+
+                <h3 className="mt-1 line-clamp-1 text-[13px] font-bold tracking-tight text-foreground">
+                  {note.title || "Untitled Note"}
+                </h3>
+
+                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground/80">
+                  {cleanSnippet(note.body, 85) || "Empty note snippet..."}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-t border-white/[0.06] pt-2.5 text-[10px] text-muted-foreground/75">
+                <span className="flex min-w-0 items-center gap-1 truncate font-mono">
+                  <Clock3 className="h-2.5 w-2.5 shrink-0 opacity-60" />
+                  <span className="truncate">{formatDate(note.updatedAt)}</span>
+                </span>
+                <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-primary">
+                  Resume
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
 });
 
 const MobileCourseCard = memo(function MobileCourseCard({

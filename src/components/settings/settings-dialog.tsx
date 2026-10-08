@@ -14,7 +14,7 @@ import { AiNotificationSection } from "./ai-notification-section";
 
 function Section({ title, hint, children }: { title: string; hint?: string | undefined; children: React.ReactNode }) {
   return (
-    <section className="space-y-3 rounded-2xl border border-white/5 bg-white/[0.03] p-4 backdrop-blur-md">
+    <section className="space-y-3 rounded-2xl border border-white/5 bg-white/[0.03] p-4 md:backdrop-blur-md">
       <div>
         <h3 className="text-[0.7rem] uppercase tracking-[0.24em] text-muted-foreground/80 font-bold">{title}</h3>
         {hint ? <p className="mt-1 text-xs text-muted-foreground/70 leading-relaxed">{hint}</p> : null}
@@ -57,6 +57,46 @@ function Ticks<T extends string>({
   );
 }
 
+function CommitSlider({
+  value,
+  min,
+  max,
+  step,
+  onCommit,
+  ariaLabel,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onCommit: (v: number) => void;
+  ariaLabel?: string;
+}) {
+  const [draftValue, setDraftValue] = useState(value);
+
+  useEffect(() => {
+    setDraftValue(value);
+  }, [value]);
+
+  return (
+    <Slider
+      value={[draftValue]}
+      min={min}
+      max={max}
+      step={step}
+      onValueChange={(v) => {
+        const next = v[0];
+        if (typeof next === "number") setDraftValue(next);
+      }}
+      onValueCommit={(v) => {
+        const next = v[0];
+        if (typeof next === "number") onCommit(next);
+      }}
+      aria-label={ariaLabel}
+    />
+  );
+}
+
 function SliderRow({
   label,
   value,
@@ -74,21 +114,35 @@ function SliderRow({
   step: number;
   onChange: (v: number) => void;
 }) {
+  const [draftValue, setDraftValue] = useState(value);
+
+  useEffect(() => {
+    setDraftValue(value);
+  }, [value]);
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs">
         <span className="text-muted-foreground font-medium">{label}</span>
         <span className="tabular-nums text-foreground/90 font-mono font-semibold">
-          {value}
+          {draftValue}
           {suffix ?? ""}
         </span>
       </div>
       <Slider
-        value={[value]}
+        value={[draftValue]}
         min={min}
         max={max}
         step={step}
-        onValueChange={(v) => onChange(v[0] ?? value)}
+        onValueChange={(v) => {
+          const next = v[0];
+          if (typeof next === "number") setDraftValue(next);
+        }}
+        onValueCommit={(v) => {
+          const next = v[0];
+          if (typeof next === "number") onChange(next);
+        }}
+        aria-label={label}
       />
     </div>
   );
@@ -546,13 +600,13 @@ function SettingsContent({
                       </span>
                       <span className="font-mono text-xs text-accent-foreground">{settings.fluidBackgroundOpacity}%</span>
                     </div>
-                    <Slider
-                      value={[settings.fluidBackgroundOpacity]}
+                    <CommitSlider
+                      value={settings.fluidBackgroundOpacity}
                       min={0}
                       max={100}
                       step={1}
-                      onValueChange={(vals) => update({ fluidBackgroundOpacity: vals[0] ?? 100 })}
-                      aria-label="Background Opacity"
+                      onCommit={(v) => update({ fluidBackgroundOpacity: v })}
+                      ariaLabel="Background Opacity"
                     />
                     <p className="text-xs leading-relaxed text-muted-foreground">
                       Controls only the background layer behind the Glass UI.
@@ -609,13 +663,13 @@ function SettingsContent({
                   <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Liquid Density</span>
                   <span className="font-mono text-xs text-accent-foreground">{settings.fluidDensity}px</span>
                 </div>
-                <Slider
-                  value={[settings.fluidDensity]}
+                <CommitSlider
+                  value={settings.fluidDensity}
                   min={0}
                   max={40}
                   step={1}
-                  onValueChange={(vals) => update({ fluidDensity: vals[0] ?? 12 })}
-                  aria-label="Liquid Density"
+                  onCommit={(v) => update({ fluidDensity: v })}
+                  ariaLabel="Liquid Density"
                 />
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   Viscosity & refraction — backdrop blur radius of every glass surface.
@@ -627,13 +681,13 @@ function SettingsContent({
                   <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Liquid Transparency</span>
                   <span className="font-mono text-xs text-accent-foreground">{settings.fluidTransparency}%</span>
                 </div>
-                <Slider
-                  value={[settings.fluidTransparency]}
+                <CommitSlider
+                  value={settings.fluidTransparency}
                   min={5}
                   max={95}
                   step={1}
-                  onValueChange={(vals) => update({ fluidTransparency: vals[0] ?? 45 })}
-                  aria-label="Liquid Transparency"
+                  onCommit={(v) => update({ fluidTransparency: v })}
+                  ariaLabel="Liquid Transparency"
                 />
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   Alpha blending — how much of the world behind shows through the panel.
@@ -645,13 +699,13 @@ function SettingsContent({
                   <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Liquid Clearness</span>
                   <span className="font-mono text-xs text-accent-foreground">{settings.fluidClearness} idx</span>
                 </div>
-                <Slider
-                  value={[settings.fluidClearness]}
+                <CommitSlider
+                  value={settings.fluidClearness}
                   min={0}
                   max={100}
                   step={1}
-                  onValueChange={(vals) => update({ fluidClearness: vals[0] ?? 35 })}
-                  aria-label="Liquid Clearness"
+                  onCommit={(v) => update({ fluidClearness: v })}
+                  ariaLabel="Liquid Clearness"
                 />
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   Distortion & glare clarity — SVG turbulence index on refracted edges.
@@ -663,13 +717,13 @@ function SettingsContent({
                   <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground">Liquid Gel</span>
                   <span className="font-mono text-xs text-accent-foreground">{settings.fluidGel}%</span>
                 </div>
-                <Slider
-                  value={[settings.fluidGel]}
+                <CommitSlider
+                  value={settings.fluidGel}
                   min={0}
                   max={100}
                   step={1}
-                  onValueChange={(vals) => update({ fluidGel: vals[0] ?? 55 })}
-                  aria-label="Liquid Gel"
+                  onCommit={(v) => update({ fluidGel: v })}
+                  ariaLabel="Liquid Gel"
                 />
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   Surface tension curves, 3D inner bevel and drop shadow depth.
@@ -685,13 +739,13 @@ function SettingsContent({
                     </span>
                     <span className="font-mono text-xs text-accent-foreground">{settings.fluidBounceStiffness}</span>
                   </div>
-                  <Slider
-                    value={[settings.fluidBounceStiffness]}
+                  <CommitSlider
+                    value={settings.fluidBounceStiffness}
                     min={100}
                     max={500}
                     step={5}
-                    onValueChange={(vals) => update({ fluidBounceStiffness: vals[0] ?? 200 })}
-                    aria-label="Liquid Bounce Stiffness"
+                    onCommit={(v) => update({ fluidBounceStiffness: v })}
+                    ariaLabel="Liquid Bounce Stiffness"
                   />
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     Spring stiffness driving the gel bounce on hover, click and drag.
@@ -705,13 +759,13 @@ function SettingsContent({
                     </span>
                     <span className="font-mono text-xs text-accent-foreground">{settings.fluidBounceDamping}</span>
                   </div>
-                  <Slider
-                    value={[settings.fluidBounceDamping]}
+                  <CommitSlider
+                    value={settings.fluidBounceDamping}
                     min={10}
                     max={40}
                     step={1}
-                    onValueChange={(vals) => update({ fluidBounceDamping: vals[0] ?? 24 })}
-                    aria-label="Liquid Bounce Damping"
+                    onCommit={(v) => update({ fluidBounceDamping: v })}
+                    ariaLabel="Liquid Bounce Damping"
                   />
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     Lower damping = wobblier liquid; higher damping settles instantly.
@@ -987,47 +1041,105 @@ function MobileSwipeableSettingsSheet({
   children: React.ReactNode;
 }) {
   const [mounted, setMounted] = useState(open);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragY, setDragY] = useState(0); // Offset in pixels from resting open position
-  const [sheetHeight, setSheetHeight] = useState(typeof window !== "undefined" ? window.innerHeight * 0.92 : 650);
+  const [sheetHeight, setSheetHeight] = useState(
+    typeof window !== "undefined" ? window.innerHeight * 0.92 : 650,
+  );
 
   const sheetRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Gesture tracking refs
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
   const touchStartTime = useRef(0);
   const currentDragMode = useRef<"down-to-close" | null>(null);
+  const draggingRef = useRef(false);
+  const pendingDragY = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const unmountTimerRef = useRef<number | null>(null);
 
-  // Keep sheetHeight in sync with viewport
+  const applySheetPosition = (y: number) => {
+    const sheet = sheetRef.current;
+    const backdrop = backdropRef.current;
+    if (!sheet) return;
+
+    const clampedY = Math.max(0, Math.min(sheetHeight, y));
+    const progress = Math.max(0, Math.min(1, 1 - clampedY / Math.max(1, sheetHeight)));
+
+    sheet.style.transform = `translate3d(0, ${clampedY}px, 0)`;
+    if (backdrop) backdrop.style.opacity = String(progress * 0.75);
+  };
+
+  const setSheetTransition = (enabled: boolean) => {
+    const sheet = sheetRef.current;
+    const backdrop = backdropRef.current;
+    if (sheet) {
+      sheet.style.transition = enabled
+        ? "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)"
+        : "none";
+    }
+    if (backdrop) {
+      backdrop.style.transition = enabled
+        ? "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)"
+        : "none";
+    }
+  };
+
+  const scheduleDragPosition = (y: number) => {
+    pendingDragY.current = y;
+    if (rafRef.current !== null) return;
+
+    rafRef.current = window.requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!draggingRef.current) return;
+      applySheetPosition(pendingDragY.current);
+    });
+  };
+
   useEffect(() => {
     const updateHeight = () => {
-      const h = window.innerHeight * 0.92;
-      setSheetHeight(h);
+      setSheetHeight(window.innerHeight * 0.92);
     };
+
     updateHeight();
     window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateHeight);
+      if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
+      if (unmountTimerRef.current !== null) window.clearTimeout(unmountTimerRef.current);
+    };
   }, []);
 
-  // When `open` prop changes programmatically
   useEffect(() => {
+    if (unmountTimerRef.current !== null) {
+      window.clearTimeout(unmountTimerRef.current);
+      unmountTimerRef.current = null;
+    }
+
     if (open) {
       setMounted(true);
-      setIsDragging(false);
-      setDragY(0);
-    } else if (!isDragging) {
-      // Animate out
-      setDragY(sheetHeight);
-      const timer = setTimeout(() => {
-        setMounted(false);
-      }, 350);
-      return () => clearTimeout(timer);
+      const frame = window.requestAnimationFrame(() => {
+        setSheetTransition(true);
+        applySheetPosition(0);
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
-  }, [open, sheetHeight, isDragging]);
 
-  // Touch listener on the sheet for "Swipe down to close"
+    setSheetTransition(true);
+    applySheetPosition(sheetHeight);
+    unmountTimerRef.current = window.setTimeout(() => {
+      setMounted(false);
+    }, 350);
+
+    return () => {
+      if (unmountTimerRef.current !== null) {
+        window.clearTimeout(unmountTimerRef.current);
+        unmountTimerRef.current = null;
+      }
+    };
+  }, [open, sheetHeight]);
+
   const handleSheetTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length !== 1) return;
     const touch = e.touches[0];
@@ -1039,17 +1151,44 @@ function MobileSwipeableSettingsSheet({
 
   const handleSheetTouchMove = (e: React.TouchEvent) => {
     if (currentDragMode.current !== "down-to-close" || e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    const deltaY = touch.clientY - touchStartY.current; // positive = moving DOWN
-    const deltaX = Math.abs(touch.clientX - touchStartX.current);
 
-    // Only allow drag-down if content is scrolled to the top or dragging on handle
+    const touch = e.touches[0];
+    const deltaY = touch.clientY - touchStartY.current;
+    const deltaX = Math.abs(touch.clientX - touchStartX.current);
     const isAtTop = !scrollRef.current || scrollRef.current.scrollTop <= 0;
 
     if (deltaY > 0 && deltaY > deltaX && isAtTop) {
-      setIsDragging(true);
-      // Sheet follows finger downwards in real-time
-      setDragY(deltaY);
+      if (!draggingRef.current) {
+        draggingRef.current = true;
+        setSheetTransition(false);
+      }
+      scheduleDragPosition(deltaY);
+    }
+  };
+
+  const finishDrag = (deltaY: number, durationMs: number) => {
+    if (!draggingRef.current) return;
+
+    draggingRef.current = false;
+    if (rafRef.current !== null) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    const velocity = deltaY / Math.max(1, durationMs);
+    const shouldClose = deltaY > 100 || velocity > 0.35;
+
+    setSheetTransition(true);
+
+    if (shouldClose) {
+      haptic("light");
+      applySheetPosition(sheetHeight);
+      onOpenChange(false);
+      unmountTimerRef.current = window.setTimeout(() => {
+        setMounted(false);
+      }, 320);
+    } else {
+      applySheetPosition(0);
     }
   };
 
@@ -1057,59 +1196,45 @@ function MobileSwipeableSettingsSheet({
     if (currentDragMode.current !== "down-to-close") return;
     currentDragMode.current = null;
 
-    if (isDragging) {
-      const touch = e.changedTouches[0];
-      const deltaY = touch.clientY - touchStartY.current;
-      const duration = Math.max(1, Date.now() - touchStartTime.current);
-      const velocity = deltaY / duration;
-
-      setIsDragging(false);
-
-      // If dragged down past 100px or downward flick > 0.35px/ms
-      if (deltaY > 100 || velocity > 0.35) {
-        haptic("light");
-        setDragY(sheetHeight);
-        onOpenChange(false);
-        setTimeout(() => {
-          setMounted(false);
-        }, 300);
-      } else {
-        // Snap back up to fully open
-        setDragY(0);
-      }
-    }
+    const touch = e.changedTouches[0];
+    const deltaY = touch ? touch.clientY - touchStartY.current : pendingDragY.current;
+    finishDrag(deltaY, Math.max(1, Date.now() - touchStartTime.current));
   };
 
-  // Close with smooth transition
   const handleClose = () => {
     haptic("light");
-    setIsDragging(false);
-    setDragY(sheetHeight);
+    currentDragMode.current = null;
+    draggingRef.current = false;
+
+    if (rafRef.current !== null) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    if (unmountTimerRef.current !== null) {
+      window.clearTimeout(unmountTimerRef.current);
+      unmountTimerRef.current = null;
+    }
+
+    setSheetTransition(true);
+    applySheetPosition(sheetHeight);
     onOpenChange(false);
-    setTimeout(() => {
+
+    unmountTimerRef.current = window.setTimeout(() => {
       setMounted(false);
     }, 320);
   };
 
   if (!mounted) return null;
 
-  // Calculate backdrop opacity based on sheet height and drag position
-  const openProgress = Math.max(0, Math.min(1, 1 - dragY / sheetHeight));
-  const backdropOpacity = openProgress * 0.75;
-
   return createPortal(
     <div className="fixed inset-0 z-50 select-none md:hidden overflow-hidden pointer-events-auto">
-      {/* Backdrop with real-time blur and opacity */}
       <div
+        ref={backdropRef}
         onClick={handleClose}
-        style={{
-          opacity: backdropOpacity,
-          transition: isDragging ? "none" : "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
         className="absolute inset-0 bg-black backdrop-blur-md cursor-pointer"
+        style={{ opacity: 0.75 }}
       />
 
-      {/* Mobile Bottom-to-Top Sliding Sheet */}
       <div
         ref={sheetRef}
         onTouchStart={handleSheetTouchStart}
@@ -1118,16 +1243,12 @@ function MobileSwipeableSettingsSheet({
         onTouchCancel={handleSheetTouchEnd}
         style={{
           height: `${sheetHeight}px`,
-          transform: `translate3d(0, ${dragY}px, 0)`,
-          transition: isDragging
-            ? "none"
-            : "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",
+          transform: "translate3d(0, 0, 0)",
+          transition: "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
-        className="glass-panel absolute inset-x-0 bottom-0 flex flex-col rounded-t-[2.25rem] border-t border-x border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden"
+        className="glass-panel absolute inset-x-0 bottom-0 flex flex-col rounded-t-[2.25rem] border-t border-x border-white/20 bg-black/95 shadow-2xl ring-1 ring-white/10 overflow-hidden"
       >
-        {/* Grab Handle & Top Header Drag Zone */}
         <div className="flex flex-col items-center pt-3 pb-2.5 px-4 cursor-grab active:cursor-grabbing touch-none select-none border-b border-white/10 shrink-0 bg-white/[0.02]">
-          {/* Tactile Pull Pill */}
           <div className="h-1.5 w-14 rounded-full bg-white/30 active:bg-primary/60 transition-all mb-2" />
 
           <div className="flex items-center justify-between w-full">
@@ -1156,7 +1277,6 @@ function MobileSwipeableSettingsSheet({
           </div>
         </div>
 
-        {/* Scrollable Content Body */}
         <div
           ref={scrollRef}
           className="flex-1 overflow-y-auto scroll-sleek overscroll-contain p-4 pb-[calc(3rem+env(safe-area-inset-bottom,0px))]"
@@ -1165,10 +1285,9 @@ function MobileSwipeableSettingsSheet({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
-
 export function SettingsDialog({
   open,
   onOpenChange,

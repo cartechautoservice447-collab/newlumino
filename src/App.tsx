@@ -546,7 +546,14 @@ function AuthenticatedApp({
           selectedNote={n.selected || n.visibleNotes[0] || null}
         />
 
-        <AiNotePolisherDialog
+        <AiExplainDialog
+        open={aiExplainOpen}
+        onOpenChange={setAiExplainOpen}
+        notes={n.notes}
+        selectedNote={n.selected || n.visibleNotes[0] || null}
+      />
+
+      <AiNotePolisherDialog
           open={notePolisherOpen}
           onOpenChange={setNotePolisherOpen}
           notes={n.notes}

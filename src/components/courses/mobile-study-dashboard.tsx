@@ -202,7 +202,7 @@ const MobileStudyToday = memo(function MobileStudyToday({
                   strokeLinecap="round"
                   stroke="currentColor"
                   fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 -31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
               </svg>
               <span className="absolute font-mono text-[0.64rem] font-bold text-foreground">{progress}%</span>
@@ -243,10 +243,20 @@ const MobileStudyToday = memo(function MobileStudyToday({
         >
           <Zap className="h-3.5 w-3.5 text-amber-300" />
           <span>Start Focus</span>
-          <span className="rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-semibold text-primary">25m block</span>
         </button>
 
-
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary via-cyan-300 to-emerald-300 transition-[width] duration-500 ease-out"
+            style={{ width: progress + "%" }}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground/75">
+          <span>Today</span>
+          <span>{todayMinutes} / {goalMinutes} min</span>
+        </div>
+      </div>
+    </section>
   );
 });
 

@@ -27,7 +27,8 @@ import {
   MessageSquare,
   Volume2,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AiLearningLabFrame, LabInsightCard, LabToolButton } from "@/components/tools/ai-learning-lab-frame";
 import { cn } from "@/lib/utils";
 import type { Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
@@ -366,38 +367,49 @@ export function AiExamSimulatorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 border-0 bg-slate-950/98 text-foreground backdrop-blur-3xl flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0">
-        {/* Pinned Top Navigation Bar */}
-        <div className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-white/10 bg-white/[0.02] backdrop-blur-md shrink-0">
-          <div className="flex items-center gap-3 pr-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/30 to-rose-500/30 text-amber-300 border border-amber-500/30 shadow-[0_0_18px_-4px_rgba(245,158,11,0.5)] shrink-0">
-              <Target className="h-5 w-5" />
-            </div>
-            <div>
-              <DialogTitle className="text-base sm:text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                <span>AI Adaptive Exam Simulator</span>
-                <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[0.62rem] font-semibold text-amber-300 uppercase tracking-wider">
-                  Phase 1, 2 &amp; 3 Suite
-                </span>
-              </DialogTitle>
-              <p className="text-xs text-muted-foreground hidden sm:block mt-0.5">
-                Diagnostic active-recall mock exams, Socratic oral AI debriefing, and gap remediation note generation.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 mr-10 sm:mr-12">
-            {stage === "taking" && (
-              <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-mono font-bold text-foreground shadow-sm">
-                <Clock className="h-3.5 w-3.5 text-primary" />
-                <span>{formatTimer(secondsRemaining)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
+      <DialogContent hideClose className="fixed inset-0 left-0 top-0 m-0 flex h-[100dvh] w-screen max-h-none max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden rounded-none border-0 bg-transparent p-0 text-foreground shadow-none">
         {/* Scrollable Workstation Body */}
-        <div className="flex-1 overflow-y-auto scroll-sleek p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto w-full">
+        <AiLearningLabFrame
+          title="AI Adaptive Exam Simulator"
+          subtitle="Diagnostic active recall, timed reasoning, and targeted remediation."
+          status={stage === "taking" ? formatTimer(secondsRemaining) : stage === "summary" ? "Diagnostic complete" : "Ready"}
+          statusTone={stage === "taking" && secondsRemaining < 60 ? "amber" : "amber"}
+          icon={Target}
+          onClose={() => onOpenChange(false)}
+          context={
+            <div className="space-y-3">
+              <div>
+                <div className="mb-1 text-[0.64rem] font-semibold text-muted-foreground">ACTIVE COURSE</div>
+                <div className="truncate rounded-xl border border-white/[0.08] bg-black/15 px-3 py-2 text-xs font-semibold text-foreground">{activeCourseName || "Personal study"}</div>
+              </div>
+              <div>
+                <div className="mb-1 text-[0.64rem] font-semibold text-muted-foreground">TARGET</div>
+                <div className="truncate rounded-xl border border-white/[0.08] bg-black/15 px-3 py-2 text-xs font-semibold text-foreground">{scopeMode === "multi" ? selectedNoteIds.length + " notes" : targetNote?.title || "No note selected"}</div>
+              </div>
+              <div className="rounded-xl border border-amber-400/15 bg-amber-400/[0.055] p-2.5">
+                <div className="text-[0.64rem] font-bold uppercase tracking-wider text-amber-300">Drill profile</div>
+                <p className="mt-1 text-[0.68rem] leading-5 text-muted-foreground">{drillMode.replace(/_/g, " ")} · {difficulty.replace("_", " ")}</p>
+              </div>
+            </div>
+          }
+          intelligence={
+            <div className="space-y-3">
+              <LabInsightCard title="Progress" value={stage === "taking" ? (currentIndex + 1) + "/" + questions.length : stage === "summary" ? questions.length + " items" : "Setup"} description="Diagnostic progression through the current session." />
+              <LabInsightCard title="Focus areas" value={keyFocusAreas.length ? String(keyFocusAreas.length) : "—"} description={keyFocusAreas[0] || "Weak areas appear after evaluation."} />
+              {stage === "taking" ? <LabInsightCard title="Time left" value={formatTimer(secondsRemaining)} description="Stay deliberate; the timer is part of the diagnostic." /> : null}
+              {stage === "summary" && overallDiagnosticSummary ? <div className="rounded-2xl border border-primary/20 bg-primary/[0.07] p-4"><div className="text-xs font-bold text-primary">Diagnostic summary</div><p className="mt-2 text-sm leading-6 text-foreground">{overallDiagnosticSummary}</p></div> : null}
+            </div>
+          }
+          footer={
+            <>
+              {stage === "config" ? <LabToolButton label="Start diagnostic" icon={<Sparkles className="h-3.5 w-3.5" />} tone="amber" onClick={() => void handleStartExam()} /> : null}
+              {stage === "summary" && onStartFlashcards && targetNote ? <LabToolButton label="Review with flashcards" icon={<Brain className="h-3.5 w-3.5" />} tone="violet" onClick={() => onStartFlashcards(targetNote)} /> : null}
+              {stage === "summary" && onOpenNotePolisher && targetNote ? <LabToolButton label="Remediate note" icon={<Wand2 className="h-3.5 w-3.5" />} tone="cyan" onClick={() => onOpenNotePolisher(targetNote)} /> : null}
+              {onOpenCollectionExam ? <LabToolButton label="4-stage assessment" icon={<Layers className="h-3.5 w-3.5" />} tone="emerald" onClick={() => { onOpenChange(false); onOpenCollectionExam(); }} /> : null}
+            </>
+          }
+        >
+          <div className="space-y-6 max-w-4xl mx-auto w-full">
           {/* STAGE 1: CONFIGURATION */}
         {stage === "config" && (
           <div className="space-y-4 pt-2">
@@ -1076,7 +1088,8 @@ export function AiExamSimulatorDialog({
             </div>
           </div>
         )}
-        </div>
+          </div>
+        </AiLearningLabFrame>
       </DialogContent>
     </Dialog>
   );

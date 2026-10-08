@@ -76,7 +76,6 @@ export function FlashcardsDialog({
   const [source, setSource] = useState<"current" | "all">("current");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [dragOffset, setDragOffset] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [results, setResults] = useState<Record<string, FlashcardRating>>({});
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -296,7 +295,6 @@ export function FlashcardsDialog({
     touchStartX.current = null;
     touchCurrentX.current = null;
     pendingSwipeOffsetRef.current = 0;
-    setDragOffset(0);
 
     if (swipeRafRef.current !== null) cancelAnimationFrame(swipeRafRef.current);
     swipeRafRef.current = null;

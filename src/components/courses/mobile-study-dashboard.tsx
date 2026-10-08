@@ -235,15 +235,17 @@ const MobileStudyToday = memo(function MobileStudyToday({
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={onStartFocus}
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/20 px-4 py-2.5 text-xs font-bold text-primary shadow-sm transition-transform active:scale-[0.98] hover:bg-primary/30"
-          aria-label="Start a focus session"
-        >
-          <Zap className="h-3.5 w-3.5 text-amber-300" />
-          <span>Start Focus</span>
-        </button>
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            onClick={onStartFocus}
+            className="inline-flex min-h-10 w-[104px] items-center justify-center gap-1.5 rounded-xl border border-primary/35 bg-primary/15 px-2.5 py-2 text-[0.68rem] font-extrabold text-primary shadow-sm transition-transform active:scale-[0.98] hover:bg-primary/25"
+            aria-label="Start a focus session"
+          >
+            <Zap className="h-3.5 w-3.5 shrink-0 text-amber-300" />
+            <span className="whitespace-nowrap">Start Focus</span>
+          </button>
+        </div>
 
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.06]">
           <div

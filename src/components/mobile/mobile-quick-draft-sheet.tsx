@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Sparkles, Plus, Check, Folder } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Collection } from "@/lib/notes";
@@ -24,8 +24,19 @@ export function MobileQuickDraftSheet({
   const [selectedCol, setSelectedCol] = useState<string | null>(activeCourseId);
 
   useEffect(() => {
-    if (open) setSelectedCol(activeCourseId);
+    if (open) setSelectedCol(null);
   }, [open, activeCourseId]);
+
+  const availableCollections = useMemo(
+    () =>
+      activeCourseId
+        ? collections.filter(
+            (collection) =>
+              collection.courseId === activeCourseId || collection.parentId === activeCourseId,
+          )
+        : [],
+    [activeCourseId, collections],
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +100,7 @@ export function MobileQuickDraftSheet({
               className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs text-muted-foreground focus:border-white/20 focus:outline-none"
             >
               <option value="">No Collection</option>
-              {collections.map((c) => (
+              {availableCollections.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>

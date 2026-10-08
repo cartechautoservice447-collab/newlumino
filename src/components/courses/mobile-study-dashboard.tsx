@@ -387,4 +387,3 @@ export function MobileStudyDashboard(props: Props) {
     </main>
   );
 }
-}

@@ -360,6 +360,7 @@ todayFocusSeconds={pomodoro.todayFocusSeconds}
             }}
             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
+            sessionHistory={pomodoro.sessionHistory}
             onNavigateDailyGoal={navigateToDailyGoal}
           />
         ) : (

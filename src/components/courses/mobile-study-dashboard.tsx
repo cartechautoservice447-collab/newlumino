@@ -279,39 +279,45 @@ const MobileQuickStats = memo(function MobileQuickStats({
   onOpenFavorites: () => void;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-2.5">
+    <div className="grid grid-cols-3 gap-3">
       <button
         type="button"
         onClick={onOpenCourses}
-        className="mobile-glass-lite min-h-12 rounded-xl border border-white/10 px-2.5 py-2.5 text-left transition-transform active:scale-[0.98]"
+        className="mobile-glass-lite flex min-h-[88px] flex-col justify-between rounded-2xl border border-white/10 px-3.5 py-3 transition-transform active:scale-[0.98]"
       >
-        <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
-          <FolderOpen className="h-3 w-3 text-primary" />
-          Courses
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+          <FolderOpen className="h-4 w-4" />
         </span>
-        <span className="mt-0.5 block text-[13px] font-extrabold tabular-nums text-foreground">{courseCount}</span>
+        <span className="mt-2 flex min-w-0 items-end justify-between gap-1.5">
+          <span className="truncate text-[10px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Courses</span>
+          <span className="text-[15px] font-extrabold tabular-nums text-foreground">{courseCount}</span>
+        </span>
       </button>
       <button
         type="button"
         onClick={onOpenAllNotes}
-        className="mobile-glass-lite min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
+        className="mobile-glass-lite flex min-h-[88px] flex-col justify-between rounded-2xl border border-white/10 px-3.5 py-3 transition-transform active:scale-[0.98]"
       >
-        <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
-          <BookOpen className="h-3 w-3 text-primary" />
-          Notes
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+          <BookOpen className="h-4 w-4" />
         </span>
-        <span className="mt-0.5 block text-[13px] font-extrabold tabular-nums text-foreground">{noteCount}</span>
+        <span className="mt-2 flex min-w-0 items-end justify-between gap-1.5">
+          <span className="truncate text-[10px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Notes</span>
+          <span className="text-[15px] font-extrabold tabular-nums text-foreground">{noteCount}</span>
+        </span>
       </button>
       <button
         type="button"
         onClick={onOpenFavorites}
-        className="mobile-glass-lite min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
+        className="mobile-glass-lite flex min-h-[88px] flex-col justify-between rounded-2xl border border-white/10 px-3.5 py-3 transition-transform active:scale-[0.98]"
       >
-        <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
-          <Star className="h-3 w-3 text-amber-300" />
-          Fav
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-amber-300/20 bg-amber-300/10 text-amber-200">
+          <Star className="h-4 w-4" />
         </span>
-        <span className="mt-0.5 block text-[13px] font-extrabold tabular-nums text-foreground">{favoriteCount}</span>
+        <span className="mt-2 flex min-w-0 items-end justify-between gap-1.5">
+          <span className="truncate text-[10px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Fav</span>
+          <span className="text-[15px] font-extrabold tabular-nums text-foreground">{favoriteCount}</span>
+        </span>
       </button>
     </div>
   );
@@ -865,6 +871,14 @@ export function MobileStudyDashboard(props: Props) {
               onOpenMenu={onOpenMenu}
               onOpenSettings={onOpenSettings}
             />
+            <MobileQuickStats
+              courseCount={props.courses.length}
+              noteCount={props.notes.length}
+              favoriteCount={favoriteCount}
+              onOpenCourses={() => document.getElementById("mobile-course-library")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              onOpenAllNotes={onOpenAllNotes}
+              onOpenFavorites={onOpenFavorites}
+            />
             <MobileResumeStudy
               note={resumeNote}
               course={resumeCourse}
@@ -876,14 +890,6 @@ export function MobileStudyDashboard(props: Props) {
               dailyGoalHours={props.dailyGoalHours}
               onStartFocus={onStartFocus}
               onOpenDailyGoal={onOpenDailyGoal}
-            />
-            <MobileQuickStats
-              courseCount={props.courses.length}
-              noteCount={props.notes.length}
-              favoriteCount={favoriteCount}
-              onOpenCourses={() => document.getElementById("mobile-course-library")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-              onOpenAllNotes={onOpenAllNotes}
-              onOpenFavorites={onOpenFavorites}
             />
           </div>
         </section>

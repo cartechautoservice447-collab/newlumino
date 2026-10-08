@@ -29,6 +29,9 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AiLearningLabFrame, LabInsightCard, LabToolButton } from "@/components/tools/ai-learning-lab-frame";
+import { AiHistoryDialog, type AiHistoryAction } from "@/components/tools/ai-history-dialog";
+import { createAiHistory, type AiHistoryRecord } from "@/lib/ai-history";
+import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import type { Note } from "@/lib/notes";
 import {
@@ -72,7 +75,9 @@ export function FlashcardsDialog({
   autoAIGenerateSessionType = "general",
   initialWeakTopics = [],
 }: Props) {
+  const { user } = useAuth();
   const { showNotification } = useNotifications();
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [source, setSource] = useState<"current" | "all">("current");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -165,6 +170,15 @@ export function FlashcardsDialog({
       });
 
       if (aiCards.length > 0) {
+        const nextDeck = modeToUse === "append" ? [...deck, ...aiCards] : aiCards;
+        void createAiHistory({
+          userId: user?.id, tool: "flashcards",
+          title: (targetNote?.title || activeCourseName || "AI Study Deck"),
+          subtitle: archToUse + " • " + aiCards.length + " new cards",
+          action: "generated",
+          context: { noteId: targetNote?.id || null, noteTitle: targetNote?.title || null, courseName: activeCourseName || null, source, archetype: archToUse, batchIndex: bIndex, batchMode: modeToUse, sessionType },
+          payload: { deck: nextDeck, results, currentIndex: modeToUse === "append" ? currentIndex : 0, completed: false, source, activeArchetype: archToUse, weakTopics: weaksToUse, isAdaptiveMode, batchSize, batchMode: modeToUse, batchIndex: bIndex },
+        });
         if (modeToUse === "append" && deck.length > 0 && !completed) {
           setDeck((prev) => [...prev, ...aiCards]);
           setBatchFeedback(`Batch #${bIndex + 1} added (+${aiCards.length} ${archToUse} cards)`);
@@ -212,6 +226,31 @@ export function FlashcardsDialog({
 
   const currentCard = deck[currentIndex];
 
+  const handleHistoryAction = (action: AiHistoryAction, record: AiHistoryRecord) => {
+    const payload = record.payload || {};
+    setDeck(Array.isArray(payload.deck) ? payload.deck as Flashcard[] : []);
+    setResults(payload.results && typeof payload.results === "object" ? payload.results as Record<string, FlashcardRating> : {});
+    setCurrentIndex(typeof payload.currentIndex === "number" ? payload.currentIndex : 0);
+    setCompleted(Boolean(payload.completed));
+    if (payload.source === "current" || payload.source === "all") setSource(payload.source);
+    if (typeof payload.activeArchetype === "string") setActiveArchetype(payload.activeArchetype as FlashcardArchetype);
+    setWeakTopics(Array.isArray(payload.weakTopics) ? payload.weakTopics as string[] : []);
+    setIsAdaptiveMode(Boolean(payload.isAdaptiveMode));
+    if (typeof payload.batchSize === "number") setBatchSize(payload.batchSize);
+    if (payload.batchMode === "append" || payload.batchMode === "replace") setBatchMode(payload.batchMode);
+    if (typeof payload.batchIndex === "number") setBatchIndex(payload.batchIndex);
+    setIsFlipped(false);
+    setHistoryOpen(false);
+    if (action === "review") { setCurrentIndex(0); setCompleted(false); return; }
+    if (action === "weak_only") {
+      const savedDeck = Array.isArray(payload.deck) ? payload.deck as Flashcard[] : [];
+      const savedResults = payload.results && typeof payload.results === "object" ? payload.results as Record<string, FlashcardRating> : {};
+      const weak = savedDeck.filter((card) => savedResults[card.id] === "again" || savedResults[card.id] === "hard");
+      if (weak.length) { setDeck(weak); setCurrentIndex(0); setCompleted(false); }
+      return;
+    }
+    if (action === "regenerate") setTimeout(() => { void handleGenerateAI("general", typeof payload.batchIndex === "number" ? payload.batchIndex : 0, "replace", typeof payload.activeArchetype === "string" ? payload.activeArchetype as FlashcardArchetype : "mixed", Array.isArray(payload.weakTopics) ? payload.weakTopics as string[] : []); }, 0);
+  };
   const handleFlip = () => {
     haptic("light");
     setIsFlipped((f) => !f);
@@ -236,6 +275,8 @@ export function FlashcardsDialog({
       setCurrentIndex((idx) => idx + 1);
     } else {
       setCompleted(true);
+      const finalResults = { ...results, [cardId]: rating };
+      void createAiHistory({ userId: user?.id, tool: "flashcards", title: targetNote?.title || activeCourseName || "AI Study Deck", subtitle: "completed • " + Object.keys(finalResults).length + "/" + deck.length + " reviewed", action: "completed", context: { noteId: targetNote?.id || null, noteTitle: targetNote?.title || null, courseName: activeCourseName || null, source, archetype: activeArchetype, isAdaptiveMode }, payload: { deck, results: finalResults, currentIndex, completed: true, source, activeArchetype, weakTopics, isAdaptiveMode, batchSize, batchMode, batchIndex } });
       showNotification({
         message: "Review Session Complete",
         description: `You've mastered ${goodCount + easyCount} concepts! Keep up the momentum.`,
@@ -841,6 +882,7 @@ export function FlashcardsDialog({
         )}
           </div>
         </AiLearningLabFrame>
+    <AiHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} tool="flashcards" onAction={handleHistoryAction} />
       </DialogContent>
     </Dialog>
   );

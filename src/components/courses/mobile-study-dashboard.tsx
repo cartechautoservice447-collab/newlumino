@@ -871,17 +871,17 @@ export function MobileStudyDashboard(props: Props) {
               onOpenMenu={onOpenMenu}
               onOpenSettings={onOpenSettings}
             />
-            <MobileStudyToday
-              todayFocusSeconds={props.todayFocusSeconds}
-              dailyGoalHours={props.dailyGoalHours}
-              onStartFocus={onStartFocus}
-              onOpenDailyGoal={onOpenDailyGoal}
-            />
             <MobileResumeStudy
               note={resumeNote}
               course={resumeCourse}
               onOpenNote={onOpenNote}
               onCreateNote={onCreateNote}
+            />
+            <MobileStudyToday
+              todayFocusSeconds={props.todayFocusSeconds}
+              dailyGoalHours={props.dailyGoalHours}
+              onStartFocus={onStartFocus}
+              onOpenDailyGoal={onOpenDailyGoal}
             />
             <MobileQuickStats
               courseCount={props.courses.length}
@@ -900,6 +900,11 @@ export function MobileStudyDashboard(props: Props) {
             <p className="mt-1 text-xs text-muted-foreground/75">A calm view of your study rhythm and momentum.</p>
           </div>
           <div className="space-y-4">
+            <MobileRecentActivity
+              notes={recentActivity}
+              coursesById={coursesById}
+              onOpenNote={onOpenNote}
+            />
             <MobileStudyInsights
               averageSessionMinutes={studyAnalytics.averageSessionMinutes}
               bestWindow={studyAnalytics.bestWindow}
@@ -918,11 +923,6 @@ export function MobileStudyDashboard(props: Props) {
               weeklyDelta={studyAnalytics.weeklyDelta}
               currentStreak={studyAnalytics.currentStreak}
               bestStreak={studyAnalytics.bestStreak}
-            />
-            <MobileRecentActivity
-              notes={recentActivity}
-              coursesById={coursesById}
-              onOpenNote={onOpenNote}
             />
           </div>
         </section>

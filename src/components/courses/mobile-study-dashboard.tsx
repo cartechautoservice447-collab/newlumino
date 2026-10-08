@@ -225,21 +225,10 @@ const MobileStudyToday = memo(function MobileStudyToday({
           <button
             type="button"
             onClick={() => {
-              haptic("light");
-              onOpenDailyGoal();
+              haptic("medium");
+              onStartFocus();
             }}
-            aria-label="Open daily goal"
-            className="mobile-glass-lite flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary transition-transform active:scale-90 touch-manipulation"
-          >
-            <Target className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            onClick={onStartFocus}
-            className="inline-flex min-h-10 w-[104px] items-center justify-center gap-1.5 rounded-xl border border-primary/35 bg-primary/15 px-2.5 py-2 text-[0.68rem] font-extrabold text-primary shadow-sm transition-transform active:scale-[0.98] hover:bg-primary/25"
+            className="shrink-0 flex min-h-10 w-[104px] items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/20 px-2.5 py-2.5 text-center text-[0.68rem] font-extrabold leading-tight text-primary shadow-sm transition-all active:scale-[0.97] hover:bg-primary/30 touch-manipulation"
             aria-label="Start a focus session"
           >
             <Zap className="h-3.5 w-3.5 shrink-0 text-amber-300" />

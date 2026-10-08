@@ -3,7 +3,6 @@ import {
   ArrowRight,
   BarChart3,
   BookOpen,
-  CalendarDays,
   Clock3,
   FolderOpen,
   Flame,
@@ -345,7 +344,6 @@ type MobileStudyAnalytics = {
   weeklyTotal: number;
   previousWeekTotal: number;
   weeklyDelta: string;
-  streakDays: boolean[];
   currentStreak: number;
   bestStreak: number;
   averageSessionMinutes: number;
@@ -358,11 +356,15 @@ const MobileWeeklyStudyPulse = memo(function MobileWeeklyStudyPulse({
   weeklyTotal,
   previousWeekTotal,
   weeklyDelta,
+  currentStreak,
+  bestStreak,
 }: {
   weekly: MobileStudyAnalytics["weekly"];
   weeklyTotal: number;
   previousWeekTotal: number;
   weeklyDelta: string;
+  currentStreak: number;
+  bestStreak: number;
 }) {
   const trendPositive = weeklyTotal > previousWeekTotal;
   return (
@@ -412,73 +414,19 @@ const MobileWeeklyStudyPulse = memo(function MobileWeeklyStudyPulse({
         ))}
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-white/[0.07] pt-3">
-        <span className="text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Weekly total</span>
-        <span className="text-[11px] font-extrabold tabular-nums text-foreground">{formatStudyMinutes(weeklyTotal)}</span>
-      </div>
-    </section>
-  );
-});
-
-const MobileStudyStreak = memo(function MobileStudyStreak({
-  streakDays,
-  currentStreak,
-  bestStreak,
-}: {
-  streakDays: boolean[];
-  currentStreak: number;
-  bestStreak: number;
-}) {
-  const today = localDayStart();
-  return (
-    <section className="mobile-glass-lite mobile-premium-enter overflow-hidden rounded-[1.65rem] border p-4" style={{ animationDelay: "155ms" }}>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-300/25 bg-amber-300/10 text-amber-200">
-            <CalendarDays className="h-[17px] w-[17px]" />
-          </span>
-          <div className="min-w-0">
-            <h2 className="truncate text-[12px] font-bold uppercase tracking-[0.14em] text-foreground">Study Streak</h2>
-            <p className="mt-0.5 text-[10px] text-muted-foreground">Keep the chain alive</p>
-          </div>
+      <div className="mt-3 grid grid-cols-3 items-center gap-2 border-t border-white/[0.07] pt-3">
+        <div>
+          <span className="block text-[8px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Weekly total</span>
+          <span className="mt-1 block text-[11px] font-extrabold tabular-nums text-foreground">{formatStudyMinutes(weeklyTotal)}</span>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <Flame className="h-3.5 w-3.5 text-amber-300" />
-          <span className="text-[11px] font-black tabular-nums text-foreground">{currentStreak}d</span>
+        <div className="border-l border-white/[0.07] pl-3">
+          <span className="block text-[8px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Current streak</span>
+          <span className="mt-1 block text-[11px] font-extrabold tabular-nums text-foreground">{currentStreak} days</span>
         </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-7 gap-1.5">
-        {streakDays.map((active, index) => {
-          const day = new Date(today);
-          day.setDate(day.getDate() - (6 - index));
-          const label = day.toLocaleDateString("en-US", { weekday: "short" }).slice(0, 1);
-          const isToday = index === 6;
-          return (
-            <div
-              key={day.toISOString()}
-              className={cn(
-                "flex h-12 min-w-0 flex-col items-center justify-center rounded-xl border transition-transform duration-200",
-                active
-                  ? "border-primary/25 bg-primary/10 text-primary active:scale-[0.97]"
-                  : "border-white/[0.07] bg-white/[0.025] text-muted-foreground/60",
-                isToday && "ring-1 ring-primary/25",
-              )}
-            >
-              <span className="text-[8px] font-bold uppercase">{label}</span>
-              <span className={cn(
-                "mt-1 h-2 w-2 rounded-full",
-                active ? "bg-primary shadow-[0_0_10px_-3px_currentColor]" : "bg-white/10",
-              )} />
-              {isToday && <span className="mt-1 text-[7px] font-bold uppercase tracking-[0.08em]">today</span>}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="mt-3 flex items-center justify-between border-t border-white/[0.07] pt-3 text-[9px]">
-        <span className="font-semibold text-muted-foreground">Current streak <span className="font-black text-foreground">{currentStreak} days</span></span>
-        <span className="font-semibold text-muted-foreground">Best <span className="font-black text-foreground">{bestStreak} days</span></span>
+        <div className="border-l border-white/[0.07] pl-3">
+          <span className="block text-[8px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Best streak</span>
+          <span className="mt-1 block text-[11px] font-extrabold tabular-nums text-foreground">{bestStreak} days</span>
+        </div>
       </div>
     </section>
   );
@@ -497,8 +445,7 @@ const MobileStudyInsights = memo(function MobileStudyInsights({
 }) {
   const hasHistory = averageSessionMinutes > 0;
   return (
-    <section className="glass-panel mobile-premium-enter relative overflow-hidden rounded-[1.65rem] border border-primary/20 p-4" style={{ animationDelay: "200ms" }}>
-      <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary/10" />
+    <section className="glass-panel mobile-premium-enter overflow-hidden rounded-[1.65rem] border border-primary/20 p-4" style={{ animationDelay: "200ms" }}>
       <div className="relative">
         <div className="flex items-start gap-2.5">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-cyan-200">
@@ -659,11 +606,6 @@ export function MobileStudyDashboard(props: Props) {
     const activityKeys = new Set(history.map((session) => localDayKey(session.timestamp)));
     if (props.todayFocusSeconds > 0) activityKeys.add(localDayKey(Date.now()));
 
-    const streakDays = Array.from({ length: 7 }, (_, index) => {
-      const offset = index - 6;
-      return activityKeys.has(localDayKey(localDayStart(offset).getTime()));
-    });
-
     let currentStreak = 0;
     for (let offset = 0; offset < 60; offset += 1) {
       if (!activityKeys.has(localDayKey(localDayStart(-offset).getTime()))) break;
@@ -708,7 +650,6 @@ export function MobileStudyDashboard(props: Props) {
       weeklyTotal,
       previousWeekTotal,
       weeklyDelta: formatPercentDelta(weeklyTotal, previousWeekTotal),
-      streakDays,
       currentStreak,
       bestStreak,
       averageSessionMinutes,
@@ -726,5 +667,5 @@ export function MobileStudyDashboard(props: Props) {
   onOpenCourses={() => document.getElementById("mobile-course-library")?.scrollIntoView({ behavior: "smooth", block: "start" })}
   onOpenAllNotes={onOpenAllNotes}
   onOpenFavorites={onOpenFavorites}
-/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileWeeklyStudyPulse weekly={studyAnalytics.weekly} weeklyTotal={studyAnalytics.weeklyTotal} previousWeekTotal={studyAnalytics.previousWeekTotal} weeklyDelta={studyAnalytics.weeklyDelta} /><MobileStudyStreak streakDays={studyAnalytics.streakDays} currentStreak={studyAnalytics.currentStreak} bestStreak={studyAnalytics.bestStreak} /><MobileStudyInsights averageSessionMinutes={studyAnalytics.averageSessionMinutes} bestWindow={studyAnalytics.bestWindow} topCourse={studyAnalytics.topCourse} weeklyDelta={studyAnalytics.weeklyDelta} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
+/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileWeeklyStudyPulse weekly={studyAnalytics.weekly} weeklyTotal={studyAnalytics.weeklyTotal} previousWeekTotal={studyAnalytics.previousWeekTotal} weeklyDelta={studyAnalytics.weeklyDelta} currentStreak={studyAnalytics.currentStreak} bestStreak={studyAnalytics.bestStreak} /><MobileStudyInsights averageSessionMinutes={studyAnalytics.averageSessionMinutes} bestWindow={studyAnalytics.bestWindow} topCourse={studyAnalytics.topCourse} weeklyDelta={studyAnalytics.weeklyDelta} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
 }

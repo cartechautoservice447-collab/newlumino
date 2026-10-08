@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_history: {
+        Row: {
+          id: string
+          user_id: string
+          tool: string
+          title: string
+          subtitle: string
+          action: string
+          context: Json
+          payload: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          tool: string
+          title: string
+          subtitle?: string
+          action?: string
+          context?: Json
+          payload?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          tool?: string
+          title?: string
+          subtitle?: string
+          action?: string
+          context?: Json
+          payload?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collections: {
         Row: {
           course_id: string

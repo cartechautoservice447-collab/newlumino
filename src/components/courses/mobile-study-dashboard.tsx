@@ -93,7 +93,7 @@ const MobileDashboardHeader = memo(function MobileDashboardHeader({
         <button type="button" aria-label="Open study tools" onClick={onOpenMenu} className="glass-panel flex h-10 w-10 items-center justify-center rounded-xl border-white/10 bg-transparent text-muted-foreground transition-transform active:scale-95">
           <Menu className="h-[18px] w-[18px]" />
         </button>
-        <button type="button" aria-label="Open settings" onClick={onOpenSettings} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.055] text-muted-foreground transition-transform active:scale-95">
+        <button type="button" aria-label="Open settings" onClick={onOpenSettings} className="glass-panel flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-transform active:scale-95">
           <Settings className="h-[17px] w-[17px]" />
         </button>
       </div>

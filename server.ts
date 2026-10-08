@@ -2318,6 +2318,83 @@ Output strictly valid JSON matching this schema:
 });
 
 // AI Explain endpoint: grounded concept teaching with structured output and resilient model fallback
+// Unified Learning Lab response. This is deliberately a compact contract: the Lab
+// composes it with the existing Flashcards, Pomodoro, Exam, and Note Polisher flows
+// instead of creating parallel versions of those tools.
+app.post("/api/ai/learning-lab", async (req, res) => {
+  const { noteTitle = "", noteBody = "", concept = "", action = "explain", compareWith = "", learnerAnswer = "" } = req.body || {};
+  const title = String(noteTitle || "Study topic").slice(0, 300);
+  const source = String(noteBody || "").slice(0, 16000);
+  const topic = String(concept || title || "this topic").slice(0, 1400);
+  const safeAction = ["explain", "deeper", "simple", "example", "visualize", "compare", "gap", "practice", "teach"].includes(String(action)) ? String(action) : "explain";
+
+  const fallback = () => {
+    const sourceTerms = source
+      .split(/\n|[.;:]/)
+      .map((line: string) => line.replace(/^[#*\-\s]+/, "").trim())
+      .filter((line: string) => line.length > 8)
+      .slice(0, 4);
+    const concepts = sourceTerms.length ? sourceTerms : [topic, "Core mechanism", "Application", "Boundary conditions"];
+    return {
+      title: topic,
+      coreAnswer: `Build ${topic} from its definition, mechanism, and one observable consequence. ${source ? "The explanation is anchored to the selected note; verify note-specific detail against its source excerpts." : "No source note is selected, so this is general learning guidance."}`,
+      intuition: `Think of ${topic} as a chain: an input creates a change, the governing rule shapes that change, and the result can be checked.`,
+      stepByStep: ["Name the central idea and its purpose.", "Identify the inputs, conditions, or assumptions.", "Trace the mechanism one step at a time.", "Test it with a small example and an edge case."],
+      analogy: `A useful way to learn ${topic} is to treat it like a well-labeled route map: every step should have a reason and a destination.`,
+      workedExample: `Choose one small case for ${topic}. State the starting conditions, apply the rule, then explain why the result follows.`,
+      realWorldExample: `Look for a familiar system that has inputs, constraints, and outputs; map each part back to ${topic}.`,
+      keyPoints: ["Definition before memorisation.", "Mechanism before procedure.", "Use an example to verify the rule.", "Check when the rule does not apply."],
+      misconceptions: ["Recognising a term is not the same as being able to explain its mechanism.", "A worked example must preserve the conditions of the original rule."],
+      examTraps: ["Watch for answers that swap a necessary condition with a sufficient one.", "Compare the boundary case before committing to a rule."],
+      practiceQuestion: `In two or three sentences, explain ${topic} and give one condition where a learner could apply it incorrectly.`,
+      followUpQuestions: ["What is the prerequisite idea?", "Can you show a counterexample?", "How would an examiner test this distinction?"],
+      teacherQuestion: learnerAnswer ? `Good start. Which assumption in your answer about ${topic} would you verify from the source before using it in a new problem?` : `Before I explain more: what do you think is the single job of ${topic}?`,
+      teacherFeedback: learnerAnswer ? `Your response gives us a useful starting point. Now make the mechanism explicit rather than relying on the label alone.` : "Answer in your own words; I will adapt the next question to your explanation.",
+      comparison: {
+        left: topic,
+        right: String(compareWith || "related concept"),
+        similarities: "Both should be judged by their definition, conditions, and observable result.",
+        differences: "Compare their purpose, inputs, and the cases where each rule applies.",
+        whenToUse: "Choose the concept whose assumptions match the problem conditions."
+      },
+      graph: {
+        nodes: concepts.slice(0, 5).map((label: string, index: number) => ({ id: `n${index}`, label, kind: index === 0 ? "core" : index === 1 ? "component" : "application" })),
+        edges: concepts.slice(1, 5).map((_: string, index: number) => ({ from: "n0", to: `n${index + 1}`, label: index === 0 ? "enables" : index === 1 ? "depends on" : "applies to" }))
+      },
+      mastery: { score: source ? 58 : 42, strong: sourceTerms.slice(0, 1), moderate: sourceTerms.slice(1, 2), weak: [topic], missing: source ? ["Active recall evidence"] : ["A source note or learning context"], misconceptions: ["Mechanism has not yet been checked through retrieval."], examReadiness: source ? "Building foundation" : "Choose a source first", nextAction: "Answer the practice question, then run a targeted quiz." },
+      sourceGrounded: Boolean(source),
+      sourceSummary: source ? `Grounded in “${title}”${source.length ? ` • ${Math.min(source.length, 16000).toLocaleString()} characters available` : ""}` : "General knowledge mode — select a note to ground this lesson."
+    };
+  };
+
+  const ai = getGeminiClient();
+  if (!ai) return res.json({ success: true, result: fallback(), fallback: true, model: "learning-lab-fallback" });
+
+  const prompt = `You are the learning intelligence layer of a premium study workspace. Return a single learning artifact for action: ${safeAction}.
+Topic: "${topic}"
+Comparison topic: "${String(compareWith || "").slice(0, 500)}"
+Student answer (only if provided): "${String(learnerAnswer || "").slice(0, 2000)}"
+Source note title: "${title}"
+Source note:\n"""\n${source || "No source note. Clearly treat guidance as general knowledge; never claim it came from a note."}\n"""
+
+Rules: prioritize source facts when present; distinguish source-grounded ideas from general knowledge; be accurate, concise, and pedagogical. For teach, ask exactly one useful Socratic question and respond to the student's answer without dumping a lecture. For visualize, make the graph concepts concrete. No emojis.
+Return JSON with this schema:
+{
+ "title":"string", "coreAnswer":"string", "intuition":"string", "stepByStep":["string"], "analogy":"string", "workedExample":"string", "realWorldExample":"string", "keyPoints":["string"], "misconceptions":["string"], "examTraps":["string"], "practiceQuestion":"string", "followUpQuestions":["string"], "teacherQuestion":"string", "teacherFeedback":"string",
+ "comparison":{"left":"string","right":"string","similarities":"string","differences":"string","whenToUse":"string"},
+ "graph":{"nodes":[{"id":"string","label":"string","kind":"core|component|dependency|application"}],"edges":[{"from":"string","to":"string","label":"string"}]},
+ "mastery":{"score":number,"strong":["string"],"moderate":["string"],"weak":["string"],"missing":["string"],"misconceptions":["string"],"examReadiness":"string","nextAction":"string"}, "sourceGrounded":boolean, "sourceSummary":"string"
+}`;
+
+  try {
+    const { parsed, model } = await executeGeminiGenerate<any>(ai, { contents: prompt, temperature: 0.28, timeoutMs: 35000 });
+    if (parsed?.coreAnswer && parsed?.mastery) return res.json({ success: true, result: parsed, fallback: false, model });
+  } catch (err) {
+    console.warn("Learning Lab AI error:", err);
+  }
+  return res.json({ success: true, result: fallback(), fallback: true, model: "learning-lab-fallback" });
+});
+
 app.post("/api/ai/explain", async (req, res) => {
   const {
     noteTitle = "",
@@ -2460,7 +2537,7 @@ Required JSON:
   }
 
   return res.json({ success: true, result: fallback, fallback: true, model: "smart-explain-fallback" });
-}
+});
 
 // Health check endpoint
 app.get("/api/health", (_req, res) => {

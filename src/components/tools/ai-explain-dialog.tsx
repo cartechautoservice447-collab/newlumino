@@ -1,430 +1,79 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ArrowRight,
-  BookOpen,
-  Brain,
-  Check,
-  ChevronDown,
-  Copy,
-  Lightbulb,
-  Loader2,
-  MessageCircleQuestion,
-  Sparkles,
-  X,
+  ArrowRight, BookOpen, Brain, CheckCircle2, ChevronDown, ChevronRight, CircleAlert,
+  Clock3, Columns2, Copy, FileText, FlaskConical, GitBranch, Lightbulb, Loader2,
+  Map, MessageCircleQuestion, Network, Play, Search, Send, Sparkles, Target, X, Zap,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { Note } from "@/lib/notes";
+import type { Collection, Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
 import { useNotifications } from "@/context/notification-context";
 
-type ExplainMode =
-  | "clear"
-  | "step_by_step"
-  | "analogy"
-  | "example"
-  | "exam"
-  | "code";
-
-type ExplainResult = {
-  title: string;
-  coreAnswer: string;
-  explanation: string;
-  analogy: string;
-  example: string;
-  keyPoints: string[];
-  commonMistake: string;
-  checkQuestion: string;
-  followUpQuestions: string[];
+type LabAction = "explain" | "deeper" | "simple" | "example" | "visualize" | "compare" | "gap" | "practice" | "teach";
+type LabMode = "lesson" | "teacher" | "visual" | "compare" | "diagnose" | "practice";
+type LearningResult = {
+  title: string; coreAnswer: string; intuition: string; stepByStep: string[]; analogy: string; workedExample: string; realWorldExample: string; keyPoints: string[]; misconceptions: string[]; examTraps: string[]; practiceQuestion: string; followUpQuestions: string[]; teacherQuestion: string; teacherFeedback: string;
+  comparison: { left: string; right: string; similarities: string; differences: string; whenToUse: string };
+  graph: { nodes: { id: string; label: string; kind: string }[]; edges: { from: string; to: string; label: string }[] };
+  mastery: { score: number; strong: string[]; moderate: string[]; weak: string[]; missing: string[]; misconceptions: string[]; examReadiness: string; nextAction: string };
+  sourceGrounded: boolean; sourceSummary: string;
 };
+interface Props { open: boolean; onOpenChange: (open: boolean) => void; notes: Note[]; selectedNote: Note | null; activeCourseName?: string; collections?: Collection[]; onOpenFlashcards?: (note: Note) => void; onOpenExam?: () => void; onOpenCollectionExam?: () => void; onOpenPomodoro?: () => void; onOpenNotePolisher?: (note: Note) => void; }
 
-interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  notes: Note[];
-  selectedNote: Note | null;
-}
-
-const MODES: { id: ExplainMode; label: string; description: string }[] = [
-  { id: "clear", label: "Clear", description: "Simple, direct explanation" },
-  { id: "step_by_step", label: "Step by Step", description: "Build the idea in logical steps" },
-  { id: "analogy", label: "Analogy", description: "Connect it to a real-world idea" },
-  { id: "example", label: "Example", description: "Teach it through an applied example" },
-  { id: "exam", label: "Exam Ready", description: "Focus on what matters in assessment" },
-  { id: "code", label: "Code Focus", description: "Explain syntax, logic and behavior" },
+const modes: { id: LabMode; label: string; icon: React.ReactNode; action: LabAction }[] = [
+  { id: "lesson", label: "Deep explain", icon: <Lightbulb />, action: "explain" }, { id: "teacher", label: "Adaptive teacher", icon: <MessageCircleQuestion />, action: "teach" }, { id: "visual", label: "Visual builder", icon: <Network />, action: "visualize" }, { id: "compare", label: "Compare", icon: <Columns2 />, action: "compare" }, { id: "diagnose", label: "Knowledge gaps", icon: <Target />, action: "gap" }, { id: "practice", label: "Practice", icon: <FlaskConical />, action: "practice" },
 ];
+const stripMarkdown = (value: string) => value.replace(/```[\s\S]*?```/g, " ").replace(/[#>*_~`\-]/g, " ").replace(/\s+/g, " ").trim();
+function Label({ children, tone = "text-muted-foreground" }: { children: React.ReactNode; tone?: string }) { return <div className={cn("text-[0.62rem] font-bold uppercase tracking-[0.16em]", tone)}>{children}</div>; }
+function Section({ title, icon, children, className }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string }) { return <section className={cn("rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4", className)}><div className="flex items-center gap-2 text-xs font-bold text-foreground">{icon}<span>{title}</span></div><div className="mt-2.5 text-sm leading-6 text-muted-foreground">{children}</div></section>; }
 
-function stripMarkdown(value: string) {
-  return value.replace(/[#>*_~\-]/g, " ").replace(/\s+/g, " ").trim();
+function ConceptMap({ graph, title }: { graph: LearningResult["graph"]; title: string }) {
+  const nodes = graph?.nodes?.slice(0, 5) || [];
+  const positions = [[50, 12], [17, 48], [50, 51], [83, 48], [50, 84]];
+  if (!nodes.length) return null;
+  return <div className="overflow-x-auto pb-1"><div className="relative min-h-[300px] min-w-[560px] overflow-hidden rounded-2xl border border-cyan-400/15 bg-[radial-gradient(circle_at_50%_15%,rgba(34,211,238,.11),transparent_36%),linear-gradient(145deg,rgba(15,23,42,.8),rgba(15,23,42,.35))]"><div className="pointer-events-none absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(148,163,184,.35)_1px,transparent_1px)] [background-size:18px_18px]" /><svg aria-hidden="true" className="absolute inset-0 h-full w-full overflow-visible">{nodes.slice(1).map((node, index) => <line key={node.id} x1="50%" y1="22%" x2={`${positions[index + 1][0]}%`} y2={`${positions[index + 1][1] - 7}%`} stroke="rgba(34,211,238,.38)" strokeWidth="1.5" strokeDasharray={index === 3 ? "4 4" : undefined} />)}</svg>{nodes.map((node, index) => <div key={node.id} className={cn("absolute w-[142px] -translate-x-1/2 -translate-y-1/2 rounded-xl border px-3 py-2.5 text-center shadow-lg", index === 0 ? "border-primary/45 bg-primary/20 text-primary-foreground" : "border-white/12 bg-slate-950/80 text-foreground")} style={{ left: `${positions[index][0]}%`, top: `${positions[index][1]}%` }}><span className="block text-[0.58rem] font-bold uppercase tracking-wider text-cyan-300/80">{index === 0 ? "Core concept" : node.kind}</span><span className="mt-0.5 block line-clamp-2 text-xs font-semibold leading-4">{node.label}</span></div>)}<div className="absolute bottom-3 left-4 flex items-center gap-1.5 text-[0.62rem] text-slate-400"><GitBranch className="h-3 w-3" />Relationships and dependencies in {title}</div></div></div>;
 }
 
-export function AiExplainDialog({
-  open,
-  onOpenChange,
-  notes,
-  selectedNote,
-}: Props) {
+export function AiExplainDialog({ open, onOpenChange, notes, selectedNote, activeCourseName, collections = [], onOpenFlashcards, onOpenExam, onOpenCollectionExam, onOpenPomodoro, onOpenNotePolisher }: Props) {
   const { showNotification } = useNotifications();
-  const [activeTargetId, setActiveTargetId] = useState(selectedNote?.id || notes[0]?.id || "");
-  const [mode, setMode] = useState<ExplainMode>("clear");
-  const [query, setQuery] = useState("");
-  const [result, setResult] = useState<ExplainResult | null>(null);
-  const [isExplaining, setIsExplaining] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const targetNote = useMemo(
-    () => (activeTargetId ? notes.find((note) => note.id === activeTargetId) || selectedNote || notes[0] || null : null),
-    [activeTargetId, notes, selectedNote],
-  );
-
-  useEffect(() => {
-    if (open) {
-      const nextId = selectedNote?.id || notes[0]?.id || "";
-      setActiveTargetId(nextId);
-      setResult(null);
-      setCopied(false);
-      setQuery("");
-    }
-  }, [open, selectedNote, notes]);
-
-  const notePreview = targetNote?.body ? stripMarkdown(targetNote.body).slice(0, 220) : "";
-
-  const handleExplain = async () => {
-    const source = targetNote?.body?.trim() || "";
-    const concept = query.trim();
-
-    if (!concept && !source) {
-      showNotification({
-        message: "Nothing to Explain",
-        description: "Choose a note or enter a concept/question first.",
-        type: "warning",
-      });
-      return;
-    }
-
-    haptic("medium");
-    setIsExplaining(true);
-    setResult(null);
-
-    try {
-      const res = await fetch("/api/ai/explain", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          noteTitle: targetNote?.title || "",
-          noteBody: source,
-          concept,
-          mode,
-        }),
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const data = await res.json();
-      if (!data?.success || !data?.result) {
-        throw new Error("Empty explanation result");
-      }
-
-      setResult(data.result as ExplainResult);
-      haptic("success");
-    } catch (error) {
-      console.error("AI Explain failed:", error);
-      showNotification({
-        message: "AI Explain Failed",
-        description: "Could not generate an explanation. Please try again.",
-        type: "error",
-      });
-    } finally {
-      setIsExplaining(false);
-    }
+  const [activeNoteId, setActiveNoteId] = useState(""); const [query, setQuery] = useState(""); const [compareWith, setCompareWith] = useState(""); const [mode, setMode] = useState<LabMode>("lesson"); const [result, setResult] = useState<LearningResult | null>(null); const [loadingAction, setLoadingAction] = useState<LabAction | null>(null); const [error, setError] = useState(""); const [teacherInput, setTeacherInput] = useState(""); const [teacherTurns, setTeacherTurns] = useState<{ role: "assistant" | "student"; text: string }[]>([]); const [interactions, setInteractions] = useState(0); const [copied, setCopied] = useState(false);
+  const targetNote = useMemo(() => notes.find((note) => note.id === activeNoteId) || selectedNote || notes[0] || null, [activeNoteId, notes, selectedNote]);
+  const collectionName = useMemo(() => targetNote?.collectionId ? collections.find((collection) => collection.id === targetNote.collectionId)?.name : undefined, [collections, targetNote]);
+  const score = Math.min(96, Math.max(0, (result?.mastery.score || 0) + Math.min(12, interactions * 2)));
+  useEffect(() => { if (!open) return; setActiveNoteId(selectedNote?.id || notes[0]?.id || ""); setQuery(""); setCompareWith(""); setResult(null); setError(""); setTeacherTurns([]); setInteractions(0); setMode("lesson"); }, [open, selectedNote, notes]);
+  const callLab = async (action: LabAction, studentAnswer = "") => {
+    const concept = query.trim() || targetNote?.title || "";
+    if (!concept && !targetNote?.body?.trim()) { setError("Choose a source note or enter a topic to begin."); return; }
+    setError(""); setLoadingAction(action); haptic("light");
+    try { const response = await fetch("/api/ai/learning-lab", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ noteTitle: targetNote?.title || "", noteBody: targetNote?.body || "", concept, action, compareWith, learnerAnswer: studentAnswer }) }); if (!response.ok) throw new Error(`Request failed (${response.status})`); const data = await response.json(); if (!data?.success || !data?.result) throw new Error("The learning response was incomplete."); const next = data.result as LearningResult; setResult(next); setInteractions((current) => current + 1); if (action === "teach") setTeacherTurns((turns) => [...turns, ...(studentAnswer ? [{ role: "student" as const, text: studentAnswer }] : []), { role: "assistant", text: `${next.teacherFeedback}\n\n${next.teacherQuestion}` }]); haptic("success"); }
+    catch (requestError) { console.error("Learning Lab failed", requestError); setError("The Learning Lab could not generate this step. Check your connection and try again."); showNotification({ message: "Learning Lab unavailable", description: "Please retry this learning step.", type: "error" }); }
+    finally { setLoadingAction(null); }
   };
-
-  const handleCopy = async () => {
-    if (!result) return;
-    const text = [
-      result.title,
-      "",
-      "Core Answer",
-      result.coreAnswer,
-      "",
-      "Explanation",
-      result.explanation,
-      "",
-      "Analogy",
-      result.analogy,
-      "",
-      "Example",
-      result.example,
-      "",
-      "Key Points",
-      ...result.keyPoints.map((point) => `- ${point}`),
-      "",
-      "Common Mistake",
-      result.commonMistake,
-      "",
-      "Check Your Understanding",
-      result.checkQuestion,
-    ].join("\n");
-
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      haptic("light");
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      showNotification({
-        message: "Copy Failed",
-        description: "The explanation could not be copied.",
-        type: "error",
-      });
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed inset-0 left-0 top-0 m-0 flex h-[100dvh] w-screen max-w-none max-h-none translate-x-0 translate-y-0 flex-col overflow-hidden rounded-none border-0 bg-slate-950/98 p-0 text-foreground shadow-none ring-0 sm:rounded-none">
-        <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-white/[0.025] px-4 py-3.5 sm:px-8 sm:py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-500/20 via-cyan-500/15 to-emerald-500/15 text-violet-300 shadow-[0_0_20px_-5px_rgba(167,139,250,0.45)]">
-              <Brain className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <DialogTitle className="flex flex-wrap items-center gap-2 text-base font-bold tracking-tight text-foreground sm:text-lg">
-                <span>AI Explain</span>
-                <span className="rounded-md border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wider text-violet-300">
-                  Study Tutor
-                </span>
-              </DialogTitle>
-              <p className="mt-0.5 hidden text-xs text-muted-foreground sm:block">
-                Turn difficult concepts into clear, structured understanding grounded in your notes.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            aria-label="Close AI Explain"
-            className="mr-9 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-muted-foreground transition active:scale-90"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto scroll-sleek">
-          <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 p-4 sm:p-6 lg:p-8">
-            <section className="rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-950/35 via-slate-900/70 to-cyan-950/25 p-4 shadow-xl backdrop-blur-2xl sm:p-5">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-violet-300">
-                <Sparkles className="h-4 w-4" />
-                Explain Anything From Your Study Workspace
-              </div>
-              <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-slate-400">
-                Ask about a specific concept, formula, paragraph, code block, or question. AI Explain uses the selected note as grounding context when available.
-              </p>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
-                <div className="min-w-0">
-                  <label className="mb-1.5 block text-[0.65rem] font-bold uppercase tracking-wider text-slate-400">
-                    What should AI explain?
-                  </label>
-                  <textarea
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    className="min-h-[118px] w-full resize-none rounded-2xl border border-white/10 bg-black/30 p-3.5 text-sm leading-relaxed text-white outline-none placeholder:text-slate-500 focus:border-violet-400/50"
-                    placeholder="Example: Explain entropy in simple terms and show how it relates to the second law of thermodynamics."
-                  />
-                </div>
-
-                <div className="min-w-0">
-                  <label className="mb-1.5 block text-[0.65rem] font-bold uppercase tracking-wider text-slate-400">
-                    Source Note
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={activeTargetId}
-                      onChange={(event) => setActiveTargetId(event.target.value)}
-                      className="h-12 w-full appearance-none rounded-2xl border border-white/10 bg-black/30 px-3 pr-9 text-sm text-white outline-none focus:border-violet-400/50"
-                    >
-                      <option value="">No source note</option>
-                      {notes.map((note) => (
-                        <option key={note.id} value={note.id}>
-                          {note.title || "Untitled Note"}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  </div>
-
-                  {targetNote ? (
-                    <div className="mt-2 rounded-2xl border border-white/[0.07] bg-white/[0.035] p-3">
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-cyan-300" />
-                        <span className="truncate text-xs font-bold text-white">{targetNote.title || "Untitled Note"}</span>
-                      </div>
-                      <p className="mt-1.5 line-clamp-3 text-[0.7rem] leading-relaxed text-slate-400">
-                        {notePreview || "This note has no readable preview."}
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <div className="mb-2 text-[0.65rem] font-bold uppercase tracking-wider text-slate-400">Explanation Style</div>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-                  {MODES.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => {
-                        haptic("light");
-                        setMode(item.id);
-                      }}
-                      className={cn(
-                        "rounded-xl border p-2.5 text-left transition active:scale-[0.98]",
-                        mode === item.id
-                          ? "border-violet-400/40 bg-violet-500/15 text-violet-200"
-                          : "border-white/[0.07] bg-white/[0.03] text-slate-400 hover:bg-white/[0.06]",
-                      )}
-                    >
-                      <span className="block text-xs font-bold">{item.label}</span>
-                      <span className="mt-0.5 block text-[0.62rem] leading-relaxed opacity-75">{item.description}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2 text-[0.68rem] text-slate-400">
-                  <MessageCircleQuestion className="h-4 w-4 text-emerald-300" />
-                  <span>Grounded to your selected note when provided.</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleExplain}
-                  disabled={isExplaining}
-                  className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-violet-500 px-5 text-sm font-bold text-white shadow-lg transition hover:bg-violet-400 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
-                >
-                  {isExplaining ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lightbulb className="h-4 w-4" />}
-                  {isExplaining ? "Explaining..." : "Explain This"}
-                </button>
-              </div>
-            </section>
-
-            {result ? (
-              <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-                <div className="space-y-4">
-                  <div className="rounded-3xl border border-emerald-500/20 bg-emerald-950/15 p-5 shadow-xl backdrop-blur-xl sm:p-6">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <span className="text-[0.65rem] font-bold uppercase tracking-wider text-emerald-300">Core Answer</span>
-                        <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white sm:text-2xl">{result.title}</h2>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleCopy}
-                        className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-2.5 text-xs font-semibold text-slate-300 transition active:scale-95"
-                      >
-                        {copied ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
-                        {copied ? "Copied" : "Copy"}
-                      </button>
-                    </div>
-                    <p className="mt-3 text-sm leading-7 text-slate-200 sm:text-[15px]">{result.coreAnswer}</p>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <article className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-300">
-                        <Brain className="h-4 w-4" />
-                        Explanation
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-300">{result.explanation}</p>
-                    </article>
-
-                    <article className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-300">
-                        <Lightbulb className="h-4 w-4" />
-                        Analogy
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-300">{result.analogy}</p>
-                    </article>
-
-                    <article className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-violet-300">
-                        <ArrowRight className="h-4 w-4" />
-                        Worked Example
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-300">{result.example}</p>
-                    </article>
-
-                    <article className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-300">
-                        <MessageCircleQuestion className="h-4 w-4" />
-                        Common Mistake
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-300">{result.commonMistake}</p>
-                    </article>
-                  </div>
-                </div>
-
-                <aside className="space-y-4">
-                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
-                    <div className="mb-2 text-[0.65rem] font-bold uppercase tracking-wider text-slate-400">Key Points</div>
-                    <div className="space-y-2.5">
-                      {result.keyPoints.map((point, index) => (
-                        <div key={index} className="flex gap-2.5 text-sm leading-relaxed text-slate-300">
-                          <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-400/25 bg-emerald-400/10 text-[0.62rem] font-bold text-emerald-300">
-                            {index + 1}
-                          </span>
-                          <span>{point}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-cyan-500/20 bg-cyan-950/15 p-4">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-300">
-                      <MessageCircleQuestion className="h-4 w-4" />
-                      Check Your Understanding
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-slate-200">{result.checkQuestion}</p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4">
-                    <div className="mb-2 text-[0.65rem] font-bold uppercase tracking-wider text-slate-400">Next Questions</div>
-                    <div className="space-y-2">
-                      {result.followUpQuestions.map((question, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => {
-                            setQuery(question);
-                            haptic("light");
-                          }}
-                          className="flex w-full items-start gap-2 rounded-xl border border-white/[0.07] bg-black/20 p-2.5 text-left text-xs text-slate-300 transition hover:bg-white/[0.05] active:scale-[0.99]"
-                        >
-                          <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-300" />
-                          <span>{question}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </aside>
-              </section>
-            ) : (
-              <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center sm:p-12">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10 text-violet-300">
-                  <Lightbulb className="h-6 w-6" />
-                </div>
-                <h3 className="mt-4 text-base font-bold text-white">Ready to explain</h3>
-                <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-slate-400">
-                  Enter a concept or question above, choose a learning style, and AI Explain will turn it into a structured lesson.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+  const selectMode = (nextMode: LabMode) => { const next = modes.find((item) => item.id === nextMode)!; setMode(nextMode); if (nextMode !== "teacher" || !teacherTurns.length) void callLab(next.action); };
+  const startTool = (tool: "flashcards" | "exam" | "collection" | "pomodoro" | "polish") => { if (!targetNote && tool !== "collection") { setError("Select a source note first so this action keeps its learning context."); return; } haptic("medium"); if (tool === "flashcards" && targetNote) onOpenFlashcards?.(targetNote); if (tool === "exam") onOpenExam?.(); if (tool === "collection") onOpenCollectionExam?.(); if (tool === "pomodoro") onOpenPomodoro?.(); if (tool === "polish" && targetNote) onOpenNotePolisher?.(targetNote); };
+  const copyLesson = async () => { if (!result) return; try { await navigator.clipboard.writeText(`${result.title}\n\n${result.coreAnswer}\n\nKey points\n${result.keyPoints.map((item) => `- ${item}`).join("\n")}`); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { setError("Copy is unavailable in this browser."); } };
+  const sourcePreview = targetNote?.body ? stripMarkdown(targetNote.body).slice(0, 160) : "No source is selected. General knowledge responses will be clearly labelled.";
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="fixed inset-0 left-0 top-0 m-0 flex h-[100dvh] w-screen max-h-none max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden rounded-none border-0 bg-background p-0 text-foreground shadow-none sm:rounded-none">
+    <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-background/92 px-4 py-3 backdrop-blur-xl sm:px-6"><div className="flex min-w-0 items-center gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/15 text-primary"><Brain className="h-5 w-5" /></div><div className="min-w-0"><DialogTitle className="truncate text-base font-bold tracking-tight">AI Learning Lab</DialogTitle><p className="hidden text-xs text-muted-foreground sm:block">A connected workspace for understanding, practice, and mastery.</p></div></div><div className="flex items-center gap-2"><span className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[0.62rem] font-bold text-emerald-300 sm:inline">{result?.sourceGrounded ? "Source-grounded" : "General knowledge"}</span><button type="button" onClick={() => onOpenChange(false)} aria-label="Close AI Learning Lab" className="mr-9 flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><X className="h-4 w-4" /></button></div></header>
+    <div className="min-h-0 flex-1 overflow-y-auto scroll-sleek"><div className="mx-auto grid w-full max-w-[1560px] gap-4 p-3 sm:p-5 lg:grid-cols-[248px_minmax(0,1fr)_282px] lg:gap-5 lg:p-6">
+      <aside className="order-1 space-y-3 lg:sticky lg:top-0 lg:h-fit"><div className="glass-panel rounded-2xl p-3.5"><div className="flex items-center justify-between"><Label>Study context</Label><BookOpen className="h-4 w-4 text-primary" /></div><div className="mt-3 space-y-3"><div><label className="mb-1 block text-[0.64rem] font-semibold text-muted-foreground">CURRENT COURSE</label><div className="truncate rounded-xl border border-white/[0.08] bg-black/15 px-3 py-2 text-xs font-semibold">{activeCourseName || "Personal study"}</div></div><div><label className="mb-1 block text-[0.64rem] font-semibold text-muted-foreground">SOURCE NOTE</label><div className="relative"><select value={activeNoteId} onChange={(event) => { setActiveNoteId(event.target.value); setResult(null); }} className="h-10 w-full appearance-none rounded-xl border border-white/[0.08] bg-black/15 px-3 pr-8 text-xs outline-none focus:border-primary/60">{notes.length === 0 && <option value="">No notes yet</option>}{notes.map((note) => <option key={note.id} value={note.id}>{note.title || "Untitled note"}</option>)}</select><ChevronDown className="pointer-events-none absolute right-2.5 top-3 h-3.5 w-3.5 text-muted-foreground" /></div></div><div className="rounded-xl border border-cyan-400/15 bg-cyan-400/[0.055] p-2.5"><div className="flex items-center gap-1.5 text-[0.65rem] font-bold text-cyan-300"><FileText className="h-3.5 w-3.5" />{collectionName || "Source-aware context"}</div><p className="mt-1 line-clamp-3 text-[0.68rem] leading-5 text-muted-foreground">{sourcePreview}</p></div><div className="relative"><Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Concept or question" className="h-9 w-full rounded-xl border border-white/[0.08] bg-black/15 pl-8 pr-2 text-xs outline-none placeholder:text-muted-foreground focus:border-primary/60" /></div></div></div><div className="hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3.5 lg:block"><Label>Recent context</Label><p className="mt-2 text-xs leading-5 text-muted-foreground">{targetNote ? `Working from “${targetNote.title || "Untitled note"}”.` : "Choose a note to bring its content into this lesson."}</p><button type="button" onClick={() => startTool("polish")} className="mt-3 flex min-h-10 w-full items-center justify-between rounded-xl border border-white/10 px-3 text-xs font-semibold text-muted-foreground transition hover:bg-white/[0.06] hover:text-foreground"><span>Turn lecture into smart notes</span><ChevronRight className="h-3.5 w-3.5" /></button></div></aside>
+      <main className="order-2 min-w-0 space-y-4"><div className="glass-panel rounded-2xl p-2"><div className="flex gap-1 overflow-x-auto scroll-sleek">{modes.map((item) => <button key={item.id} type="button" onClick={() => selectMode(item.id)} className={cn("flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary", mode === item.id ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground")}><span className="[&>svg]:h-3.5 [&>svg]:w-3.5">{item.icon}</span>{item.label}</button>)}</div></div>
+        {!result && !loadingAction && <div className="glass-panel rounded-3xl p-6 sm:p-9"><div className="max-w-2xl"><div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-primary"><Sparkles className="h-5 w-5" /></div><h2 className="mt-4 text-xl font-bold tracking-tight sm:text-2xl">Start with one learning question.</h2><p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">The Lab connects your source context to a deep explanation, knowledge-gap diagnosis, visual model, practice, and the next best action.</p><button type="button" onClick={() => void callLab("explain")} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground shadow-lg transition hover:brightness-110"><Play className="h-4 w-4" />Build my learning path</button></div></div>}
+        {loadingAction && <div className="rounded-3xl border border-primary/20 bg-primary/[0.06] p-8 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" /><h2 className="mt-3 text-sm font-bold">Building your learning path</h2><p className="mt-1 text-xs text-muted-foreground">Grounding concepts, checking dependencies, and preparing the next step.</p></div>}
+        {error && <div className="flex items-start justify-between gap-3 rounded-2xl border border-rose-400/25 bg-rose-400/[0.08] p-3 text-xs text-rose-200"><span className="flex gap-2"><CircleAlert className="h-4 w-4 shrink-0" />{error}</span><button type="button" onClick={() => void callLab(mode === "diagnose" ? "gap" : "explain")} className="shrink-0 underline">Retry</button></div>}
+        {result && !loadingAction && (mode === "teacher" ? <section className="glass-panel rounded-3xl p-4 sm:p-5"><div className="flex items-center gap-2"><MessageCircleQuestion className="h-4 w-4 text-primary" /><div><h2 className="text-sm font-bold">Adaptive teacher</h2><p className="text-xs text-muted-foreground">One useful question at a time. Explain your thinking; I’ll adapt.</p></div></div><div className="mt-4 space-y-3">{teacherTurns.map((turn, index) => <div key={index} className={cn("rounded-2xl p-3 text-sm leading-6", turn.role === "assistant" ? "border border-cyan-400/15 bg-cyan-400/[0.06] text-foreground" : "ml-7 bg-white/[0.06] text-muted-foreground")}>{turn.text}</div>)}{teacherTurns.length === 0 && <div className="rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] p-3 text-sm leading-6">{result.teacherFeedback}<br /><strong className="mt-2 block text-foreground">{result.teacherQuestion}</strong></div>}</div><form onSubmit={(event) => { event.preventDefault(); if (teacherInput.trim()) { void callLab("teach", teacherInput.trim()); setTeacherInput(""); } }} className="mt-4 flex gap-2"><input value={teacherInput} onChange={(event) => setTeacherInput(event.target.value)} placeholder="Answer in your own words…" className="h-11 min-w-0 flex-1 rounded-xl border border-white/10 bg-black/15 px-3 text-sm outline-none focus:border-primary/60" /><button aria-label="Send answer" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Send className="h-4 w-4" /></button></form></section> : <LessonCanvas mode={mode} result={result} compareWith={compareWith} onCompareChange={setCompareWith} onAction={callLab} copied={copied} onCopy={copyLesson} />)}
+      </main>
+      <aside className="order-3 space-y-3 lg:sticky lg:top-0 lg:h-fit"><div className="glass-panel rounded-2xl p-4"><div className="flex items-center justify-between"><Label>Mastery</Label><span className="text-lg font-bold text-primary">{result ? `${score}%` : "—"}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.08]"><div className="h-full rounded-full bg-gradient-to-r from-amber-400 via-primary to-emerald-400 transition-[width] duration-500" style={{ width: `${score}%` }} /></div><p className="mt-2 text-xs text-muted-foreground">{result?.mastery.examReadiness || "Start a learning path to see your readiness."}</p>{result && <div className="mt-4 border-t border-white/[0.08] pt-3"><GapGrid mastery={result.mastery} compact /></div>}</div><div className="rounded-2xl border border-primary/20 bg-primary/[0.07] p-4"><div className="flex items-center gap-2 text-xs font-bold text-primary"><Sparkles className="h-4 w-4" />Recommended next action</div><p className="mt-2 text-sm leading-6 text-foreground">{result?.mastery.nextAction || "Choose a source note, then build a deep explanation."}</p><button type="button" onClick={() => void callLab(result?.mastery.weak.length ? "practice" : "explain")} className="mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground"><ArrowRight className="h-3.5 w-3.5" />Take next step</button></div><div className="grid grid-cols-2 gap-2"><ToolButton icon={<Brain />} label="Flashcards" onClick={() => startTool("flashcards")} tone="text-violet-300" /><ToolButton icon={<Target />} label="Practice exam" onClick={() => startTool("exam")} tone="text-amber-300" /><ToolButton icon={<BookOpen />} label="Collection exam" onClick={() => startTool("collection")} tone="text-cyan-300" /><ToolButton icon={<Clock3 />} label="Focus plan" onClick={() => startTool("pomodoro")} tone="text-emerald-300" /></div></aside>
+    </div></div>
+    <footer className="shrink-0 border-t border-white/10 bg-background/95 px-3 py-2 backdrop-blur-xl sm:px-5"><div className="mx-auto flex max-w-[1560px] gap-2 overflow-x-auto scroll-sleek">{[["Explain deeper", "deeper"], ["Simplify", "simple"], ["Show example", "example"], ["Visualize", "visualize"], ["Compare", "compare"], ["Quiz me", "practice"], ["Teach me", "teach"], ["Find knowledge gap", "gap"]].map(([label, action]) => <button key={label} type="button" onClick={() => { const selected = action === "teach" ? "teacher" : action === "visualize" ? "visual" : action === "compare" ? "compare" : action === "gap" ? "diagnose" : action === "practice" ? "practice" : "lesson"; setMode(selected as LabMode); void callLab(action as LabAction); }} className="min-h-10 shrink-0 rounded-xl border border-white/[0.09] bg-white/[0.035] px-3 text-xs font-semibold text-muted-foreground transition hover:bg-white/[0.08] hover:text-foreground">{label}</button>)}<button type="button" onClick={() => startTool("flashcards")} className="min-h-10 shrink-0 rounded-xl border border-violet-400/20 bg-violet-400/[0.08] px-3 text-xs font-bold text-violet-200">Generate flashcards</button><button type="button" onClick={() => startTool("exam")} className="min-h-10 shrink-0 rounded-xl border border-amber-400/20 bg-amber-400/[0.08] px-3 text-xs font-bold text-amber-200">Practice exam</button><button type="button" onClick={() => startTool("pomodoro")} className="min-h-10 shrink-0 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground">Create study plan</button></div></footer>
+  </DialogContent></Dialog>;
 }
+
+function LessonCanvas({ mode, result, compareWith, onCompareChange, onAction, copied, onCopy }: { mode: LabMode; result: LearningResult; compareWith: string; onCompareChange: (value: string) => void; onAction: (action: LabAction) => Promise<void>; copied: boolean; onCopy: () => void }) {
+  return <>{<section className="rounded-3xl border border-emerald-400/20 bg-[linear-gradient(135deg,rgba(16,185,129,.12),rgba(15,23,42,.22))] p-5 sm:p-6"><div className="flex items-start justify-between gap-3"><div><Label tone="text-emerald-300">Core answer</Label><h1 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">{result.title}</h1></div><button type="button" onClick={onCopy} className="flex h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.06] px-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground">{copied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}{copied ? "Copied" : "Copy"}</button></div><p className="mt-3 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-foreground/90">{result.coreAnswer}</p><div className="mt-4 flex items-center gap-2 text-[0.7rem] text-emerald-200/80"><BookOpen className="h-3.5 w-3.5" />{result.sourceSummary}</div></section>}
+    {mode === "visual" ? <Section title="Visual concept builder" icon={<Map className="h-4 w-4 text-cyan-300" />}><p className="mb-3">Follow the structure from the core concept to components, relationships, dependencies, and application.</p><ConceptMap graph={result.graph} title={result.title} /></Section> : mode === "compare" ? <Section title={`${result.comparison.left} vs ${result.comparison.right}`} icon={<Columns2 className="h-4 w-4 text-violet-300" />}><input value={compareWith} onChange={(event) => onCompareChange(event.target.value)} onBlur={() => { if (compareWith.trim()) void onAction("compare"); }} placeholder="Compare against a second concept" className="mb-3 h-10 w-full rounded-xl border border-white/10 bg-black/15 px-3 text-xs outline-none focus:border-primary/60" /><div className="grid gap-3 sm:grid-cols-2"><div><Label>Similarities</Label><p className="mt-1">{result.comparison.similarities}</p></div><div><Label>Differences</Label><p className="mt-1">{result.comparison.differences}</p></div><div className="sm:col-span-2"><Label>When to use each</Label><p className="mt-1">{result.comparison.whenToUse}</p></div></div></Section> : mode === "diagnose" ? <Section title="Knowledge gap analysis" icon={<Target className="h-4 w-4 text-amber-300" />}><GapGrid mastery={result.mastery} /></Section> : mode === "practice" ? <Section title="Contextual practice" icon={<FlaskConical className="h-4 w-4 text-amber-300" />}><p className="text-foreground">{result.practiceQuestion}</p><div className="mt-4 flex flex-wrap gap-2">{["MCQ", "Short answer", "Numerical", "Coding", "Viva", "Case study"].map((kind) => <button key={kind} type="button" onClick={() => void onAction("practice")} className="min-h-9 rounded-lg border border-white/10 px-3 text-xs font-semibold text-muted-foreground transition hover:bg-white/[0.06] hover:text-foreground">{kind}</button>)}</div></Section> : <div className="grid gap-4 xl:grid-cols-2"><Section title="Intuition" icon={<Lightbulb className="h-4 w-4 text-amber-300" />}>{result.intuition}</Section><Section title="Analogy" icon={<Network className="h-4 w-4 text-cyan-300" />}>{result.analogy}</Section><Section title="Step-by-step reasoning" icon={<ArrowRight className="h-4 w-4 text-primary" />} className="xl:col-span-2"><ol className="space-y-2">{result.stepByStep.map((step, index) => <li key={index} className="flex gap-2.5"><span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[0.65rem] font-bold text-primary">{index + 1}</span>{step}</li>)}</ol></Section><Section title="Worked example" icon={<FlaskConical className="h-4 w-4 text-violet-300" />}>{result.workedExample}</Section><Section title="Real-world connection" icon={<Zap className="h-4 w-4 text-emerald-300" />}>{result.realWorldExample}</Section><Section title="Visual concept map" icon={<Map className="h-4 w-4 text-cyan-300" />} className="xl:col-span-2"><ConceptMap graph={result.graph} title={result.title} /></Section></div>}
+    <Section title="Key points to retain" icon={<CheckCircle2 className="h-4 w-4 text-emerald-300" />}><ul className="space-y-2">{result.keyPoints.map((point, index) => <li key={index} className="flex gap-2"><span className="text-emerald-300">•</span><span>{point}</span></li>)}</ul></Section><div className="grid gap-4 md:grid-cols-2"><Section title="Common misconceptions" icon={<CircleAlert className="h-4 w-4 text-rose-300" />}>{result.misconceptions.map((item, index) => <p key={index} className="mb-2 last:mb-0">• {item}</p>)}</Section><Section title="Exam traps" icon={<Target className="h-4 w-4 text-amber-300" />}>{result.examTraps.map((item, index) => <p key={index} className="mb-2 last:mb-0">• {item}</p>)}</Section></div><section className="rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] p-4"><div className="flex items-center gap-2 text-xs font-bold text-cyan-200"><MessageCircleQuestion className="h-4 w-4" />Practice question</div><p className="mt-2 text-sm leading-6 text-foreground">{result.practiceQuestion}</p></section></>;
+}
+function GapGrid({ mastery, compact = false }: { mastery: LearningResult["mastery"]; compact?: boolean }) { const groups = [["Strong", mastery.strong, "text-emerald-300"], ["Building", mastery.moderate, "text-cyan-300"], ["Weak", mastery.weak, "text-amber-300"], ["Missing", mastery.missing, "text-rose-300"]] as const; return <div className={cn("grid gap-3", compact ? "grid-cols-2" : "sm:grid-cols-2")}>{groups.map(([label, concepts, tone]) => <div key={label}><Label tone={tone}>{label}</Label><div className="mt-1.5 flex flex-wrap gap-1">{concepts.slice(0, compact ? 1 : 3).map((concept) => <span key={concept} className="rounded-md border border-white/[0.08] bg-black/15 px-1.5 py-1 text-[0.65rem] text-muted-foreground">{concept}</span>)}{concepts.length === 0 && <span className="text-[0.65rem] text-muted-foreground">Not measured</span>}</div></div>)}</div>; }
+function ToolButton({ icon, label, onClick, tone }: { icon: React.ReactNode; label: string; onClick: () => void; tone: string }) { return <button type="button" onClick={onClick} className="min-h-16 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2 text-left text-xs font-semibold text-muted-foreground transition hover:text-foreground"><span className={cn("mb-1 block [&>svg]:h-3.5 [&>svg]:w-3.5", tone)}>{icon}</span>{label}</button>; }

@@ -544,14 +544,14 @@ function AuthenticatedApp({
           onOpenChange={setAiExplainOpen}
           notes={n.notes}
           selectedNote={n.selected || n.visibleNotes[0] || null}
+          activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
+          collections={n.collections}
+          onOpenFlashcards={(note) => { setFlashcardTargetNote(note); setAutoAIGenerateCards(true); setFlashcardsDialogOpen(true); }}
+          onOpenExam={() => setExamSimulatorOpen(true)}
+          onOpenCollectionExam={() => setCollectionExamOpen(true)}
+          onOpenPomodoro={() => setPomodoroDialogOpen(true)}
+          onOpenNotePolisher={(note) => { n.setSelectedId(note.id); setNotePolisherOpen(true); }}
         />
-
-        <AiExplainDialog
-        open={aiExplainOpen}
-        onOpenChange={setAiExplainOpen}
-        notes={n.notes}
-        selectedNote={n.selected || n.visibleNotes[0] || null}
-      />
 
       <AiNotePolisherDialog
           open={notePolisherOpen}
@@ -1009,6 +1009,27 @@ function AuthenticatedApp({
           setNotePolisherOpen(true);
         }}
         onOpenCollectionExam={() => setCollectionExamOpen(true)}
+      />
+
+      <AiExplainDialog
+        open={aiExplainOpen}
+        onOpenChange={setAiExplainOpen}
+        notes={n.notes}
+        selectedNote={n.selected || n.visibleNotes[0] || null}
+        activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
+        collections={n.collections}
+        onOpenFlashcards={(note) => {
+          setFlashcardTargetNote(note);
+          setAutoAIGenerateCards(true);
+          setFlashcardsDialogOpen(true);
+        }}
+        onOpenExam={() => setExamSimulatorOpen(true)}
+        onOpenCollectionExam={() => setCollectionExamOpen(true)}
+        onOpenPomodoro={() => setPomodoroDialogOpen(true)}
+        onOpenNotePolisher={(note) => {
+          n.setSelectedId(note.id);
+          setNotePolisherOpen(true);
+        }}
       />
 
       <AiNotePolisherDialog

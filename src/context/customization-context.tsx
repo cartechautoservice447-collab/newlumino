@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -32,6 +33,7 @@ const CustomizationContext = createContext<Ctx | null>(null);
 export function CustomizationProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Customization>(DEFAULT_CUSTOMIZATION);
   const [hydrated, setHydrated] = useState(false);
+  const previousCssVars = useRef<Record<string, string> | null>(null);
 
   useEffect(() => {
     setSettings(loadCustomization());
@@ -46,7 +48,14 @@ export function CustomizationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     const vars = toCssVars(settings);
-    for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
+    const previous = previousCssVars.current;
+
+    for (const [key, value] of Object.entries(vars)) {
+      if (previous?.[key] === value) continue;
+      root.style.setProperty(key, value);
+    }
+
+    previousCssVars.current = vars;
     root.dataset["motion"] = settings.motion;
     root.dataset["liquidGlass"] = settings.liquidGlassEnabled ? "on" : "off";
 

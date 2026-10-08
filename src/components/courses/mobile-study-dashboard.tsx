@@ -1,10 +1,13 @@
 import { memo, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   ArrowRight,
+  BarChart3,
   BookOpen,
+  CalendarDays,
   Clock3,
   FolderOpen,
   Flame,
+  Lightbulb,
   Menu,
   Plus,
   Search,
@@ -19,6 +22,7 @@ import { useAuth } from "@/context/auth-context";
 import { haptic } from "@/lib/haptics";
 import { COURSE_ACCENTS, formatDate, type Course, type CourseAccent, type Note } from "@/lib/notes";
 import { cn } from "@/lib/utils";
+import type { PomodoroSessionRecord } from "@/lib/pomodoro-ai";
 import { MobileMomentumAndActivity } from "./mobile-momentum-and-activity";
 
 type Props = {
@@ -36,6 +40,7 @@ type Props = {
   onStartFocus: () => void;
   todayFocusSeconds: number;
   dailyGoalHours: number;
+  sessionHistory?: PomodoroSessionRecord[];
   realtimeStatus?: "connected" | "connecting" | "offline";
   isSyncing?: boolean;
 };
@@ -296,6 +301,244 @@ const MobileQuickStats = memo(function MobileQuickStats({
   );
 });
 
+
+const DAY_MS = 86_400_000;
+
+function localDayKey(timestamp: number) {
+  const date = new Date(timestamp);
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function localDayStart(offset = 0) {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + offset);
+  return date;
+}
+
+function formatStudyMinutes(minutes: number) {
+  if (minutes < 60) return minutes + "m";
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? hours + "h " + remainder + "m" : hours + "h";
+}
+
+function formatPercentDelta(current: number, previous: number) {
+  if (previous <= 0) return current > 0 ? "New" : "—";
+  const delta = Math.round(((current - previous) / previous) * 100);
+  return (delta > 0 ? "+" : "") + delta + "%";
+}
+
+function studyWindowLabel(hour: number) {
+  if (hour >= 6 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 18) return "afternoon";
+  if (hour >= 18 && hour < 24) return "evening";
+  return "late night";
+}
+
+type MobileStudyAnalytics = {
+  weekly: Array<{ label: string; date: string; minutes: number; height: number; isToday: boolean }>;
+  weeklyTotal: number;
+  previousWeekTotal: number;
+  weeklyDelta: string;
+  streakDays: boolean[];
+  currentStreak: number;
+  bestStreak: number;
+  averageSessionMinutes: number;
+  bestWindow: string;
+  topCourse: string;
+};
+
+const MobileWeeklyStudyPulse = memo(function MobileWeeklyStudyPulse({
+  weekly,
+  weeklyTotal,
+  previousWeekTotal,
+  weeklyDelta,
+}: {
+  weekly: MobileStudyAnalytics["weekly"];
+  weeklyTotal: number;
+  previousWeekTotal: number;
+  weeklyDelta: string;
+}) {
+  const trendPositive = weeklyTotal > previousWeekTotal;
+  return (
+    <section className="mobile-glass-lite mobile-premium-enter overflow-hidden rounded-[1.65rem] border p-4" style={{ animationDelay: "110ms" }}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
+            <BarChart3 className="h-[17px] w-[17px]" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="truncate text-[12px] font-bold uppercase tracking-[0.14em] text-foreground">Weekly Study Pulse</h2>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">Your last 7 days</p>
+          </div>
+        </div>
+        <span className={cn(
+          "shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-bold",
+          trendPositive ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200" : "border-white/10 bg-white/[0.04] text-muted-foreground",
+        )}>
+          {weeklyDelta}
+        </span>
+      </div>
+
+      <div className="mt-4 flex items-end justify-between gap-2.5">
+        {weekly.map((day, index) => (
+          <div key={day.date} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+            <span className={cn(
+              "text-[8px] font-bold uppercase tracking-[0.12em]",
+              day.isToday ? "text-primary" : "text-muted-foreground/70",
+            )}>
+              {day.label}
+            </span>
+            <div className="flex h-16 w-full max-w-[30px] items-end overflow-hidden rounded-full border border-white/[0.07] bg-white/[0.025] p-0.5">
+              <span
+                className={cn(
+                  "mobile-pulse-bar block w-full origin-bottom rounded-full",
+                  day.isToday
+                    ? "bg-gradient-to-t from-primary via-cyan-300 to-emerald-300"
+                    : "bg-gradient-to-t from-white/15 via-primary/40 to-primary/65",
+                )}
+                style={{ height: day.height + "%", animationDelay: (180 + index * 45) + "ms" }}
+              />
+            </div>
+            <span className="text-[8px] font-mono font-semibold tabular-nums text-muted-foreground">
+              {day.minutes ? formatStudyMinutes(day.minutes) : "—"}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 flex items-center justify-between border-t border-white/[0.07] pt-3">
+        <span className="text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Weekly total</span>
+        <span className="text-[11px] font-extrabold tabular-nums text-foreground">{formatStudyMinutes(weeklyTotal)}</span>
+      </div>
+    </section>
+  );
+});
+
+const MobileStudyStreak = memo(function MobileStudyStreak({
+  streakDays,
+  currentStreak,
+  bestStreak,
+}: {
+  streakDays: boolean[];
+  currentStreak: number;
+  bestStreak: number;
+}) {
+  const today = localDayStart();
+  return (
+    <section className="mobile-glass-lite mobile-premium-enter overflow-hidden rounded-[1.65rem] border p-4" style={{ animationDelay: "155ms" }}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-300/25 bg-amber-300/10 text-amber-200">
+            <CalendarDays className="h-[17px] w-[17px]" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="truncate text-[12px] font-bold uppercase tracking-[0.14em] text-foreground">Study Streak</h2>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">Keep the chain alive</p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Flame className="h-3.5 w-3.5 text-amber-300" />
+          <span className="text-[11px] font-black tabular-nums text-foreground">{currentStreak}d</span>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-7 gap-1.5">
+        {streakDays.map((active, index) => {
+          const day = new Date(today);
+          day.setDate(day.getDate() - (6 - index));
+          const label = day.toLocaleDateString("en-US", { weekday: "short" }).slice(0, 1);
+          const isToday = index === 6;
+          return (
+            <div
+              key={day.toISOString()}
+              className={cn(
+                "flex h-12 min-w-0 flex-col items-center justify-center rounded-xl border transition-transform duration-200",
+                active
+                  ? "border-primary/25 bg-primary/10 text-primary active:scale-[0.97]"
+                  : "border-white/[0.07] bg-white/[0.025] text-muted-foreground/60",
+                isToday && "ring-1 ring-primary/25",
+              )}
+            >
+              <span className="text-[8px] font-bold uppercase">{label}</span>
+              <span className={cn(
+                "mt-1 h-2 w-2 rounded-full",
+                active ? "bg-primary shadow-[0_0_10px_-3px_currentColor]" : "bg-white/10",
+              )} />
+              {isToday && <span className="mt-1 text-[7px] font-bold uppercase tracking-[0.08em]">today</span>}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex items-center justify-between border-t border-white/[0.07] pt-3 text-[9px]">
+        <span className="font-semibold text-muted-foreground">Current streak <span className="font-black text-foreground">{currentStreak} days</span></span>
+        <span className="font-semibold text-muted-foreground">Best <span className="font-black text-foreground">{bestStreak} days</span></span>
+      </div>
+    </section>
+  );
+});
+
+const MobileStudyInsights = memo(function MobileStudyInsights({
+  averageSessionMinutes,
+  bestWindow,
+  topCourse,
+  weeklyDelta,
+}: {
+  averageSessionMinutes: number;
+  bestWindow: string;
+  topCourse: string;
+  weeklyDelta: string;
+}) {
+  const hasHistory = averageSessionMinutes > 0;
+  return (
+    <section className="glass-panel mobile-premium-enter relative overflow-hidden rounded-[1.65rem] border border-primary/20 p-4" style={{ animationDelay: "200ms" }}>
+      <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary/10" />
+      <div className="relative">
+        <div className="flex items-start gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-cyan-200">
+            <Lightbulb className="h-[17px] w-[17px]" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-[12px] font-bold uppercase tracking-[0.14em] text-foreground">Study Insight</h2>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">
+              {hasHistory ? "Your recent pattern points to " + bestWindow + " study." : "Personalized once you complete a focus session."}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3">
+          <p className="text-[12px] font-semibold leading-relaxed text-foreground">
+            {hasHistory
+              ? "You average " + averageSessionMinutes + " minutes per completed session, with " + (topCourse === "—" ? "your study time still building" : topCourse + " leading your recent focus") + "."
+              : "Complete your first focus block and NewLumino will turn your study history into a useful pattern."}
+          </p>
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mobile-glass-lite rounded-xl border px-2.5 py-2.5">
+            <span className="block text-[8px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Avg session</span>
+            <span className="mt-1 block text-[12px] font-extrabold tabular-nums text-foreground">{hasHistory ? averageSessionMinutes + "m" : "—"}</span>
+          </div>
+          <div className="mobile-glass-lite rounded-xl border px-2.5 py-2.5">
+            <span className="block text-[8px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Best time</span>
+            <span className="mt-1 block truncate text-[12px] font-extrabold capitalize text-foreground">{hasHistory ? bestWindow : "—"}</span>
+          </div>
+          <div className="mobile-glass-lite rounded-xl border px-2.5 py-2.5">
+            <span className="block text-[8px] font-bold uppercase tracking-[0.11em] text-muted-foreground">Week</span>
+            <span className="mt-1 block text-[12px] font-extrabold tabular-nums text-foreground">{weeklyDelta}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+});
+
 const MobileRecentActivity = memo(function MobileRecentActivity({
   notes,
   coursesById,
@@ -375,7 +618,104 @@ export function MobileStudyDashboard(props: Props) {
     for (const note of props.notes) { if (!note.courseId) continue; const current = nextSummaries.get(note.courseId) || { noteCount: 0, latestUpdatedAt: 0 }; current.noteCount += 1; current.latestUpdatedAt = Math.max(current.latestUpdatedAt, note.updatedAt); nextSummaries.set(note.courseId, current); }
     return { coursesById: courseMap, summaries: nextSummaries, recentNotes: [...props.notes].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 5), favoriteCount: props.notes.reduce((total, note) => total + Number(note.favorite), 0) };
   }, [props.courses, props.notes]);
+
   const recentActivity = useMemo(() => recentNotes.slice(1), [recentNotes]);
+  const studyAnalytics = useMemo<MobileStudyAnalytics>(() => {
+    const history = props.sessionHistory ?? [];
+    const dailyGoalMinutes = Math.max(1, Math.round(props.dailyGoalHours * 60));
+
+    const weekly = Array.from({ length: 7 }, (_, index) => {
+      const offset = index - 6;
+      const date = localDayStart(offset);
+      const key = localDayKey(date.getTime());
+      const minutes = history.reduce((sum, session) => (
+        localDayKey(session.timestamp) === key ? sum + session.durationMinutes : sum
+      ), 0) + (offset === 0 ? Math.floor(props.todayFocusSeconds / 60) : 0);
+
+      return {
+        label: date.toLocaleDateString("en-US", { weekday: "short" }).slice(0, 1),
+        date: key,
+        minutes,
+        height: 0,
+        isToday: offset === 0,
+      };
+    });
+
+    const maxMinutes = Math.max(dailyGoalMinutes, ...weekly.map((day) => day.minutes), 1);
+    const normalizedWeekly = weekly.map((day) => ({
+      ...day,
+      height: day.minutes > 0 ? Math.max(12, Math.round((day.minutes / maxMinutes) * 100)) : 5,
+    }));
+
+    const todayStart = localDayStart().getTime();
+    const previousWeekTotal = history.reduce((sum, session) => {
+      const sessionDay = new Date(session.timestamp);
+      sessionDay.setHours(0, 0, 0, 0);
+      const diffDays = Math.floor((todayStart - sessionDay.getTime()) / DAY_MS);
+      return diffDays >= 7 && diffDays <= 13 ? sum + session.durationMinutes : sum;
+    }, 0);
+    const weeklyTotal = normalizedWeekly.reduce((sum, day) => sum + day.minutes, 0);
+
+    const activityKeys = new Set(history.map((session) => localDayKey(session.timestamp)));
+    if (props.todayFocusSeconds > 0) activityKeys.add(localDayKey(Date.now()));
+
+    const streakDays = Array.from({ length: 7 }, (_, index) => {
+      const offset = index - 6;
+      return activityKeys.has(localDayKey(localDayStart(offset).getTime()));
+    });
+
+    let currentStreak = 0;
+    for (let offset = 0; offset < 60; offset += 1) {
+      if (!activityKeys.has(localDayKey(localDayStart(-offset).getTime()))) break;
+      currentStreak += 1;
+    }
+
+    let bestStreak = 0;
+    let run = 0;
+    for (let offset = 59; offset >= 0; offset -= 1) {
+      if (activityKeys.has(localDayKey(localDayStart(-offset).getTime()))) {
+        run += 1;
+        bestStreak = Math.max(bestStreak, run);
+      } else {
+        run = 0;
+      }
+    }
+
+    const recentSessions = history.filter((session) => {
+      const sessionDay = new Date(session.timestamp);
+      sessionDay.setHours(0, 0, 0, 0);
+      return Math.floor((todayStart - sessionDay.getTime()) / DAY_MS) >= 0 &&
+        Math.floor((todayStart - sessionDay.getTime()) / DAY_MS) < 7;
+    });
+
+    const averageSessionMinutes = recentSessions.length
+      ? Math.round(recentSessions.reduce((sum, session) => sum + session.durationMinutes, 0) / recentSessions.length)
+      : 0;
+
+    const courseMinutes = new Map<string, number>();
+    const timeBuckets = new Map<string, number>();
+    for (const session of recentSessions) {
+      courseMinutes.set(session.courseName, (courseMinutes.get(session.courseName) || 0) + session.durationMinutes);
+      const bucket = studyWindowLabel(new Date(session.timestamp).getHours());
+      timeBuckets.set(bucket, (timeBuckets.get(bucket) || 0) + session.durationMinutes);
+    }
+
+    const topCourse = [...courseMinutes.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+    const bestWindow = [...timeBuckets.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+
+    return {
+      weekly: normalizedWeekly,
+      weeklyTotal,
+      previousWeekTotal,
+      weeklyDelta: formatPercentDelta(weeklyTotal, previousWeekTotal),
+      streakDays,
+      currentStreak,
+      bestStreak,
+      averageSessionMinutes,
+      bestWindow,
+      topCourse,
+    };
+  }, [props.dailyGoalHours, props.sessionHistory, props.todayFocusSeconds]);
   const resumeNote = recentNotes[0]; const resumeCourse = resumeNote?.courseId ? coursesById.get(resumeNote.courseId) : undefined;
   const meta = user?.user_metadata as { username?: string; full_name?: string } | null; const name = meta?.username || meta?.full_name?.split(" ")[0];
   const subtitle = resumeCourse ? `Continue your ${resumeCourse.name} study session` : resumeNote ? "Continue your latest study session" : "Choose a course and build today’s momentum";
@@ -386,5 +726,5 @@ export function MobileStudyDashboard(props: Props) {
   onOpenCourses={() => document.getElementById("mobile-course-library")?.scrollIntoView({ behavior: "smooth", block: "start" })}
   onOpenAllNotes={onOpenAllNotes}
   onOpenFavorites={onOpenFavorites}
-/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
+/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileWeeklyStudyPulse weekly={studyAnalytics.weekly} weeklyTotal={studyAnalytics.weeklyTotal} previousWeekTotal={studyAnalytics.previousWeekTotal} weeklyDelta={studyAnalytics.weeklyDelta} /><MobileStudyStreak streakDays={studyAnalytics.streakDays} currentStreak={studyAnalytics.currentStreak} bestStreak={studyAnalytics.bestStreak} /><MobileStudyInsights averageSessionMinutes={studyAnalytics.averageSessionMinutes} bestWindow={studyAnalytics.bestWindow} topCourse={studyAnalytics.topCourse} weeklyDelta={studyAnalytics.weeklyDelta} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
 }

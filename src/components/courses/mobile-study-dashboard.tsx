@@ -26,13 +26,15 @@ type Props = {
   onDeleteCourse: (id: string) => void;
   onOpenSettings: () => void;
   onOpenMenu: () => void;
-  onQuickNewNote: () => void;
+  onQuickNewNote: (courseId?: string) => void;
   onOpenNote: (noteId: string, courseId?: string) => void;
   onOpenAllNotes: () => void;
   onOpenFavorites: () => void;
   onStartFocus: () => void;
   todayFocusSeconds: number;
   dailyGoalHours: number;
+  realtimeStatus?: "connected" | "connecting" | "offline";
+  isSyncing?: boolean;
 };
 
 type CourseSummary = {
@@ -40,13 +42,13 @@ type CourseSummary = {
   latestUpdatedAt: number;
 };
 
-const ACCENT_STYLES: Record<CourseAccent, { bg: string; border: string; text: string; dot: string }> = {
-  sky: { bg: "bg-sky-500/15", border: "border-sky-400/30", text: "text-sky-300", dot: "bg-sky-300" },
-  violet: { bg: "bg-violet-500/15", border: "border-violet-400/30", text: "text-violet-300", dot: "bg-violet-300" },
-  amber: { bg: "bg-amber-500/15", border: "border-amber-300/30", text: "text-amber-200", dot: "bg-amber-300" },
-  emerald: { bg: "bg-emerald-500/15", border: "border-emerald-300/30", text: "text-emerald-200", dot: "bg-emerald-300" },
-  rose: { bg: "bg-rose-500/15", border: "border-rose-300/30", text: "text-rose-200", dot: "bg-rose-300" },
-  cyan: { bg: "bg-cyan-500/15", border: "border-cyan-300/30", text: "text-cyan-200", dot: "bg-cyan-300" },
+const ACCENT_STYLES: Record<CourseAccent, { bg: string; border: string; text: string; dot: string; glow: string }> = {
+  sky: { bg: "bg-sky-500/15", border: "border-sky-400/30", text: "text-sky-300", dot: "bg-sky-300", glow: "shadow-[0_0_18px_-7px_rgba(56,189,248,0.8)]" },
+  violet: { bg: "bg-violet-500/15", border: "border-violet-400/30", text: "text-violet-300", dot: "bg-violet-300", glow: "shadow-[0_0_18px_-7px_rgba(167,139,250,0.8)]" },
+  amber: { bg: "bg-amber-500/15", border: "border-amber-300/30", text: "text-amber-200", dot: "bg-amber-300", glow: "shadow-[0_0_18px_-7px_rgba(251,191,36,0.8)]" },
+  emerald: { bg: "bg-emerald-500/15", border: "border-emerald-300/30", text: "text-emerald-200", dot: "bg-emerald-300", glow: "shadow-[0_0_18px_-7px_rgba(52,211,153,0.8)]" },
+  rose: { bg: "bg-rose-500/15", border: "border-rose-300/30", text: "text-rose-200", dot: "bg-rose-300", glow: "shadow-[0_0_18px_-7px_rgba(251,113,133,0.8)]" },
+  cyan: { bg: "bg-cyan-500/15", border: "border-cyan-300/30", text: "text-cyan-200", dot: "bg-cyan-300", glow: "shadow-[0_0_18px_-7px_rgba(34,211,238,0.8)]" },
 };
 
 function cleanSnippet(body: string, max = 84) {
@@ -118,7 +120,7 @@ const MobileResumeStudy = memo(function MobileResumeStudy({
   };
 
   return (
-    <section className="relative overflow-hidden rounded-[1.55rem] border border-primary/25 bg-gradient-to-br from-primary/[0.19] via-white/[0.075] to-white/[0.025] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_14px_32px_rgba(0,0,0,0.26)]">
+    <section className="relative overflow-hidden rounded-[1.55rem] border border-primary/25 bg-gradient-to-br from-primary/[0.21] via-white/[0.08] to-white/[0.025] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_16px_36px_rgba(0,0,0,0.28)]">
       <div className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
       <div className="relative">
         <div className="flex items-center justify-between gap-3">
@@ -159,27 +161,47 @@ const MobileStudyToday = memo(function MobileStudyToday({
   todayFocusSeconds,
   dailyGoalHours,
   onStartFocus,
+  realtimeStatus = "connected",
+  isSyncing = false,
 }: {
   todayFocusSeconds: number;
   dailyGoalHours: number;
   onStartFocus: () => void;
+  realtimeStatus?: "connected" | "connecting" | "offline";
+  isSyncing?: boolean;
 }) {
   const minutes = Math.floor(todayFocusSeconds / 60);
   const goalMinutes = Math.max(1, Math.round(dailyGoalHours * 60));
   const progress = Math.min(100, Math.round((minutes / goalMinutes) * 100));
   const remaining = Math.max(0, goalMinutes - minutes);
-  const message = progress >= 100 ? "Goal complete — review a weak concept while your focus is warm." : minutes > 0 ? `${remaining} min left to reach today’s focus goal.` : "A focused block is the fastest way to build momentum.";
+  const radius = 17;
+  const circumference = 2 * Math.PI * radius;
+  const strokeOffset = circumference - (progress / 100) * circumference;
+  const message = progress >= 100 ? "Goal complete — review a weak concept while your focus is warm." : minutes > 0 ? remaining + " min left to reach today’s focus goal." : "A focused block is the fastest way to build momentum.";
+  const syncLabel = isSyncing ? "Syncing…" : realtimeStatus === "connected" ? "Cloud synced" : realtimeStatus === "connecting" ? "Connecting…" : "Local cached";
+  const syncTone = realtimeStatus === "connected" && !isSyncing ? "bg-emerald-300" : "bg-amber-300";
+
   return (
-    <section className="rounded-[1.4rem] border border-white/[0.10] bg-white/[0.045] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+    <section className="rounded-[1.4rem] border border-white/[0.10] bg-gradient-to-br from-white/[0.065] via-white/[0.04] to-primary/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.11),0_10px_24px_rgba(0,0,0,0.18)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Study today</p>
           <div className="mt-1.5 flex items-baseline gap-1.5"><strong className="text-2xl font-bold tabular-nums text-foreground">{minutes}</strong><span className="text-xs text-muted-foreground">/ {goalMinutes} min</span></div>
         </div>
-        <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-bold tabular-nums text-primary">{progress}%</span>
+        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/[0.06] shadow-[0_0_18px_-8px_hsl(var(--primary)/0.8)]" aria-label={progress + "% of daily focus goal"}>
+          <svg className="-rotate-90" width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
+            <circle cx="19" cy="19" r={radius} fill="none" stroke="currentColor" className="text-white/[0.08]" strokeWidth="3" />
+            <circle cx="19" cy="19" r={radius} fill="none" stroke="currentColor" className="text-primary" strokeWidth="3" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeOffset} />
+          </svg>
+          <span className="absolute text-[10px] font-bold tabular-nums text-primary">{progress}%</span>
+        </div>
       </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.075]"><div className="h-full rounded-full bg-gradient-to-r from-primary via-cyan-300 to-emerald-300 transition-[width] duration-300" style={{ width: `${progress}%` }} /></div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.075]"><div className="h-full rounded-full bg-gradient-to-r from-primary via-cyan-300 to-emerald-300 transition-[width] duration-300" style={{ width: progress + "%" }} /></div>
       <div className="mt-3 flex items-center justify-between gap-3"><p className="min-w-0 text-[11px] leading-relaxed text-muted-foreground">{message}</p><button type="button" onClick={onStartFocus} className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/10 px-3 text-[11px] font-bold text-primary transition-transform active:scale-95">Focus <ArrowRight className="h-3 w-3" /></button></div>
+      <div className="mt-3 flex items-center gap-1.5 border-t border-white/[0.06] pt-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/75">
+        <span className={`h-1.5 w-1.5 rounded-full ${syncTone}`} />
+        <span>{syncLabel}</span>
+      </div>
     </section>
   );
 });
@@ -212,7 +234,7 @@ const MobileRecentActivity = memo(function MobileRecentActivity({
 
 const MobileCourseCard = memo(function MobileCourseCard({ course, summary, onOpenCourse, onAddNote, onDelete }: { course: Course; summary: CourseSummary; onOpenCourse: (id: string) => void; onAddNote: () => void; onDelete: (course: Course) => void }) {
   const accent = ACCENT_STYLES[course.color];
-  return <article className="rounded-2xl border border-white/[0.09] bg-white/[0.035] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
+  return <article className={cn("rounded-2xl border border-white/[0.09] bg-gradient-to-br from-white/[0.05] to-white/[0.025] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.14)]", accent.glow)}>
     <div className="flex items-start gap-3">
       <button type="button" aria-label={`Open ${course.name}`} onClick={() => { haptic("light"); onOpenCourse(course.id); }} className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", accent.border, accent.bg, accent.text)}><FolderOpen className="h-5 w-5" /></button>
       <button type="button" onClick={() => { haptic("light"); onOpenCourse(course.id); }} className="min-w-0 flex-1 text-left"><h3 className="truncate text-sm font-bold text-foreground">{course.name}</h3><p className="mt-0.5 line-clamp-1 text-[11px] leading-relaxed text-muted-foreground">{course.description || "No description yet"}</p></button>
@@ -237,7 +259,7 @@ const MobileCourseLibrary = memo(function MobileCourseLibrary({ courses, summari
     <div className="mb-3 flex items-center justify-between"><div><h2 className="text-sm font-bold text-foreground">Your courses</h2><p className="mt-0.5 text-[11px] text-muted-foreground">Your study library</p></div><button type="button" onClick={() => setIsCreating(true)} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-primary/30 bg-primary px-3 text-[11px] font-bold text-primary-foreground transition-transform active:scale-95"><Plus className="h-3.5 w-3.5" /> Course</button></div>
     <label className="relative block"><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search courses…" className="h-11 w-full rounded-xl border border-white/[0.1] bg-white/[0.04] pl-10 pr-3 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/45" /></label>
     <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1.5 scrollbar-none overscroll-x-contain">{categories.map((item) => <button key={item} type="button" onClick={() => setCategory(item)} className={cn("min-h-8 shrink-0 rounded-full border px-3 text-[10px] font-bold capitalize transition-colors", category === item ? "border-primary/30 bg-primary/15 text-primary" : "border-white/[0.08] bg-white/[0.035] text-muted-foreground")}>{item}</button>)}</div>
-    <div className="mt-3 space-y-2.5">{filteredCourses.map((course) => <MobileCourseCard key={course.id} course={course} summary={summaries.get(course.id) || { noteCount: 0, latestUpdatedAt: course.updatedAt || course.createdAt }} onOpenCourse={onOpenCourse} onAddNote={onQuickNewNote} onDelete={setDeletingCourse} />)}{!filteredCourses.length && <div className="rounded-2xl border border-dashed border-white/[0.12] px-4 py-8 text-center"><p className="text-xs font-semibold text-foreground">No courses found</p><p className="mt-1 text-[11px] text-muted-foreground">Try another search or create a course.</p></div>}</div>
+    <div className="mt-3 space-y-2.5">{filteredCourses.map((course) => <MobileCourseCard key={course.id} course={course} summary={summaries.get(course.id) || { noteCount: 0, latestUpdatedAt: course.updatedAt || course.createdAt }} onOpenCourse={onOpenCourse} onAddNote={() => onQuickNewNote(course.id)} onDelete={setDeletingCourse} />)}{!filteredCourses.length && <div className="rounded-2xl border border-dashed border-white/[0.12] px-4 py-8 text-center"><p className="text-xs font-semibold text-foreground">No courses found</p><p className="mt-1 text-[11px] text-muted-foreground">Try another search or create a course.</p></div>}</div>
     {isCreating && <CourseForm onClose={() => setIsCreating(false)} onCreate={onAddCourse} />}
     {deletingCourse && <DeleteCourseConfirm course={deletingCourse} onCancel={() => setDeletingCourse(null)} onConfirm={() => { onDeleteCourse(deletingCourse.id); setDeletingCourse(null); }} />}
   </section>;
@@ -267,5 +289,5 @@ export function MobileStudyDashboard(props: Props) {
   const resumeNote = recentNotes[0]; const resumeCourse = resumeNote?.courseId ? coursesById.get(resumeNote.courseId) : undefined;
   const meta = user?.user_metadata as { username?: string; full_name?: string } | null; const name = meta?.username || meta?.full_name?.split(" ")[0];
   const subtitle = resumeCourse ? `Continue your ${resumeCourse.name} study session` : resumeNote ? "Continue your latest study session" : "Choose a course and build today’s momentum";
-  return <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:hidden"><div className="mx-auto w-full max-w-xl space-y-6"><MobileDashboardHeader name={name} subtitle={subtitle} onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} /><MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} /><MobileStudyToday todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} /><div className="flex gap-2"><button type="button" onClick={onOpenAllNotes} className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.035] text-[10px] font-bold text-muted-foreground"><BookOpen className="h-3.5 w-3.5" /> {props.courses.length} courses · {props.notes.length} notes</button><button type="button" onClick={onOpenFavorites} className="flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.035] px-3 text-[10px] font-bold text-muted-foreground"><Star className="h-3.5 w-3.5" /> {favoriteCount}</button></div><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
+  return <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:hidden"><div className="mx-auto w-full max-w-xl space-y-6"><MobileDashboardHeader name={name} subtitle={subtitle} onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} /><MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} /><MobileStudyToday todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} realtimeStatus={props.realtimeStatus} isSyncing={props.isSyncing} /><div className="flex gap-2"><button type="button" onClick={onOpenAllNotes} className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.035] text-[10px] font-bold text-muted-foreground"><BookOpen className="h-3.5 w-3.5" /> {props.courses.length} courses · {props.notes.length} notes</button><button type="button" onClick={onOpenFavorites} className="flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.035] px-3 text-[10px] font-bold text-muted-foreground"><Star className="h-3.5 w-3.5" /> {favoriteCount}</button></div><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
 }

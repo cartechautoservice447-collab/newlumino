@@ -512,17 +512,132 @@ const MobileRecentActivity = memo(function MobileRecentActivity({
   </section>;
 });
 
-const MobileCourseCard = memo(function MobileCourseCard({ course, summary, onOpenCourse, onAddNote, onDelete }: { course: Course; summary: CourseSummary; onOpenCourse: (id: string) => void; onAddNote: () => void; onDelete: (course: Course) => void }) {
-  const accent = ACCENT_STYLES[course.color];
-  return <article className="glass-panel mobile-glass-content-auto rounded-2xl p-3.5">
-    <div className="flex items-start gap-3">
-      <button type="button" aria-label={`Open ${course.name}`} onClick={() => { haptic("light"); onOpenCourse(course.id); }} className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", accent.border, accent.bg, accent.text)}><FolderOpen className="h-5 w-5" /></button>
-      <button type="button" onClick={() => { haptic("light"); onOpenCourse(course.id); }} className="min-w-0 flex-1 text-left"><h3 className="truncate text-sm font-bold text-foreground">{course.name}</h3><p className="mt-0.5 line-clamp-1 text-[11px] leading-relaxed text-muted-foreground">{course.description || "No description yet"}</p></button>
-      <button type="button" aria-label={`Delete ${course.name}`} onClick={() => onDelete(course)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors active:scale-95"><Trash2 className="h-4 w-4" /></button>
+const MobileCourseCard = memo(function MobileCourseCard({
+  course,
+  summary,
+  animationIndex,
+  onOpenCourse,
+  onAddNote,
+  onDelete,
+}: {
+  course: Course;
+  summary: CourseSummary;
+  animationIndex: number;
+  onOpenCourse: (id: string) => void;
+  onAddNote: () => void;
+  onDelete: (course: Course) => void;
+}) {
+  const style = ACCENT_STYLES[course.color] ?? ACCENT_STYLES.sky;
+  const last = summary.latestUpdatedAt || course.updatedAt || course.createdAt;
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => {
+        haptic("light");
+        onOpenCourse(course.id);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          haptic("light");
+          onOpenCourse(course.id);
+        }
+      }}
+      style={{ animationDelay: animationIndex * 35 + "ms" }}
+      className="glass-panel animate-panel-in group relative w-full cursor-pointer select-none overflow-hidden rounded-[2rem] border border-white/12 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-5 text-left shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_12px_36px_0_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-[0.975]"
+    >
+      <div className="mb-3 flex items-center justify-between gap-2.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className={cn(
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-sm",
+            style.border,
+            style.bg,
+            style.text,
+            style.glow,
+          )}>
+            <FolderOpen className="h-5 w-5" />
+          </span>
+          <span className="shrink-0 rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-0.5 text-xs font-mono font-medium tabular-nums text-muted-foreground">
+            {summary.noteCount} {summary.noteCount === 1 ? "note" : "notes"}
+          </span>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            aria-label={"Add note in " + course.name}
+            onClick={(event) => {
+              event.stopPropagation();
+              haptic("medium");
+              onAddNote();
+            }}
+            className="flex items-center gap-1 rounded-xl border border-primary/30 bg-primary/20 px-2.5 py-1 text-[11px] font-semibold text-primary transition-all active:scale-90 hover:bg-primary/30 cursor-pointer"
+          >
+            <Plus className="h-3 w-3" />
+            <span>Note</span>
+          </button>
+
+          <button
+            type="button"
+            aria-label={"Delete " + course.name}
+            onClick={(event) => {
+              event.stopPropagation();
+              setTimeout(() => onDelete(course), 0);
+            }}
+            className="rounded-xl border border-white/10 bg-black/40 p-1.5 text-muted-foreground transition-all duration-200 hover:border-destructive/40 hover:bg-destructive/20 hover:text-destructive active:scale-90 cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="mt-2.5 truncate text-[1.12rem] font-bold tracking-tight text-foreground transition-colors group-hover:text-primary">
+          {course.name}
+        </h3>
+
+        {course.description ? (
+          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground/80">
+            {course.description}
+          </p>
+        ) : (
+          <p className="mt-1.5 text-xs italic text-muted-foreground/40">
+            No description provided
+          </p>
+        )}
+
+        <div className="mt-3.5 flex flex-wrap items-center gap-2">
+          <span className={cn(
+            "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-[0.16em]",
+            style.border,
+            style.bg,
+            style.text,
+          )}>
+            <span className={cn("h-1.5 w-1.5 rounded-full", style.dot)} />
+            {course.color}
+          </span>
+
+          {course.category && course.category !== course.description?.slice(0, 30) && (
+            <span className="inline-block rounded-lg border border-white/5 bg-white/[0.05] px-2.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
+              {course.category}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-4.5 flex items-center justify-between border-t border-white/5 pt-3.5">
+        <span className="text-xs text-muted-foreground/70">
+          {last ? "Edited " + formatDate(last) : "No notes yet"}
+        </span>
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+          Open Workspace
+          <ArrowRight className="h-3.5 w-3.5" />
+        </span>
+      </div>
     </div>
-    <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/[0.07] pt-2.5"><div className="min-w-0 text-[10px] text-muted-foreground"><span className="font-semibold text-foreground/80">{summary.noteCount}</span> {summary.noteCount === 1 ? "note" : "notes"}{summary.latestUpdatedAt ? ` · ${formatDate(summary.latestUpdatedAt)}` : ""}</div><div className="flex shrink-0 gap-1.5"><button type="button" onClick={onAddNote} className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-primary/25 bg-primary/10 px-2.5 text-[10px] font-bold text-primary transition-transform active:scale-95"><Plus className="h-3 w-3" /> Note</button><button type="button" onClick={() => onOpenCourse(course.id)} className="mobile-glass-lite inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[10px] font-bold text-foreground transition-transform active:scale-95">Open <ArrowRight className="h-3 w-3" /></button></div></div>
-    {course.category && <span className={cn("mt-2.5 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em]", accent.border, accent.bg, accent.text)}><span className={cn("h-1 w-1 rounded-full", accent.dot)} />{course.category}</span>}
-  </article>;
+  );
 });
 
 const MobileCourseLibrary = memo(function MobileCourseLibrary({ courses, summaries, onOpenCourse, onQuickNewNote, onDeleteCourse, onAddCourse }: { courses: Course[]; summaries: Map<string, CourseSummary>; onOpenCourse: (id: string) => void; onQuickNewNote: () => void; onDeleteCourse: (id: string) => void; onAddCourse: (name: string, description?: string, color?: CourseAccent, category?: string) => void | Promise<void> }) {
@@ -539,7 +654,7 @@ const MobileCourseLibrary = memo(function MobileCourseLibrary({ courses, summari
     <div className="mb-3 flex items-center justify-between"><div><h2 className="text-sm font-bold text-foreground">Your courses</h2><p className="mt-0.5 text-[11px] text-muted-foreground">Your study library</p></div><button type="button" onClick={() => setIsCreating(true)} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-primary/30 bg-primary px-3 text-[11px] font-bold text-primary-foreground transition-transform active:scale-95"><Plus className="h-3.5 w-3.5" /> Course</button></div>
     <label className="relative block"><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search courses…" className="mobile-glass-lite h-11 w-full rounded-xl pl-10 pr-3 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/45" /></label>
     <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1.5 scrollbar-none overscroll-x-contain">{categories.map((item) => <button key={item} type="button" onClick={() => setCategory(item)} className={cn("mobile-glass-lite min-h-8 shrink-0 rounded-full px-3 text-[10px] font-bold capitalize transition-colors", category === item ? "border-primary/40 text-primary" : "text-muted-foreground")}>{item}</button>)}</div>
-    <div className="mt-3 space-y-2.5">{filteredCourses.map((course) => <MobileCourseCard key={course.id} course={course} summary={summaries.get(course.id) || { noteCount: 0, latestUpdatedAt: course.updatedAt || course.createdAt }} onOpenCourse={onOpenCourse} onAddNote={() => onQuickNewNote(course.id)} onDelete={setDeletingCourse} />)}{!filteredCourses.length && <div className="rounded-2xl border border-dashed border-white/[0.12] px-4 py-8 text-center"><p className="text-xs font-semibold text-foreground">No courses found</p><p className="mt-1 text-[11px] text-muted-foreground">Try another search or create a course.</p></div>}</div>
+    <div className="mt-3 space-y-2.5">{filteredCourses.map((course, index) => <MobileCourseCard key={course.id} course={course} summary={summaries.get(course.id) || { noteCount: 0, latestUpdatedAt: course.updatedAt || course.createdAt }} animationIndex={index} onOpenCourse={onOpenCourse} onAddNote={() => onQuickNewNote(course.id)} onDelete={setDeletingCourse} />)}{!filteredCourses.length && <div className="rounded-2xl border border-dashed border-white/[0.12] px-4 py-8 text-center"><p className="text-xs font-semibold text-foreground">No courses found</p><p className="mt-1 text-[11px] text-muted-foreground">Try another search or create a course.</p></div>}</div>
     {isCreating && <CourseForm onClose={() => setIsCreating(false)} onCreate={onAddCourse} />}
     {deletingCourse && <DeleteCourseConfirm course={deletingCourse} onCancel={() => setDeletingCourse(null)} onConfirm={() => { onDeleteCourse(deletingCourse.id); setDeletingCourse(null); }} />}
   </section>;

@@ -14,6 +14,7 @@ import { NoteList } from "@/components/notes/note-list";
 import { NoteEditor } from "@/components/notes/note-editor";
 import { CourseDashboard } from "@/components/courses/course-dashboard";
 import { SpatialAuroraDashboard } from "@/components/courses/spatial-aurora-dashboard";
+import { MobileStudyDashboard } from "@/components/courses/mobile-study-dashboard";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { MobileSidebarDrawer } from "@/components/mobile/mobile-sidebar-drawer";
 import { MobileBottomDock } from "@/components/mobile/mobile-bottom-dock";
@@ -102,8 +103,10 @@ function AuthenticatedApp({
   const [pomodoroDialogOpen, setPomodoroDialogOpen] = useState(false);
   const [flashcardsDialogOpen, setFlashcardsDialogOpen] = useState(false);
   const [flashcardTargetNote, setFlashcardTargetNote] = useState<Note | null>(null);
+  const [flashcardWeakTopics, setFlashcardWeakTopics] = useState<string[]>([]);
   const [sessionCompleteModalOpen, setSessionCompleteModalOpen] = useState(false);
   const [autoAIGenerateCards, setAutoAIGenerateCards] = useState(false);
+  const [flashcardGenerationSource, setFlashcardGenerationSource] = useState<"general" | "pomodoro">("general");
   const [examSimulatorOpen, setExamSimulatorOpen] = useState(false);
   const [notePolisherOpen, setNotePolisherOpen] = useState(false);
   const [aiExplainOpen, setAiExplainOpen] = useState(false);
@@ -124,6 +127,7 @@ function AuthenticatedApp({
 
   const handleStartSessionAIFlashcards = () => {
     setFlashcardTargetNote(n.selected || n.visibleNotes[0] || null);
+    setFlashcardGenerationSource("pomodoro");
     setAutoAIGenerateCards(true);
     setFlashcardsDialogOpen(true);
   };
@@ -239,7 +243,63 @@ function AuthenticatedApp({
   if (view === "dashboard") {
     return (
       <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && !isMobile && "p-[10px]")}>
-        {settings.dashboardDesign === "spatial-aurora-bento" ? (
+        {isMobile ? (
+          <MobileStudyDashboard
+            courses={n.courses}
+            notes={n.notes}
+            onOpenCourse={openCourse}
+            onAddCourse={(name, description, color, category) => {
+              // useNotes adds locally before its optional cloud write completes, so the
+              // mobile sheet can dismiss and show the new course immediately.
+              void n.addCourse(name, description, color, category).then((id) => {
+                if (id) {
+                  showNotification({
+                    message: "Course Created",
+                    description: `"${name}" is ready for notes.`,
+                    type: "success",
+                  });
+                }
+              });
+            }}
+            onDeleteCourse={(id) => {
+              const course = n.courses.find(c => c.id === id);
+              void n.deleteCourse(id);
+              showNotification({
+                message: "Course Removed",
+                description: course ? `"${course.name}" and its notes were deleted.` : "Course has been removed.",
+                type: "info",
+              });
+            }}
+            onOpenSettings={() => setSettingsOpen(true)}
+            onOpenMenu={() => setSidebarOpen(true)}
+            onQuickNewNote={() => setMobileDraftOpen(true)}
+            onOpenNote={(noteId, courseId) => {
+              if (courseId) n.setActiveCourseId(courseId);
+              n.setSelectedId(noteId);
+              setView("workspace");
+            }}
+            onOpenAllNotes={() => {
+              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              n.setFilter({ kind: "all" });
+              n.setSelectedId(null);
+              setView("workspace");
+            }}
+            onOpenFavorites={() => {
+              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              n.setFilter({ kind: "favorites" });
+              n.setSelectedId(null);
+              setView("workspace");
+            }}
+            onStartFocus={() => {
+              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              setView("workspace");
+              enterFocus();
+              if (!pomodoro.isRunning) pomodoro.togglePlay();
+            }}
+            todayFocusSeconds={pomodoro.todayFocusSeconds}
+            dailyGoalHours={pomodoro.dailyGoalHours}
+          />
+        ) : settings.dashboardDesign === "spatial-aurora-bento" ? (
           <SpatialAuroraDashboard
             courses={n.courses}
             notes={n.notes}
@@ -495,6 +555,8 @@ function AuthenticatedApp({
           selectedNote={flashcardTargetNote}
           activeCourseName={n.activeCourse?.name}
           autoAIGenerate={autoAIGenerateCards}
+          autoAIGenerateSessionType={flashcardGenerationSource}
+          initialWeakTopics={flashcardWeakTopics}
         />
 
         <Suspense fallback={null}>
@@ -546,11 +608,11 @@ function AuthenticatedApp({
           selectedNote={n.selected || n.visibleNotes[0] || null}
           activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
           collections={n.collections}
-          onOpenFlashcards={(note) => { setFlashcardTargetNote(note); setAutoAIGenerateCards(true); setFlashcardsDialogOpen(true); }}
-          onOpenExam={() => setExamSimulatorOpen(true)}
-          onOpenCollectionExam={() => setCollectionExamOpen(true)}
-          onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-          onOpenNotePolisher={(note) => { n.setSelectedId(note.id); setNotePolisherOpen(true); }}
+          onOpenFlashcards={(note, weakTopics) => { setAiExplainOpen(false); n.setSelectedId(note.id); setFlashcardTargetNote(note); setFlashcardWeakTopics(weakTopics || []); setFlashcardGenerationSource("general"); setAutoAIGenerateCards(true); setFlashcardsDialogOpen(true); }}
+          onOpenExam={(note) => { setAiExplainOpen(false); n.setSelectedId(note.id); setExamSimulatorOpen(true); }}
+          onOpenCollectionExam={(note) => { setAiExplainOpen(false); if (note) n.setSelectedId(note.id); setCollectionExamOpen(true); }}
+          onOpenPomodoro={(note) => { setAiExplainOpen(false); n.setSelectedId(note.id); setPomodoroDialogOpen(true); }}
+          onOpenNotePolisher={(note) => { setAiExplainOpen(false); n.setSelectedId(note.id); setNotePolisherOpen(true); }}
         />
 
       <AiNotePolisherDialog
@@ -601,6 +663,7 @@ function AuthenticatedApp({
         setFlashcardTargetNote(n.selected);
         setFlashcardsDialogOpen(true);
       }}
+      onOpenAiLearningLab={() => setAiExplainOpen(true)}
       onNavigateDailyGoal={navigateToDailyGoal}
       onOpenCollectionExam={() => setCollectionExamOpen(true)}
       onToggleFocus={focusMode ? exitFocus : enterFocus}
@@ -965,6 +1028,8 @@ function AuthenticatedApp({
         selectedNote={flashcardTargetNote || n.selected}
         activeCourseName={n.activeCourse?.name}
         autoAIGenerate={autoAIGenerateCards}
+        autoAIGenerateSessionType={flashcardGenerationSource}
+        initialWeakTopics={flashcardWeakTopics}
       />
 
       <Suspense fallback={null}>
@@ -1018,15 +1083,20 @@ function AuthenticatedApp({
         selectedNote={n.selected || n.visibleNotes[0] || null}
         activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
         collections={n.collections}
-        onOpenFlashcards={(note) => {
+        onOpenFlashcards={(note, weakTopics) => {
+          setAiExplainOpen(false);
+          n.setSelectedId(note.id);
           setFlashcardTargetNote(note);
+          setFlashcardWeakTopics(weakTopics || []);
+          setFlashcardGenerationSource("general");
           setAutoAIGenerateCards(true);
           setFlashcardsDialogOpen(true);
         }}
-        onOpenExam={() => setExamSimulatorOpen(true)}
-        onOpenCollectionExam={() => setCollectionExamOpen(true)}
-        onOpenPomodoro={() => setPomodoroDialogOpen(true)}
+        onOpenExam={(note) => { setAiExplainOpen(false); n.setSelectedId(note.id); setExamSimulatorOpen(true); }}
+        onOpenCollectionExam={(note) => { setAiExplainOpen(false); if (note) n.setSelectedId(note.id); setCollectionExamOpen(true); }}
+        onOpenPomodoro={(note) => { setAiExplainOpen(false); n.setSelectedId(note.id); setPomodoroDialogOpen(true); }}
         onOpenNotePolisher={(note) => {
+          setAiExplainOpen(false);
           n.setSelectedId(note.id);
           setNotePolisherOpen(true);
         }}

@@ -49,6 +49,8 @@ interface Props {
   selectedNote: Note | null;
   activeCourseName?: string | null;
   autoAIGenerate?: boolean;
+  autoAIGenerateSessionType?: "general" | "pomodoro";
+  initialWeakTopics?: string[];
 }
 
 const ARCHETYPES: { id: FlashcardArchetype; label: string; icon: React.ElementType; desc: string }[] = [
@@ -66,6 +68,8 @@ export function FlashcardsDialog({
   selectedNote,
   activeCourseName,
   autoAIGenerate = false,
+  autoAIGenerateSessionType = "general",
+  initialWeakTopics = [],
 }: Props) {
   const { showNotification } = useNotifications();
   const [source, setSource] = useState<"current" | "all">("current");
@@ -120,8 +124,9 @@ export function FlashcardsDialog({
       setBatchIndex(0);
       setBatchFeedback(null);
       setIsAdaptiveMode(false);
+      setWeakTopics(initialWeakTopics);
     }
-  }, [source, open]);
+  }, [source, open, initialWeakTopics]);
 
   // Handle AI Flashcard Generation with multi-batch and deduplication
   const handleGenerateAI = async (
@@ -198,9 +203,9 @@ export function FlashcardsDialog({
   // Auto trigger AI if requested (e.g. after Pomodoro session)
   useEffect(() => {
     if (open && autoAIGenerate && targetNote) {
-      handleGenerateAI("pomodoro");
+      handleGenerateAI(autoAIGenerateSessionType, undefined, undefined, undefined, initialWeakTopics);
     }
-  }, [open, autoAIGenerate]);
+  }, [open, autoAIGenerate, autoAIGenerateSessionType]);
 
   const currentCard = deck[currentIndex];
 

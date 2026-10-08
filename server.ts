@@ -2370,6 +2370,42 @@ app.post("/api/ai/learning-lab", async (req, res) => {
   const ai = getGeminiClient();
   if (!ai) return res.json({ success: true, result: fallback(), fallback: true, model: "learning-lab-fallback" });
 
+  const normalizeResult = (candidate: any) => {
+    const base = fallback();
+    const textList = (value: unknown, fallbackValue: string[]) =>
+      Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, 6) : fallbackValue;
+    const graphNodes = Array.isArray(candidate?.graph?.nodes)
+      ? candidate.graph.nodes.filter((node: any) => node && typeof node.id === "string" && typeof node.label === "string").slice(0, 6)
+      : base.graph.nodes;
+    const graphEdges = Array.isArray(candidate?.graph?.edges)
+      ? candidate.graph.edges.filter((edge: any) => edge && typeof edge.from === "string" && typeof edge.to === "string").slice(0, 8)
+      : base.graph.edges;
+    const mastery = candidate?.mastery || {};
+    return {
+      ...base,
+      ...candidate,
+      stepByStep: textList(candidate?.stepByStep, base.stepByStep),
+      keyPoints: textList(candidate?.keyPoints, base.keyPoints),
+      misconceptions: textList(candidate?.misconceptions, base.misconceptions),
+      examTraps: textList(candidate?.examTraps, base.examTraps),
+      followUpQuestions: textList(candidate?.followUpQuestions, base.followUpQuestions),
+      comparison: { ...base.comparison, ...(candidate?.comparison || {}) },
+      graph: { ...base.graph, ...(candidate?.graph || {}), nodes: graphNodes, edges: graphEdges },
+      mastery: {
+        ...base.mastery,
+        ...mastery,
+        score: Math.max(0, Math.min(100, Number(mastery.score) || base.mastery.score)),
+        strong: textList(mastery.strong, base.mastery.strong),
+        moderate: textList(mastery.moderate, base.mastery.moderate),
+        weak: textList(mastery.weak, base.mastery.weak),
+        missing: textList(mastery.missing, base.mastery.missing),
+        misconceptions: textList(mastery.misconceptions, base.mastery.misconceptions),
+      },
+      sourceGrounded: Boolean(source) && candidate?.sourceGrounded === true,
+      sourceSummary: Boolean(source) && typeof candidate?.sourceSummary === "string" ? candidate.sourceSummary : base.sourceSummary,
+    };
+  };
+
   const prompt = `You are the learning intelligence layer of a premium study workspace. Return a single learning artifact for action: ${safeAction}.
 Topic: "${topic}"
 Comparison topic: "${String(compareWith || "").slice(0, 500)}"
@@ -2388,7 +2424,7 @@ Return JSON with this schema:
 
   try {
     const { parsed, model } = await executeGeminiGenerate<any>(ai, { contents: prompt, temperature: 0.28, timeoutMs: 35000 });
-    if (parsed?.coreAnswer && parsed?.mastery) return res.json({ success: true, result: parsed, fallback: false, model });
+    if (parsed?.coreAnswer && parsed?.mastery) return res.json({ success: true, result: normalizeResult(parsed), fallback: false, model });
   } catch (err) {
     console.warn("Learning Lab AI error:", err);
   }

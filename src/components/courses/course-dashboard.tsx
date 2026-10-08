@@ -385,10 +385,10 @@ export function CourseDashboard({
                 haptic("medium");
                 onStartFocus?.();
               }}
-              className="shrink-0 flex items-center gap-1.5 rounded-xl bg-primary/20 border border-primary/40 px-3.5 py-2.5 text-xs font-bold text-primary active:scale-90 hover:bg-primary/30 transition shadow-sm cursor-pointer"
+              className="flex w-[104px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-2xl border border-primary/40 bg-primary/20 px-2.5 py-2.5 text-center text-[0.68rem] font-extrabold leading-tight text-primary shadow-sm transition-all active:scale-[0.97] hover:bg-primary/30 cursor-pointer"
             >
               <Zap className="h-3.5 w-3.5 text-amber-300" />
-              <span>Start Focus</span>
+              <span className="whitespace-nowrap">Start Focus</span>
             </button>
           </div>
         </div>
@@ -411,7 +411,7 @@ export function CourseDashboard({
             </div>
 
             {/* Responsive Track/Grid: Aligned perfectly with all dashboard glass cards. Never bleeds into screen borders. */}
-            <div className="w-full flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4.5 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 pt-0.5 scrollbar-none snap-x snap-mandatory overscroll-x-contain touch-pan-x">
+            <div className="w-full flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4.5 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 pt-0.5 scrollbar-none snap-x snap-mandatory overscroll-x-contain touch-pan-x">
               {recentNotes.map((note) => {
                 const course = courses.find((c) => c.id === note.courseId);
                 const accent = course ? (ACCENT_STYLES[course.color] ?? ACCENT_STYLES.sky) : ACCENT_STYLES.sky;
@@ -432,9 +432,7 @@ export function CourseDashboard({
                         onOpenNote?.(note.id, note.courseId || undefined);
                       }
                     }}
-                    className={`glass-panel group relative snap-start shrink-0 sm:shrink ${
-                      recentNotes.length === 1 ? "w-full" : "w-[245px] xs:w-[265px] sm:w-full"
-                    } min-h-[148px] sm:min-h-[156px] rounded-2xl sm:rounded-[1.35rem] p-4 border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-2xl shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_24px_0_rgba(0,0,0,0.3)] hover:border-primary/45 hover:bg-white/[0.09] hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col justify-between select-none`}
+                    className={`glass-panel group relative snap-start shrink-0 sm:shrink ${"w-[min(84vw,300px)] sm:w-full"} min-h-[168px] sm:min-h-[156px] rounded-2xl sm:rounded-[1.35rem] p-[18px] border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-2xl shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_24px_0_rgba(0,0,0,0.3)] hover:border-primary/45 hover:bg-white/[0.09] hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col justify-between select-none`}
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1.5 mb-1.5">

@@ -465,7 +465,8 @@ export function MobileSidebarDrawer({
           )}
 
           {/* AI Intelligence Suite: AI Adaptive Exam Simulator (#2) & AI Note Polisher (#5) */}
-          <div className="space-y-2 pt-1 border-t border-white/10">\n            <div className="flex items-center justify-between px-1">
+          <div className="space-y-2 pt-1 border-t border-white/10">
+            <div className="flex items-center justify-between px-1">
               <span className="text-[0.65rem] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="h-3 w-3" />
                 <span>AI Study Intelligence</span>

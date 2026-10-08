@@ -436,9 +436,9 @@ export const MobileDailyGoalInterface = memo(function MobileDailyGoalInterface({
   }, [todaySessions]);
 
   return (
-    <main className="flex h-[100dvh] min-h-0 flex-col overflow-hidden md:hidden">
+    <main className="glass-panel relative flex h-[100dvh] min-h-0 flex-col overflow-hidden rounded-none bg-transparent md:hidden">
       <header
-        className="z-30 shrink-0 border-b border-white/[0.08] bg-background px-3 py-3"
+        className="relative z-20 shrink-0 border-b border-white/[0.08] bg-transparent px-3 py-3"
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
       >
         <div className="flex items-center justify-between gap-3">
@@ -472,7 +472,7 @@ export const MobileDailyGoalInterface = memo(function MobileDailyGoalInterface({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y px-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 scroll-sleek">
+      <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y px-3 pb-3 pt-3 scroll-sleek">
         <div className="mx-auto w-full max-w-xl space-y-3.5">
           <GoalContext
             focusedMinutes={focusedMinutes}
@@ -500,10 +500,10 @@ export const MobileDailyGoalInterface = memo(function MobileDailyGoalInterface({
       </div>
 
       <footer
-        className="shrink-0 border-t border-white/[0.08] bg-background px-3 py-2"
+        className="relative z-20 shrink-0 border-t border-white/[0.08] bg-transparent px-3 py-2"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="mx-auto flex max-w-xl gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-1.5">
+        <div className="mx-auto flex max-w-xl gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-1.5 backdrop-blur-xl">
           <button
             type="button"
             onClick={() => {

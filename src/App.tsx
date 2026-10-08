@@ -272,20 +272,23 @@ function AuthenticatedApp({
             }}
             onOpenSettings={() => setSettingsOpen(true)}
             onOpenMenu={() => setSidebarOpen(true)}
-            onQuickNewNote={() => setMobileDraftOpen(true)}
+            onQuickNewNote={(courseId) => {
+              if (courseId) n.setActiveCourseId(courseId);
+              setMobileDraftOpen(true);
+            }}
             onOpenNote={(noteId, courseId) => {
               if (courseId) n.setActiveCourseId(courseId);
               n.setSelectedId(noteId);
               setView("workspace");
             }}
             onOpenAllNotes={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              n.setActiveCourseId(null);
               n.setFilter({ kind: "all" });
               n.setSelectedId(null);
               setView("workspace");
             }}
             onOpenFavorites={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              n.setActiveCourseId(null);
               n.setFilter({ kind: "favorites" });
               n.setSelectedId(null);
               setView("workspace");
@@ -298,6 +301,8 @@ function AuthenticatedApp({
             }}
             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
+            realtimeStatus={n.realtimeStatus}
+            isSyncing={n.isSyncing}
           />
         ) : settings.dashboardDesign === "spatial-aurora-bento" ? (
           <SpatialAuroraDashboard

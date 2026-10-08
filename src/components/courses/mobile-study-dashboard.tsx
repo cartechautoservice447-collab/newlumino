@@ -871,6 +871,12 @@ export function MobileStudyDashboard(props: Props) {
               onOpenMenu={onOpenMenu}
               onOpenSettings={onOpenSettings}
             />
+            <MobileResumeStudy
+              note={resumeNote}
+              course={resumeCourse}
+              onOpenNote={onOpenNote}
+              onCreateNote={onCreateNote}
+            />
             <MobileQuickStats
               courseCount={props.courses.length}
               noteCount={props.notes.length}
@@ -884,12 +890,6 @@ export function MobileStudyDashboard(props: Props) {
               dailyGoalHours={props.dailyGoalHours}
               onStartFocus={onStartFocus}
               onOpenDailyGoal={onOpenDailyGoal}
-            />
-            <MobileResumeStudy
-              note={resumeNote}
-              course={resumeCourse}
-              onOpenNote={onOpenNote}
-              onCreateNote={onCreateNote}
             />
           </div>
         </section>

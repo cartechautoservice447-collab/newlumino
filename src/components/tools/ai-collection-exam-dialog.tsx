@@ -183,6 +183,7 @@ export function AiCollectionExamDialog({
   onOpenNotePolisher,
 }: Props) {
   const { user } = useAuth();
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Setup Options State (The 4 fill-the-blanks / customization options)
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>(
@@ -519,8 +520,10 @@ export function AiCollectionExamDialog({
 
   if (typeof document === "undefined") return null;
 
-  return createPortal(
-    <AiLearningLabFrame
+  return (
+    <>
+      {createPortal(
+        <AiLearningLabFrame
       onOpenHistory={() => setHistoryOpen(true)}
       title="AI 4-Stage Progressive Mastery Exam"
       subtitle="Sequential assessment from theory to real-world project execution."
@@ -1865,8 +1868,10 @@ export function AiCollectionExamDialog({
           </div>
         )}
       </main>
-    </AiLearningLabFrame>
-    <AiHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} tool="progressive_exam" onAction={handleHistoryAction} />,
-    document.body
+        </AiLearningLabFrame>,
+        document.body
+      )}
+      <AiHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} tool="progressive_exam" onAction={handleHistoryAction} />
+    </>
   );
 }

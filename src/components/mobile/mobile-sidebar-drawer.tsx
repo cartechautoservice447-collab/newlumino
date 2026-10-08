@@ -6,10 +6,8 @@ import {
   Sparkles,
   Clock,
   Brain,
-  Maximize2,
   Target,
   FileText,
-  Droplets,
   FolderPlus,
   LogOut,
   ChevronRight,
@@ -17,20 +15,28 @@ import {
   Moon,
   Flame,
   X,
-  Compass,
-  Wand2,
+  Search,
+  BookOpen,
+  Star,
   Layers,
+  Wand2,
 } from "lucide-react";
 import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
+import type { Note } from "@/lib/notes";
 
 interface MobileSidebarDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onOpenSettings?: () => void;
   onOpenNewCourse?: () => void;
+  onOpenCourses?: () => void;
+  onOpenAllNotes?: () => void;
+  onOpenFavorites?: () => void;
+  onOpenNote?: (noteId: string, courseId?: string) => void;
+  notes?: Note[];
   onOpenPomodoro?: () => void;
   onOpenFlashcards?: () => void;
   onOpenCheatsheet?: () => void;
@@ -57,6 +63,11 @@ export function MobileSidebarDrawer({
   onOpenChange,
   onOpenSettings,
   onOpenNewCourse,
+  onOpenCourses,
+  onOpenAllNotes,
+  onOpenFavorites,
+  onOpenNote,
+  notes = [],
   onOpenPomodoro,
   onOpenFlashcards,
   onOpenCheatsheet,
@@ -262,28 +273,45 @@ export function MobileSidebarDrawer({
   };
 
   if (!mounted) return null;
+  // Command palette state: search the entire study surface from one place.
+  const [commandQuery, setCommandQuery] = useState("");
 
-  // Open progress ratio from 0 to 1
-  const openProgress = Math.max(0, Math.min(1, dragX / drawerWidth));
-  const backdropOpacity = openProgress * 0.75;
-  const transformOffset = dragX - drawerWidth; // from -drawerWidth (hidden) to 0 (open)
+  const closeThen = (action?: () => void) => {
+    haptic("light");
+    handleClose();
+    window.setTimeout(() => action?.(), 220);
+  };
 
-  const todayMinutes = Math.floor(todayFocusSeconds / 60);
-  const goalPercent = Math.min(100, Math.round((todayFocusSeconds / (dailyGoalHours * 3600)) * 100));
+  const continueNotes = notes.filter((note) => note.title || note.body).slice(0, 2);
+  const commandItems = [
+    { id: "focus", label: "Start focus", hint: pomodoroRunning ? "Resume live timer" : "Open focus cockpit", icon: Zap, action: onOpenPomodoro },
+    { id: "flashcards", label: "Study flashcards", hint: "Spaced repetition", icon: Brain, action: onOpenFlashcards },
+    { id: "ai-explain", label: "Learning Lab", hint: "Explain concepts with AI", icon: Sparkles, action: onOpenAiExplain },
+    { id: "exam", label: "Exam review", hint: "Timed diagnostic drill", icon: Target, action: onOpenExamSimulator },
+    { id: "polish", label: "Note polish", hint: "Improve notes & debug code", icon: Wand2, action: onOpenNotePolisher },
+    { id: "daily-goal", label: "Daily Study Goal", hint: Math.round(goalPercent) + "% of target", icon: Flame, action: onNavigateDailyGoal },
+    { id: "all-notes", label: "Recent notes", hint: "Open your notes workspace", icon: BookOpen, action: onOpenAllNotes },
+    { id: "favorites", label: "Favorites", hint: "Open saved notes", icon: Star, action: onOpenFavorites },
+    { id: "new-course", label: "New course", hint: "Create a course", icon: FolderPlus, action: onOpenNewCourse },
+    { id: "settings", label: "Settings", hint: "Customize NewLumino", icon: Sliders, action: onOpenSettings },
+  ].filter((item) => typeof item.action === "function");
+
+  const normalizedQuery = commandQuery.trim().toLowerCase();
+  const filteredCommands = normalizedQuery
+    ? commandItems.filter((item) => (item.label + " " + item.hint).toLowerCase().includes(normalizedQuery))
+    : commandItems.slice(0, 6);
 
   return createPortal(
     <div className="fixed inset-0 z-50 select-none md:hidden overflow-hidden pointer-events-auto">
-      {/* Dynamic backdrop with real-time blur and opacity */}
       <div
         onClick={handleClose}
         style={{
           opacity: backdropOpacity,
           transition: isDragging ? "none" : "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
-        className="absolute inset-0 bg-black backdrop-blur-md cursor-pointer"
+        className="absolute inset-0 bg-black/70 backdrop-blur-md"
       />
 
-      {/* Left-to-Right Sliding Drawer: EXCLUSIVELY STUDY TOOLS */}
       <div
         ref={drawerRef}
         onTouchStart={handleDrawerTouchStart}
@@ -291,542 +319,262 @@ export function MobileSidebarDrawer({
         onTouchEnd={handleDrawerTouchEnd}
         onTouchCancel={handleDrawerTouchEnd}
         style={{
-          width: `${drawerWidth}px`,
-          transform: `translate3d(${transformOffset}px, 0, 0)`,
-          transition: isDragging
-            ? "none"
-            : "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",
+          width: Math.min(drawerWidth, 340),
+          transform: "translate3d(" + transformOffset + "px, 0, 0)",
+          transition: isDragging ? "none" : "transform 380ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
-        className="glass-panel absolute inset-y-0 left-0 flex flex-col rounded-r-3xl border-r border-y border-white/20 bg-black/95 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10 overflow-hidden"
+        className="glass-panel absolute inset-y-0 left-0 flex flex-col overflow-hidden rounded-r-[2rem] border-r border-y border-white/15 bg-transparent shadow-2xl backdrop-blur-3xl"
       >
-        {/* Right edge drag pill handle indicator */}
-        <div className="absolute right-1 top-1/2 -translate-y-1/2 w-1.5 h-14 rounded-full bg-white/30 pointer-events-none shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 h-14 w-1 rounded-full bg-white/25 pointer-events-none" />
 
-        {/* Top Header: Pure Study Tools Interface */}
-        <div className="flex items-center justify-between p-3.5 pb-2.5 border-b border-white/10 shrink-0 bg-white/[0.02]">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary/30 to-purple-500/30 text-primary border border-primary/30 shadow-[0_0_12px_-2px_hsl(var(--primary)/0.5)]">
-              <Zap className="h-4 w-4 text-amber-300" />
+        <header className="shrink-0 border-b border-white/[0.08] bg-white/[0.02] px-4 pb-3 pt-[max(0.9rem,env(safe-area-inset-top))]">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-primary">
+              <Zap className="h-4.5 w-4.5 text-amber-300" />
             </span>
-            <div>
-              <h2 className="text-sm font-bold tracking-tight text-foreground leading-tight">
-                Study Tools &amp; Focus
-              </h2>
-              <p className="text-[0.65rem] text-muted-foreground">
-                MD Cheatsheet • Flashcards • Pomodoro
-              </p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-primary/80">Study Command Center</p>
+              <h2 className="truncate text-sm font-extrabold tracking-tight text-foreground">Everything for your next study block</h2>
             </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              aria-label="Close Study Command Center"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-muted-foreground transition active:scale-95"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleClose}
-            className="flex h-7 w-7 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-muted-foreground hover:text-foreground active:scale-90 transition-all cursor-pointer"
-            aria-label="Close tools menu"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
+          <div className="relative mt-3">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/75" />
+            <input
+              value={commandQuery}
+              onChange={(event) => setCommandQuery(event.target.value)}
+              placeholder="Search or command..."
+              aria-label="Search or command"
+              className="h-11 w-full rounded-2xl border border-white/10 bg-white/[0.045] pl-9 pr-3 text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground/65 focus:border-primary/30 focus:bg-white/[0.06]"
+            />
+          </div>
+        </header>
 
-        {/* Content: Study Tools Modules */}
-        <div className="flex-1 overflow-y-auto scroll-sleek p-2.5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] space-y-2.5 min-h-0">
-          {/* Tool 1: MD Cheatsheet */}
-          {onOpenCheatsheet && (
-            <button
-              type="button"
-              onClick={() => {
-                haptic("light");
-                onOpenChange(false);
-                onOpenCheatsheet();
-              }}
-              className={cn(
-                "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                "border-cyan-500/20 bg-cyan-500/10 hover:border-cyan-500/40 hover:bg-cyan-500/15",
-                "active:scale-[0.96] active:translate-y-0.5 active:bg-cyan-500/20 active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] active:border-cyan-400/50"
-              )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/15 text-cyan-400 transition-all duration-200 group-active:scale-90">
-                  <FileText className="h-4 w-4" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-xs font-bold text-foreground truncate">
-                      MD Cheatsheet
-                    </h4>
-                    <span className="rounded-full bg-cyan-500/20 px-1.5 py-0.2 text-[0.58rem] font-bold text-cyan-300">
-                      Syntax
-                    </span>
-                  </div>
-                  <p className="text-[0.65rem] text-muted-foreground truncate">
-                    Markdown code, tables, math &amp; task lists
-                  </p>
-                </div>
+        <div className="min-h-0 flex-1 overflow-y-auto scroll-sleek px-4 py-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+          {!normalizedQuery && continueNotes.length > 0 && (
+            <section className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[9px] font-bold uppercase tracking-[0.17em] text-muted-foreground">Continue</h3>
+                <Clock className="h-3.5 w-3.5 text-primary" />
               </div>
 
-              <ChevronRight className="h-3.5 w-3.5 text-cyan-400/70 transition-transform group-active:translate-x-1 shrink-0" />
-            </button>
-          )}
-
-          {/* Tool 2: Flashcards */}
-          {onOpenFlashcards && (
-            <button
-              type="button"
-              onClick={() => {
-                haptic("medium");
-                onOpenChange(false);
-                onOpenFlashcards();
-              }}
-              className={cn(
-                "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                "border-purple-500/20 bg-purple-500/10 hover:border-purple-500/40 hover:bg-purple-500/15",
-                "active:scale-[0.96] active:translate-y-0.5 active:bg-purple-500/25 active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] active:border-purple-400/60"
-              )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-500/20 text-purple-300 transition-all duration-200 group-active:scale-90">
-                  <Brain className="h-4 w-4" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-xs font-bold text-foreground truncate">
-                      Study Flashcards
-                    </h4>
-                    <span className="rounded-full bg-purple-500/20 px-1.5 py-0.2 text-[0.58rem] font-bold text-purple-300">
-                      AI ✨
-                    </span>
-                  </div>
-                  <p className="text-[0.65rem] text-muted-foreground truncate">
-                    FSRS spaced repetition &amp; study decks
-                  </p>
-                </div>
-              </div>
-
-              <ChevronRight className="h-3.5 w-3.5 text-purple-300/70 transition-transform group-active:translate-x-1 shrink-0" />
-            </button>
-          )}
-
-          {/* Tool 3: Pomodoro Focus Timer */}
-          {onOpenPomodoro && (
-            <button
-              type="button"
-              onClick={() => {
-                haptic("medium");
-                onOpenChange(false);
-                onOpenPomodoro();
-              }}
-              className={cn(
-                "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                "hover:border-primary/40 hover:bg-white/[0.06]",
-                "active:scale-[0.96] active:translate-y-0.5 active:bg-primary/20 active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] active:border-primary/50",
-                pomodoroRunning
-                  ? "border-primary/40 bg-primary/10 shadow-[0_0_14px_-4px_hsl(var(--primary)/0.3)]"
-                  : "border-white/10 bg-white/[0.03]"
-              )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div
-                  className={cn(
-                    "flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 group-active:scale-90",
-                    pomodoroRunning
-                      ? "border-primary/50 bg-primary/20 text-primary animate-pulse"
-                      : "border-primary/30 bg-primary/15 text-primary"
-                  )}
+              {continueNotes.map((note) => (
+                <button
+                  key={note.id}
+                  type="button"
+                  onClick={() => {
+                    if (!onOpenNote) return;
+                    closeThen(() => onOpenNote(note.id, note.courseId || undefined));
+                  }}
+                  className="group glass-panel w-full rounded-2xl border border-white/[0.09] bg-white/[0.025] p-3.5 text-left transition active:scale-[0.985]"
                 >
-                  <Clock className="h-4 w-4" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-xs font-bold text-foreground truncate">
-                      Pomodoro Focus Timer
-                    </h4>
-                    {pomodoroRunning && (
-                      <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[0.58rem] font-bold text-emerald-400">
-                        Live
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[0.65rem] text-muted-foreground truncate">
-                    {todayMinutes}m focused today
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 shrink-0">
-                <span className="font-mono text-xs font-bold text-foreground bg-white/[0.06] border border-white/10 px-1.5 py-0.5 rounded-lg">
-                  {pomodoroTimeFormatted}
-                </span>
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-active:translate-x-1" />
-              </div>
-            </button>
-          )}
-
-          {/* AI Intelligence Suite: AI Adaptive Exam Simulator (#2) & AI Note Polisher (#5) */}
-          <div className="space-y-2 pt-1 border-t border-white/10">
-            <div className="flex items-center justify-between px-1">
-              <span className="text-[0.65rem] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
-                <Sparkles className="h-3 w-3" />
-                <span>AI Study Intelligence</span>
-              </span>
-              <span className="text-[0.58rem] font-mono rounded bg-primary/20 px-1 py-0.2 text-primary font-bold">
-                Gemini 3.8
-              </span>
-            </div>
-
-            {/* AI Explain */}
-            {onOpenAiExplain && (
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  onOpenChange(false);
-                  onOpenAiExplain();
-                }}
-                className={cn(
-                  "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                  "border-violet-500/25 bg-violet-500/10 hover:border-violet-500/50 hover:bg-violet-500/15",
-                  "active:scale-[0.96] active:translate-y-0.5 active:bg-violet-500/25 active:border-violet-400"
-                )}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-violet-500/40 bg-violet-500/20 text-violet-300 transition-all duration-200 group-active:scale-90">
-                    <Brain className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-bold text-foreground truncate">AI Explain</h4>
-                      <span className="rounded-full bg-violet-500/25 px-1.5 py-0.2 text-[0.58rem] font-bold text-violet-300">Tutor</span>
-                    </div>
-                    <p className="text-[0.65rem] text-muted-foreground truncate">Concepts, examples &amp; clear explanations</p>
-                  </div>
-                </div>
-                <ChevronRight className="h-3.5 w-3.5 text-violet-300/70 transition-transform group-active:translate-x-1 shrink-0" />
-              </button>
-            )}
-
-            {/* AI Tool 2: Adaptive Exam Simulator & Diagnostic Drill */}
-            {onOpenExamSimulator && (
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  onOpenChange(false);
-                  onOpenExamSimulator();
-                }}
-                className={cn(
-                  "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                  "border-amber-500/25 bg-amber-500/10 hover:border-amber-500/50 hover:bg-amber-500/15",
-                  "active:scale-[0.96] active:translate-y-0.5 active:bg-amber-500/25 active:border-amber-400"
-                )}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/20 text-amber-300 transition-all duration-200 group-active:scale-90 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
-                    <Target className="h-4 w-4" />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-bold text-foreground truncate">
-                        AI Exam Simulator
-                      </h4>
-                      <span className="rounded-full bg-amber-500/25 px-1.5 py-0.2 text-[0.58rem] font-bold text-amber-300">
-                        Diagnostic
-                      </span>
-                    </div>
-                    <p className="text-[0.65rem] text-muted-foreground truncate">
-                      Timed mock drills, scoring &amp; blindspot audit
-                    </p>
-                  </div>
-                </div>
-
-                <ChevronRight className="h-3.5 w-3.5 text-amber-300/70 transition-transform group-active:translate-x-1 shrink-0" />
-              </button>
-            )}
-
-            {/* AI Tool 3: 4-Stage Progressive Collection Exam */}
-            {onOpenCollectionExam && (
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  onOpenChange(false);
-                  onOpenCollectionExam();
-                }}
-                className={cn(
-                  "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                  "border-emerald-500/25 bg-emerald-500/10 hover:border-emerald-500/50 hover:bg-emerald-500/15",
-                  "active:scale-[0.96] active:translate-y-0.5 active:bg-emerald-500/25 active:border-emerald-400"
-                )}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/20 text-emerald-300 transition-all duration-200 group-active:scale-90 shadow-[0_0_12px_rgba(16,185,129,0.25)]">
-                    <Layers className="h-4 w-4" />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-bold text-foreground truncate">
-                        4-Stage Progressive Exam
-                      </h4>
-                      <span className="rounded-full bg-emerald-500/25 px-1.5 py-0.2 text-[0.58rem] font-bold text-emerald-300">
-                        Sequential
-                      </span>
-                    </div>
-                    <p className="text-[0.65rem] text-muted-foreground truncate">
-                      Theory &rarr; Logic &rarr; Debug &rarr; Project challenge
-                    </p>
-                  </div>
-                </div>
-
-                <ChevronRight className="h-3.5 w-3.5 text-emerald-300/70 transition-transform group-active:translate-x-1 shrink-0" />
-              </button>
-            )}
-
-            {/* AI Tool 5: Note Polisher & Smart Code Debugger */}
-            {onOpenNotePolisher && (
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  onOpenChange(false);
-                  onOpenNotePolisher();
-                }}
-                className={cn(
-                  "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                  "border-cyan-500/25 bg-cyan-500/10 hover:border-cyan-500/50 hover:bg-cyan-500/15",
-                  "active:scale-[0.96] active:translate-y-0.5 active:bg-cyan-500/25 active:border-cyan-400"
-                )}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-500/20 text-cyan-300 transition-all duration-200 group-active:scale-90 shadow-[0_0_12px_rgba(6,182,212,0.25)]">
-                    <Wand2 className="h-4 w-4" />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-bold text-foreground truncate">
-                        AI Note Polisher &amp; Code
-                      </h4>
-                      <span className="rounded-full bg-cyan-500/25 px-1.5 py-0.2 text-[0.58rem] font-bold text-cyan-300">
-                        Enhance
-                      </span>
-                    </div>
-                    <p className="text-[0.65rem] text-muted-foreground truncate">
-                      Study guide format, code debug &amp; mnemonics
-                    </p>
-                  </div>
-                </div>
-
-                <ChevronRight className="h-3.5 w-3.5 text-cyan-300/70 transition-transform group-active:translate-x-1 shrink-0" />
-              </button>
-            )}
-          </div>
-
-          {/* Option 4: Daily Goal & Analytics */}
-          {onNavigateDailyGoal && (
-            <button
-              type="button"
-              onClick={() => {
-                haptic("medium");
-                onOpenChange(false);
-                onNavigateDailyGoal();
-              }}
-              className={cn(
-                "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                "border-sky-500/20 bg-sky-500/10 hover:border-sky-500/40 hover:bg-sky-500/15",
-                "active:scale-[0.96] active:translate-y-0.5 active:bg-sky-500/25 active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] active:border-sky-400/60"
-              )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-sky-500/30 bg-sky-500/20 text-sky-400 transition-all duration-200 group-active:scale-90">
-                  <Target className="h-4 w-4" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-xs font-bold text-foreground truncate">
-                      Daily Goal &amp; Analytics
-                    </h4>
-                    <span className="rounded-full bg-sky-500/20 px-1.5 py-0.2 text-[0.58rem] font-bold text-sky-400">
-                      {goalPercent}%
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                      <BookOpen className="h-4 w-4" />
                     </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[11px] font-extrabold text-foreground">{note.title || "Untitled note"}</p>
+                      <p className="mt-1 truncate text-[10px] text-muted-foreground">{note.body?.replace(/\s+/g, " ").trim() || "Open this note and continue studying."}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-active:translate-x-0.5" />
                   </div>
-                  <p className="text-[0.65rem] text-muted-foreground truncate">
-                    {todayMinutes}m of {dailyGoalHours * 60}m target
-                  </p>
-                </div>
-              </div>
-
-              <ChevronRight className="h-3.5 w-3.5 text-sky-400/70 transition-transform group-active:translate-x-1 shrink-0" />
-            </button>
+                </button>
+              ))}
+            </section>
           )}
 
-          {/* Option 5: Markdown Cheatsheet */}
-          {onOpenCheatsheet && (
+          {!normalizedQuery && (
+            <>
+              <section className="mt-5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[9px] font-bold uppercase tracking-[0.17em] text-muted-foreground">Next best action</h3>
+                  <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => closeThen(onOpenAiExplain)}
+                  className="glass-panel group flex w-full items-center gap-3 rounded-2xl border border-violet-400/20 bg-violet-400/[0.06] p-3.5 text-left transition active:scale-[0.985]"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-400/20 bg-violet-400/10 text-violet-200">
+                    <Brain className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-extrabold text-foreground">Review weak concepts</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">Open Learning Lab and turn weak areas into a focused review.</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-violet-200/70" />
+                </button>
+              </section>
+
+              <section className="mt-5 space-y-2.5">
+                <h3 className="text-[9px] font-bold uppercase tracking-[0.17em] text-muted-foreground">Study queue</h3>
+                {[
+                  { label: "Flashcards", time: "7 min", icon: Brain, action: onOpenFlashcards },
+                  { label: "Exam review", time: "12 min", icon: Target, action: onOpenExamSimulator },
+                  { label: "Note polish", time: "5 min", icon: Wand2, action: onOpenNotePolisher },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    disabled={!item.action}
+                    onClick={() => closeThen(item.action)}
+                    className="glass-panel flex w-full items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-3 py-2.5 text-left transition active:scale-[0.985] disabled:opacity-45"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.035] text-muted-foreground">
+                      <item.icon className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="min-w-0 flex-1 text-[10px] font-bold text-foreground">{item.label}</span>
+                    <span className="text-[9px] font-mono font-semibold text-muted-foreground">{item.time}</span>
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+                  </button>
+                ))}
+              </section>
+
+              <section className="mt-5 space-y-2.5">
+                <h3 className="text-[9px] font-bold uppercase tracking-[0.17em] text-muted-foreground">Explore</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "Courses", icon: BookOpen, action: onOpenCourses },
+                    { label: "Collections", icon: Layers, action: onOpenNewCourse },
+                    { label: "Recent", icon: Clock, action: onOpenAllNotes },
+                    { label: "Favorites", icon: Star, action: onOpenFavorites },
+                  ].map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      disabled={!item.action}
+                      onClick={() => closeThen(item.action)}
+                      className="glass-panel flex min-h-11 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] px-3 text-left transition active:scale-[0.985] disabled:opacity-45"
+                    >
+                      <item.icon className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-[10px] font-bold text-foreground">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section className="mt-5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[9px] font-bold uppercase tracking-[0.17em] text-muted-foreground">AI Intelligence</h3>
+                  <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[8px] font-bold text-primary">LIVE</span>
+                </div>
+                <button
+                  type="button"
+                  disabled={!onOpenAiExplain}
+                  onClick={() => closeThen(onOpenAiExplain)}
+                  className="glass-panel group flex w-full items-center gap-3 rounded-2xl border border-primary/20 bg-primary/[0.055] p-3.5 text-left transition active:scale-[0.985] disabled:opacity-45"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                    <Sparkles className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-extrabold text-foreground">Learning Lab</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">Ask, explain, connect, and strengthen weak concepts.</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-primary/70" />
+                </button>
+              </section>
+            </>
+          )}
+
+          {normalizedQuery && (
+            <section className="space-y-2">
+              <div className="flex items-center justify-between px-0.5 pb-1">
+                <h3 className="text-[9px] font-bold uppercase tracking-[0.17em] text-muted-foreground">Commands</h3>
+                <span className="text-[9px] font-mono text-muted-foreground/70">{filteredCommands.length}</span>
+              </div>
+
+              {filteredCommands.length > 0 ? filteredCommands.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => closeThen(item.action)}
+                  className="glass-panel group flex w-full items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3 text-left transition active:scale-[0.985]"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-primary/[0.07] text-primary">
+                    <item.icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[11px] font-extrabold text-foreground">{item.label}</p>
+                    <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{item.hint}</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/70" />
+                </button>
+              )) : (
+                <div className="rounded-2xl border border-dashed border-white/[0.10] bg-white/[0.02] px-4 py-8 text-center">
+                  <Search className="mx-auto h-5 w-5 text-muted-foreground/45" />
+                  <p className="mt-2 text-[11px] font-semibold text-foreground">No command found</p>
+                  <p className="mt-1 text-[9px] text-muted-foreground">Try “focus”, “flashcards”, “goal”, or “AI”.</p>
+                </div>
+              )}
+            </section>
+          )}
+
+          <section className="mt-5 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-amber-300/20 bg-amber-300/10 text-amber-200">
+                  <Flame className="h-3.5 w-3.5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Today</p>
+                  <p className="truncate text-[10px] font-bold text-foreground">{todayMinutes}m focused · {goalPercent}% of goal</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={!onNavigateDailyGoal}
+                onClick={() => closeThen(onNavigateDailyGoal)}
+                className="flex h-8 shrink-0 items-center gap-1 rounded-xl border border-primary/15 bg-primary/[0.07] px-2.5 text-[9px] font-bold text-primary disabled:opacity-45"
+              >
+                Goal
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
+          </section>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => {
-                haptic("light");
-                onOpenChange(false);
-                onOpenCheatsheet();
-              }}
-              className={cn(
-                "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
-                "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]",
-                "active:scale-[0.96] active:translate-y-0.5 active:bg-white/[0.1] active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] active:border-white/30"
-              )}
+              onClick={() => closeThen(onOpenNewCourse)}
+              disabled={!onOpenNewCourse}
+              className="glass-panel flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.025] text-[9px] font-bold text-foreground disabled:opacity-45"
             >
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/15 text-cyan-400 transition-all duration-200 group-active:scale-90">
-                  <FileText className="h-4 w-4" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-xs font-bold text-foreground truncate">
-                    Markdown Cheatsheet
-                  </h4>
-                  <p className="text-[0.65rem] text-muted-foreground truncate">
-                    Syntax, code &amp; task lists
-                  </p>
-                </div>
-              </div>
-
-              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-active:translate-x-1 shrink-0" />
+              <FolderPlus className="h-3.5 w-3.5 text-primary" />
+              New Course
             </button>
-          )}
-
-          {/* Option 6: Liquid Glass Physics & Quick Themes */}
-          <div className="glass-panel rounded-2xl border border-white/10 bg-white/[0.03] p-2.5 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-400">
-                  <Droplets className="h-3.5 w-3.5" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-foreground truncate">Liquid Glass</h4>
-                  <p className="text-[0.6rem] text-muted-foreground truncate">Refraction &amp; bounce</p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  update({ liquidGlassEnabled: !settings.liquidGlassEnabled });
-                }}
-                className={cn(
-                  "rounded-xl px-2 py-0.5 text-[0.65rem] font-bold transition-all duration-200 cursor-pointer active:scale-90",
-                  settings.liquidGlassEnabled
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "border border-white/10 bg-white/[0.05] text-muted-foreground"
-                )}
-              >
-                {settings.liquidGlassEnabled ? "ACTIVE" : "OFF"}
-              </button>
-            </div>
-
-            {/* Theme Selector */}
-            <div className="grid grid-cols-3 gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-0.5">
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("light");
-                  update({ theme: "original" });
-                }}
-                className={cn(
-                  "flex items-center justify-center gap-1 rounded-lg py-1 text-[0.65rem] font-medium transition-all cursor-pointer active:scale-95",
-                  settings.theme === "original"
-                    ? "bg-white/[0.12] text-foreground font-bold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Sparkles className="h-3 w-3 text-primary" />
-                <span>Glass</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("light");
-                  update({ theme: "dark" });
-                }}
-                className={cn(
-                  "flex items-center justify-center gap-1 rounded-lg py-1 text-[0.65rem] font-medium transition-all cursor-pointer active:scale-95",
-                  settings.theme === "dark"
-                    ? "bg-white/[0.12] text-foreground font-bold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Moon className="h-3 w-3" />
-                <span>Dark</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("light");
-                  update({ theme: "light" });
-                }}
-                className={cn(
-                  "flex items-center justify-center gap-1 rounded-lg py-1 text-[0.65rem] font-medium transition-all cursor-pointer active:scale-95",
-                  settings.theme === "light"
-                    ? "bg-white/[0.12] text-foreground font-bold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Sun className="h-3 w-3 text-amber-400" />
-                <span>Light</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => closeThen(onOpenSettings)}
+              disabled={!onOpenSettings}
+              className="glass-panel flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.025] text-[9px] font-bold text-foreground disabled:opacity-45"
+            >
+              <Sliders className="h-3.5 w-3.5 text-violet-300" />
+              Settings
+            </button>
           </div>
 
-          {/* Bottom Actions: New Course & Settings */}
-          <div className="grid grid-cols-2 gap-2 pt-0.5">
-            {onOpenNewCourse && (
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  onOpenChange(false);
-                  onOpenNewCourse();
-                }}
-                className="glass-panel flex items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.04] p-2.5 text-xs font-bold text-foreground active:scale-95 transition-all hover:bg-white/[0.08] cursor-pointer"
-              >
-                <FolderPlus className="h-3.5 w-3.5 text-primary" />
-                <span>+ Course</span>
-              </button>
-            )}
-
-            {onOpenSettings && (
-              <button
-                type="button"
-                onClick={() => {
-                  haptic("medium");
-                  onOpenChange(false);
-                  onOpenSettings();
-                }}
-                className="glass-panel flex items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.04] p-2.5 text-xs font-bold text-foreground active:scale-95 transition-all hover:bg-white/[0.08] cursor-pointer"
-              >
-                <Sliders className="h-3.5 w-3.5 text-purple-400" />
-                <span>Settings</span>
-              </button>
-            )}
-          </div>
-
-          {/* Account Sign Out */}
           {user && (
             <button
               type="button"
               onClick={() => {
                 haptic("warning");
-                onOpenChange(false);
-                void signOut();
+                handleClose();
+                window.setTimeout(() => void signOut(), 220);
               }}
-              className="w-full flex items-center justify-center gap-1.5 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer"
+              className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-rose-400/20 bg-rose-400/[0.06] p-2.5 text-[9px] font-semibold text-rose-300 transition active:scale-[0.985]"
             >
               <LogOut className="h-3.5 w-3.5" />
-              <span>Log Out ({user.email?.split("@")[0] || "Account"})</span>
+              Sign out
             </button>
           )}
         </div>

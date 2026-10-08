@@ -482,10 +482,6 @@ function AuthenticatedApp({
           isSyncing={n.isSyncing}
           onRefresh={() => void n.refreshFromCloud()}
           onOpenAuth={onOpenAuth}
-          noteTitle={n.selected?.title || n.notes[0]?.title}
-          activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-          focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
-          dailyGoalHours={pomodoro.dailyGoalHours}
         />
 
         <AiExamSimulatorDialog

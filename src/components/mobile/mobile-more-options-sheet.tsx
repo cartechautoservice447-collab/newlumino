@@ -736,7 +736,8 @@ export function MobileMoreOptionsSheet({
                 <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-active:translate-x-1 shrink-0" />
               </button>
 
-              {/* AI Study Intelligence */}\n              {(onOpenExamSimulator || onOpenNotePolisher || onOpenAiExplain) && (
+              {/* AI Study Intelligence */}
+              {(onOpenExamSimulator || onOpenNotePolisher || onOpenAiExplain) && (
                 <div className="space-y-2 pt-1 border-t border-white/10">
                   <div className="flex items-center justify-between px-1">
                     <span className="text-[0.65rem] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
@@ -747,6 +748,37 @@ export function MobileMoreOptionsSheet({
                       Gemini 3.8
                     </span>
                   </div>
+
+                  {/* AI Explain */}
+                  {onOpenAiExplain && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        haptic("medium");
+                        handleClose();
+                        onOpenAiExplain();
+                      }}
+                      className={cn(
+                        "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all duration-200 ease-out cursor-pointer",
+                        "border-violet-500/25 bg-violet-500/10 hover:border-violet-500/50 hover:bg-violet-500/15",
+                        "active:scale-[0.96] active:translate-y-1 active:bg-violet-500/25 active:border-violet-400"
+                      )}
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-500/40 bg-violet-500/20 text-violet-300 transition-all duration-200 group-active:scale-90">
+                          <Brain className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs font-bold text-foreground truncate">AI Explain</h4>
+                            <span className="rounded-full bg-violet-500/25 px-1.5 py-0.2 text-[0.6rem] font-bold text-violet-300">Tutor</span>
+                          </div>
+                          <p className="text-[0.68rem] text-muted-foreground truncate">Concepts, examples &amp; clear explanations</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-3.5 w-3.5 text-violet-300/70 transition-transform group-active:translate-x-1 shrink-0" />
+                    </button>
+                  )}
 
                   {/* AI Tool 2: Adaptive Exam Simulator & Diagnostic Drill */}
                   {onOpenExamSimulator && (

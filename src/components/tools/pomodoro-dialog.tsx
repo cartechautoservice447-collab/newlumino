@@ -131,7 +131,7 @@ function MobilePomodoroExperience({
         <DialogTitle>Pomodoro Focus &amp; AI Planner</DialogTitle>
       </DialogHeader>
 
-      <header className="shrink-0 border-b border-white/10 bg-background/92 px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl">
+      <header className="shrink-0 border-b border-white/10 bg-background px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-3">
           <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border", toneClasses[modeTone])}>
             <Timer className="h-5 w-5" />
@@ -141,17 +141,6 @@ function MobilePomodoroExperience({
             <h1 className="truncate text-[0.98rem] font-extrabold tracking-tight">Pomodoro Focus</h1>
             <p className="truncate text-[0.68rem] text-muted-foreground">{contextTitle}</p>
           </div>
-          <button
-            type="button"
-            aria-label="Close Pomodoro Focus"
-            onClick={() => {
-              haptic("light");
-              onClose();
-            }}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-muted-foreground transition active:scale-95 touch-manipulation"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </div>
 
         <div className="mt-3 grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/[0.025] p-1">
@@ -184,7 +173,7 @@ function MobilePomodoroExperience({
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 pb-24 scroll-sleek">
         {tab === "focus" && (
           <main className="mx-auto w-full max-w-xl space-y-3">
-            <section className="relative overflow-hidden rounded-[1.65rem] border border-white/[0.09] bg-white/[0.035] p-4 shadow-xl">
+            <section className="glass-panel relative overflow-hidden rounded-[1.65rem] p-4 shadow-xl">
               <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -575,8 +564,8 @@ function MobilePomodoroExperience({
         )}
       </div>
 
-      <footer className="shrink-0 border-t border-white/10 bg-background/95 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-xl gap-2 overflow-x-auto scroll-sleek">
+      <footer className="shrink-0 border-t border-white/10 bg-background px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2">
+        <div className="mx-auto flex max-w-xl gap-2 overflow-x-auto rounded-2xl border border-white/[0.08] bg-white/[0.025] p-1.5 scroll-sleek">
           {tab === "focus" && (
             <>
               <button
@@ -833,7 +822,7 @@ export function PomodoroDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 border-0 bg-slate-950/98 text-foreground backdrop-blur-3xl flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0">
+      <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 min-h-0 border-0 bg-background text-foreground flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0 isolate">
         <MobilePomodoroExperience
           onClose={() => onOpenChange(false)}
           pomodoro={pomodoro}

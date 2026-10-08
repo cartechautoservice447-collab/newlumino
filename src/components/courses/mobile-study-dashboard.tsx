@@ -900,16 +900,16 @@ export function MobileStudyDashboard(props: Props) {
             <p className="mt-1 text-xs text-muted-foreground/75">A calm view of your study rhythm and momentum.</p>
           </div>
           <div className="space-y-5">
+            <MobileMomentumAndActivity
+              notes={props.notes}
+              todayFocusSeconds={props.todayFocusSeconds}
+              dailyGoalHours={props.dailyGoalHours}
+            />
             <MobileStudyInsights
               averageSessionMinutes={studyAnalytics.averageSessionMinutes}
               bestWindow={studyAnalytics.bestWindow}
               topCourse={studyAnalytics.topCourse}
               weeklyDelta={studyAnalytics.weeklyDelta}
-            />
-            <MobileMomentumAndActivity
-              notes={props.notes}
-              todayFocusSeconds={props.todayFocusSeconds}
-              dailyGoalHours={props.dailyGoalHours}
             />
             <MobileWeeklyStudyPulse
               weekly={studyAnalytics.weekly}

@@ -331,7 +331,7 @@ export function AiNotePolisherDialog({
         if (data.wordCountBefore !== undefined && data.wordCountAfter !== undefined) {
           setWordCountStats({ before: data.wordCountBefore, after: data.wordCountAfter });
         }
-        void createAiHistory({ userId: user?.id, tool: "note_polisher", title: targetNote.title || "Untitled note", subtitle: selectedMode + " • " + (targetNote.title || "Note"), action: "polish", context: { noteId: targetNote.id, noteTitle: targetNote.title, courseName: activeCourseName || null, mode: selectedMode, organizationDepth }, payload: { targetNoteId: targetNote.id, selectedMode, organizationDepth, polishedResult: data.polishedContent, changeLog: data.summaryOfChanges || [], readabilityScore: data.readabilityScore || 96, keyConceptsCovered: data.keyConceptsCovered || [], wordCountStats: data.wordCountBefore !== undefined && data.wordCountAfter !== undefined ? { before: data.wordCountBefore, after: data.wordCountAfter } : null, activeTab: "preview" } });
+        void createAiHistory({ userId: user?.id, tool: "note_polisher", title: targetNote.title || "Untitled note", subtitle: selectedMode + " • " + (targetNote.title || "Note"), action: "polish", context: { noteId: targetNote.id, noteTitle: targetNote.title, courseName: null, mode: selectedMode, organizationDepth }, payload: { targetNoteId: targetNote.id, selectedMode, organizationDepth, polishedResult: data.polishedContent, changeLog: data.summaryOfChanges || [], readabilityScore: data.readabilityScore || 96, keyConceptsCovered: data.keyConceptsCovered || [], wordCountStats: data.wordCountBefore !== undefined && data.wordCountAfter !== undefined ? { before: data.wordCountBefore, after: data.wordCountAfter } : null, activeTab: "preview" } });
         setActiveTab("preview");
         haptic("success");
       } else {
@@ -382,7 +382,7 @@ export function AiNotePolisherDialog({
         setDiagramCode(data.mermaidCode);
         setDiagramTitle(data.title || (targetNote.title + " Architecture Map"));
         setActiveTab("visual_diagram");
-        void createAiHistory({ userId: user?.id, tool: "note_polisher", title: data.title || (targetNote.title + " Architecture Map"), subtitle: "diagram • " + (targetNote.title || "Note"), action: "diagram", context: { noteId: targetNote.id, noteTitle: targetNote.title, courseName: activeCourseName || null, mode: selectedMode, diagramType: typeToUse }, payload: { targetNoteId: targetNote.id, selectedMode, organizationDepth, polishedResult: polishedResult || null, diagramCode: data.mermaidCode, diagramTitle: data.title || (targetNote.title + " Architecture Map"), activeTab: "visual_diagram" } });
+        void createAiHistory({ userId: user?.id, tool: "note_polisher", title: data.title || (targetNote.title + " Architecture Map"), subtitle: "diagram • " + (targetNote.title || "Note"), action: "diagram", context: { noteId: targetNote.id, noteTitle: targetNote.title, courseName: null, mode: selectedMode, diagramType: typeToUse }, payload: { targetNoteId: targetNote.id, selectedMode, organizationDepth, polishedResult: polishedResult || null, diagramCode: data.mermaidCode, diagramTitle: data.title || (targetNote.title + " Architecture Map"), activeTab: "visual_diagram" } });
         haptic("success");
       }
     } catch (err) {

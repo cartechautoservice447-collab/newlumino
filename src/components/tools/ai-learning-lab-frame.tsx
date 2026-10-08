@@ -142,3 +142,40 @@ export function LabInsightCard({
     </div>
   );
 }
+
+export function LabToolButton({
+  label,
+  onClick,
+  tone = "primary",
+  icon,
+}: {
+  label: string;
+  onClick: () => void;
+  tone?: "primary" | "emerald" | "amber" | "violet" | "cyan";
+  icon?: React.ReactNode;
+}) {
+  const tones = {
+    primary: "border-primary/20 bg-primary/[0.08] text-primary",
+    emerald: "border-emerald-400/20 bg-emerald-400/[0.08] text-emerald-200",
+    amber: "border-amber-400/20 bg-amber-400/[0.08] text-amber-200",
+    violet: "border-violet-400/20 bg-violet-400/[0.08] text-violet-200",
+    cyan: "border-cyan-400/20 bg-cyan-400/[0.08] text-cyan-200",
+  } as const;
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        haptic("medium");
+        onClick();
+      }}
+      className={cn(
+        "flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-bold transition hover:bg-white/[0.08] active:scale-[0.98]",
+        tones[tone],
+      )}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}

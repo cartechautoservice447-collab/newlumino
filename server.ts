@@ -2317,6 +2317,151 @@ Output strictly valid JSON matching this schema:
   });
 });
 
+// AI Explain endpoint: grounded concept teaching with structured output and resilient model fallback
+app.post("/api/ai/explain", async (req, res) => {
+  const {
+    noteTitle = "",
+    noteBody = "",
+    concept = "",
+    mode = "clear",
+  } = req.body || {};
+
+  const cleanTitle = String(noteTitle || "Study Topic").slice(0, 300);
+  const sourceBody = String(noteBody || "").slice(0, 16000);
+  const requestedConcept = String(concept || "").slice(0, 2500);
+  const allowedModes = new Set(["clear", "step_by_step", "analogy", "example", "exam", "code"]);
+  const explainMode = allowedModes.has(String(mode)) ? String(mode) : "clear";
+
+  const modeInstructions: Record<string, string> = {
+    clear: "Explain in clear, direct language, defining unfamiliar terms before using them.",
+    step_by_step: "Teach the idea as a logical sequence of small steps, showing how each step leads to the next.",
+    analogy: "Use one strong real-world analogy, then explicitly map the analogy back to the technical concept.",
+    example: "Use a concrete worked example and walk through the reasoning from input to outcome.",
+    exam: "Emphasize definitions, distinctions, formulas, edge cases, common traps, and what an examiner is likely to test.",
+    code: "Prioritize code/syntax/logic behavior, execution flow, errors, and a corrected mini-example when relevant.",
+  };
+
+  const fallback = {
+    title: requestedConcept || cleanTitle,
+    coreAnswer: requestedConcept
+      ? `AI Explain can break "${requestedConcept}" into a definition, mechanism, example, and common mistake. Review the source note alongside each claim.`
+      : `This lesson is grounded in "${cleanTitle}". Ask for a specific concept or question to get a more targeted explanation.`,
+    explanation: sourceBody
+      ? `Start with the central idea in the note, identify its inputs and outputs, then connect the supporting details in order. Source context: ${sourceBody.slice(0, 700)}`
+      : "Add a source note for a more context-aware explanation.",
+    analogy: "Think of the concept as a system with an input, a transformation, and an observable result. The analogy should be replaced by the concrete domain details from the source note when available.",
+    example: requestedConcept
+      ? `Work through one small example of "${requestedConcept}", checking each assumption before moving to the next step.`
+      : "Provide a concept or question to generate a worked example.",
+    keyPoints: [
+      "Identify the definition or central claim first.",
+      "Connect the mechanism to a concrete example.",
+      "Check edge cases and common misconceptions.",
+      "Test your understanding by explaining the idea without looking at the note.",
+    ],
+    commonMistake: "Memorizing terminology without understanding the mechanism or when the rule does not apply.",
+    checkQuestion: requestedConcept
+      ? `In your own words, what is "${requestedConcept}" and why does it work this way?`
+      : "What is the single most important idea you would teach to someone else?",
+    followUpQuestions: [
+      "Can you show a harder example?",
+      "What is the most common misconception here?",
+      "How would this appear on an exam?",
+    ],
+  };
+
+  const ai = getGeminiClient();
+  if (!ai) {
+    return res.json({ success: true, result: fallback, fallback: true, model: "built-in-explain" });
+  }
+
+  const prompt = `You are an expert academic tutor inside a study workspace.
+
+TARGET NOTE: "${cleanTitle}"
+EXPLANATION MODE: ${explainMode}
+MODE INSTRUCTIONS: ${modeInstructions[explainMode]}
+
+STUDENT QUESTION / CONCEPT:
+"""
+${requestedConcept || "Explain the central ideas of the provided source note."}
+"""
+
+SOURCE NOTE:
+"""
+${sourceBody || "No source note supplied. Do not invent note-specific claims; answer the student's concept using general knowledge and clearly label assumptions."}
+"""
+
+Create a concise but deep mini-lesson.
+
+Grounding rules:
+1. Prefer the supplied source note when it contains the requested concept.
+2. Never invent facts that are supposedly from the note.
+3. When the note is insufficient, distinguish general knowledge from note-grounded information.
+4. Use accurate, student-friendly language.
+5. Keep each field useful and non-repetitive.
+6. Do not use emojis.
+7. Return only valid JSON matching the required schema.
+
+Required JSON:
+{
+  "title": "string",
+  "coreAnswer": "2-5 sentence direct answer",
+  "explanation": "detailed teaching explanation",
+  "analogy": "one useful analogy",
+  "example": "worked example or concrete application",
+  "keyPoints": ["string", "string", "string", "string"],
+  "commonMistake": "string",
+  "checkQuestion": "one retrieval/check question",
+  "followUpQuestions": ["string", "string", "string"]
+}`;
+
+  try {
+    const { parsed, model } = await executeGeminiGenerate<ExplainResult>(ai, {
+      contents: prompt,
+      temperature: 0.25,
+      timeoutMs: 30000,
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          coreAnswer: { type: Type.STRING },
+          explanation: { type: Type.STRING },
+          analogy: { type: Type.STRING },
+          example: { type: Type.STRING },
+          keyPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
+          commonMistake: { type: Type.STRING },
+          checkQuestion: { type: Type.STRING },
+          followUpQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        },
+        required: [
+          "title",
+          "coreAnswer",
+          "explanation",
+          "analogy",
+          "example",
+          "keyPoints",
+          "commonMistake",
+          "checkQuestion",
+          "followUpQuestions",
+        ],
+      },
+    });
+
+    if (parsed && parsed.coreAnswer) {
+      return res.json({
+        success: true,
+        result: parsed,
+        fallback: false,
+        model,
+      });
+    }
+  } catch (err) {
+    console.warn("AI Explain Error:", err);
+  }
+
+  return res.json({ success: true, result: fallback, fallback: true, model: "smart-explain-fallback" });
+}
+
 // Health check endpoint
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", aiConfigured: Boolean(process.env.GEMINI_API_KEY) });

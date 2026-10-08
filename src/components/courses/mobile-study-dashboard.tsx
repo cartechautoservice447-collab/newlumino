@@ -871,6 +871,12 @@ export function MobileStudyDashboard(props: Props) {
               onOpenMenu={onOpenMenu}
               onOpenSettings={onOpenSettings}
             />
+            <MobileStudyToday
+              todayFocusSeconds={props.todayFocusSeconds}
+              dailyGoalHours={props.dailyGoalHours}
+              onStartFocus={onStartFocus}
+              onOpenDailyGoal={onOpenDailyGoal}
+            />
             <MobileResumeStudy
               note={resumeNote}
               course={resumeCourse}
@@ -885,12 +891,6 @@ export function MobileStudyDashboard(props: Props) {
               onOpenAllNotes={onOpenAllNotes}
               onOpenFavorites={onOpenFavorites}
             />
-            <MobileStudyToday
-              todayFocusSeconds={props.todayFocusSeconds}
-              dailyGoalHours={props.dailyGoalHours}
-              onStartFocus={onStartFocus}
-              onOpenDailyGoal={onOpenDailyGoal}
-            />
           </div>
         </section>
 
@@ -900,6 +900,12 @@ export function MobileStudyDashboard(props: Props) {
             <p className="mt-1 text-xs text-muted-foreground/75">A calm view of your study rhythm and momentum.</p>
           </div>
           <div className="space-y-4">
+            <MobileStudyInsights
+              averageSessionMinutes={studyAnalytics.averageSessionMinutes}
+              bestWindow={studyAnalytics.bestWindow}
+              topCourse={studyAnalytics.topCourse}
+              weeklyDelta={studyAnalytics.weeklyDelta}
+            />
             <MobileMomentumAndActivity
               notes={props.notes}
               todayFocusSeconds={props.todayFocusSeconds}
@@ -912,12 +918,6 @@ export function MobileStudyDashboard(props: Props) {
               weeklyDelta={studyAnalytics.weeklyDelta}
               currentStreak={studyAnalytics.currentStreak}
               bestStreak={studyAnalytics.bestStreak}
-            />
-            <MobileStudyInsights
-              averageSessionMinutes={studyAnalytics.averageSessionMinutes}
-              bestWindow={studyAnalytics.bestWindow}
-              topCourse={studyAnalytics.topCourse}
-              weeklyDelta={studyAnalytics.weeklyDelta}
             />
             <MobileRecentActivity
               notes={recentActivity}

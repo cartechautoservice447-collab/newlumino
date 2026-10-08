@@ -23,6 +23,7 @@ import { MobileCategoryChips } from "@/components/mobile/mobile-category-chips";
 import { MobileAccessoryBar } from "@/components/mobile/mobile-accessory-bar";
 import { MobileNoteSheet } from "@/components/mobile/mobile-note-sheet";
 import { MobileMoreOptionsSheet } from "@/components/mobile/mobile-more-options-sheet";
+import { MobileDailyGoalInterface } from "@/components/mobile/mobile-daily-goal-interface";
 import { MobileQuickDraftSheet } from "@/components/mobile/mobile-quick-draft-sheet";
 import { usePomodoroTimer } from "@/hooks/use-pomodoro";
 import { FlashcardsDialog } from "@/components/tools/flashcards-dialog";
@@ -724,22 +725,35 @@ todayFocusSeconds={pomodoro.todayFocusSeconds}
 
       {/* Daily Goal View */}
       {view === "daily-goal" && (
-        <div className="flex-1 flex flex-col min-h-0 bg-background/50 backdrop-blur-xl animate-panel-in relative z-20">
-          <div className="absolute top-4 left-4 z-30">
-            <button
-              onClick={() => {
+        <div className="flex-1 min-h-0 bg-background/50 backdrop-blur-xl animate-panel-in relative z-20">
+          {isMobile ? (
+            <MobileDailyGoalInterface
+              pomodoro={pomodoro}
+              onOpenPomodoro={() => setPomodoroDialogOpen(true)}
+              onBack={() => {
                 if (n.activeCourseId) setView("workspace");
                 else setView("dashboard");
               }}
-              className="glass-panel flex items-center justify-center p-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors"
-            >
-              <PanelLeftOpen className="h-4 w-4" />
-            </button>
-          </div>
-          <DailyGoalView
-            pomodoro={pomodoro}
-            onOpenPomodoro={() => setPomodoroDialogOpen(true)}
-          />
+            />
+          ) : (
+            <div className="flex h-full min-h-0 flex-col">
+              <div className="absolute top-4 left-4 z-30">
+                <button
+                  onClick={() => {
+                    if (n.activeCourseId) setView("workspace");
+                    else setView("dashboard");
+                  }}
+                  className="glass-panel flex items-center justify-center p-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors"
+                >
+                  <PanelLeftOpen className="h-4 w-4" />
+                </button>
+              </div>
+              <DailyGoalView
+                pomodoro={pomodoro}
+                onOpenPomodoro={() => setPomodoroDialogOpen(true)}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -896,7 +910,7 @@ todayFocusSeconds={pomodoro.todayFocusSeconds}
       )}
 
       {/* Mobile Floating Bottom Dock (Only shown when browsing courses or note list, hidden in editor for maximum room) */}
-      {isMobile && !n.selectedId && !focusMode && (
+      {isMobile && !n.selectedId && !focusMode && view !== "daily-goal" && (
         <MobileBottomDock
           currentView={view}
           selectedNoteId={n.selectedId}

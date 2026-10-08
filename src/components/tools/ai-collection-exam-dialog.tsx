@@ -42,6 +42,7 @@ import {
   Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AiLearningLabFrame, LabInsightCard, LabToolButton } from "@/components/tools/ai-learning-lab-frame";
 import { haptic } from "@/lib/haptics";
 import type { Note, Collection } from "@/lib/notes";
 import { MarkdownPreview } from "@/components/notes/markdown-preview";
@@ -479,70 +480,48 @@ export function AiCollectionExamDialog({
   if (typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur-2xl text-foreground overflow-hidden animate-panel-in">
-      {/* Top Universal Fullscreen Header */}
-      <header className="flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-white/10 px-4 sm:px-6 bg-white/[0.03]">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-2xl border border-amber-500/40 bg-gradient-to-tr from-amber-500/20 to-primary/20 text-amber-300 shadow-md">
-            <Target className="h-5 w-5" />
+    <AiLearningLabFrame
+      title="AI 4-Stage Progressive Mastery Exam"
+      subtitle="Sequential assessment from theory to real-world project execution."
+      status={step === "stage4" || step === "stage_hub" ? formatTimer(secondsRemaining) : step === "results" ? "Assessment complete" : step.replace("_", " ")}
+      statusTone={timerActive && secondsRemaining < 300 ? "amber" : "amber"}
+      icon={Target}
+      onClose={() => onOpenChange(false)}
+      context={
+        <div className="space-y-3">
+          <div>
+            <div className="mb-1 text-[0.64rem] font-semibold text-muted-foreground">STUDY COLLECTION</div>
+            <div className="rounded-xl border border-white/[0.08] bg-black/15 px-3 py-2 text-xs font-semibold text-foreground">{selectedCollectionObj.name}</div>
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-bold tracking-tight text-foreground truncate">
-                AI Multi-Stage Mastery Exam
-              </h1>
-              <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300 uppercase tracking-wider hidden xs:inline-block">
-                Collection Studio
-              </span>
-            </div>
-            <p className="text-[11px] text-muted-foreground truncate">
-              {examSuite ? examSuite.title : `Structured 4-Stage Diagnostic for "${selectedCollectionObj.name}"`}
-            </p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-white/[0.08] bg-black/15 p-2.5"><span className="block text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground">Notes</span><span className="mt-1 block text-xs font-mono font-bold text-foreground">{targetNotes.length}</span></div>
+            <div className="rounded-xl border border-white/[0.08] bg-black/15 p-2.5"><span className="block text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground">Duration</span><span className="mt-1 block text-xs font-mono font-bold text-amber-300">{totalMinutes}m</span></div>
+          </div>
+          <div className="rounded-xl border border-cyan-400/15 bg-cyan-400/[0.055] p-2.5">
+            <div className="text-[0.64rem] font-bold uppercase tracking-wider text-cyan-300">Assessment profile</div>
+            <p className="mt-1 text-[0.68rem] leading-5 text-muted-foreground">{difficulty} · {focusDomain.replace("_", " ")}</p>
           </div>
         </div>
-
-        {/* Header Right: Live Timer + Close */}
-        <div className="flex items-center gap-3">
-          {timerActive && (
-            <div className={cn(
-              "flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-mono font-bold transition-colors",
-              secondsRemaining < 300
-                ? "border-rose-500/40 bg-rose-500/20 text-rose-300 animate-pulse"
-                : "border-white/15 bg-white/[0.06] text-foreground"
-            )}>
-              <Clock className="h-3.5 w-3.5 text-amber-400" />
-              <span>{formatTimer(secondsRemaining)}</span>
-            </div>
-          )}
-
-          {step !== "setup" && step !== "generating" && step !== "evaluating" && (
-            <button
-              type="button"
-              onClick={() => {
-                if (confirm("Reset current exam session and return to setup?")) {
-                  resetAll();
-                }
-              }}
-              title="Reset Exam"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
-            aria-label="Close Exam Dialog"
-          >
-            <X className="h-5 w-5" />
-          </button>
+      }
+      intelligence={
+        <div className="space-y-3">
+          <LabInsightCard title="Pipeline" value={step === "setup" ? "0 / 4" : (Number(stage1Completed) + Number(stage2Completed) + Number(stage3Completed) + Number(stage4Completed)) + " / 4"} description="Stages completed in the progressive assessment." />
+          <LabInsightCard title="Timer" value={timerActive ? formatTimer(secondsRemaining) : "Paused"} description="Assessment time remaining." />
+          <LabInsightCard title="Mastery" value={evaluation ? evaluation.masteryScore + "%" : "—"} description={evaluation ? evaluation.masteryGrade : "Score appears after final evaluation."} />
+          {evaluation?.criticalGaps?.length ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/[0.06] p-4"><div className="text-xs font-bold text-rose-200">Critical gaps</div><p className="mt-2 text-sm leading-6 text-muted-foreground">{evaluation.criticalGaps[0]}</p></div> : null}
         </div>
-      </header>
+      }
+      footer={
+        <>
+          {step === "setup" ? <LabToolButton label="Synthesize 4 stages" icon={<Sparkles className="h-3.5 w-3.5" />} tone="amber" onClick={() => void handleGenerateExam()} /> : null}
+          {step === "results" ? <LabToolButton label="Retake assessment" icon={<RotateCcw className="h-3.5 w-3.5" />} tone="amber" onClick={resetAll} /> : null}
+          {evaluation && onOpenNotePolisher ? <LabToolButton label="Remediate with Note Polisher" icon={<Wand2 className="h-3.5 w-3.5" />} tone="cyan" onClick={handleOpenPolisherRemediation} /> : null}
+        </>
+      }
+    >
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+      <main className="min-w-0 w-full max-w-7xl mx-auto space-y-6">
         {/* VIEW 1: SETUP SCREEN (4 FILL THE BLANKS / CONFIG OPTIONS) */}
         {step === "setup" && (
           <div className="max-w-4xl mx-auto py-4 space-y-8 animate-panel-in">
@@ -1845,7 +1824,7 @@ export function AiCollectionExamDialog({
           </div>
         )}
       </main>
-    </div>,
+    </AiLearningLabFrame>,
     document.body
   );
 }

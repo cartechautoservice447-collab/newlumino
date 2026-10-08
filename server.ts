@@ -12,7 +12,44 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
+app.disable("x-powered-by");
+app.set("trust proxy", true);
+
 app.use(express.json({ limit: "10mb" }));
+
+// Lightweight AI abuse protection. The app intentionally supports guest AI use,
+// so this limits bursts without requiring authentication or changing the product flow.
+const aiRateBuckets = new Map<string, { count: number; resetAt: number }>();
+const AI_RATE_WINDOW_MS = 60_000;
+const AI_RATE_MAX_REQUESTS = 30;
+
+app.use("/api/ai", (req, res, next) => {
+  const now = Date.now();
+  const forwarded = req.headers["x-forwarded-for"];
+  const clientIp =
+    req.ip ||
+    (typeof forwarded === "string" ? forwarded.split(",")[0]?.trim() : "") ||
+    req.socket.remoteAddress ||
+    "unknown";
+  const existing = aiRateBuckets.get(clientIp);
+
+  if (!existing || existing.resetAt <= now) {
+    aiRateBuckets.set(clientIp, { count: 1, resetAt: now + AI_RATE_WINDOW_MS });
+  } else if (existing.count >= AI_RATE_MAX_REQUESTS) {
+    res.setHeader("Retry-After", String(Math.ceil((existing.resetAt - now) / 1000)));
+    return res.status(429).json({ error: "Too many AI requests. Please try again shortly." });
+  } else {
+    existing.count += 1;
+  }
+
+  if (aiRateBuckets.size > 5000) {
+    for (const [key, bucket] of aiRateBuckets) {
+      if (bucket.resetAt <= now) aiRateBuckets.delete(key);
+    }
+  }
+
+  next();
+});
 
 // Server-side Gemini client
 const getGeminiClient = () => {
@@ -505,137 +542,6 @@ Instructions:
     cognitivePacingAdvice: `Keep hydration near, take screen-off breaks during the ${breakMin}m intervals, and finish with a quick summary review.`,
     efficiencyScore: 95,
     fallback: true,
-  });
-});
-
-// AI Integrated Notification Generator Endpoint
-app.post("/api/ai/notification", async (req, res) => {
-  const {
-    persona = "coach",
-    category = "study_nudge",
-    context = {},
-  } = req.body;
-
-  const {
-    noteTitle = "General Study",
-    activeCourseName = "Current Course",
-    focusMinutes = 25,
-    dailyGoalHours = 2,
-    coursesCount = 1,
-    notesCount = 1,
-  } = context;
-
-  const personaPrompts: Record<string, string> = {
-    coach: "Energetic, inspiring, high-performance athletic coach pushing the student to level up their intellectual stamina and retention.",
-    professor: "Distinguished academic professor using socratic questioning, intellectual rigor, and deep conceptual insight.",
-    mentor: "Calm, thoughtful mentor emphasizing mindful pacing, flow state, single-tasking, and tranquil cognitive clarity.",
-    hacker: "Pragmatic, sharp software engineer / tech lead focusing on systematic problem-solving, debugging edge cases, and high-efficiency shipping.",
-  };
-
-  const categoryPrompts: Record<string, string> = {
-    study_nudge: "A micro-nudge prompting focus or deeper understanding of what they're studying.",
-    milestone: "A celebratory acknowledgement of focus progress and intellectual stamina.",
-    retention_quiz: "A quick mental quiz question or concept check prompt.",
-    break_reminder: "A gentle nudge to step away, rest their eyes, hydrate, and consolidate memories.",
-    daily_goal: "A motivating status check on their daily study target and progress.",
-  };
-
-  const selectedPersona = personaPrompts[persona] || personaPrompts.coach;
-  const selectedCategory = categoryPrompts[category] || categoryPrompts.study_nudge;
-
-  // Fallback notifications if API key is absent or upstream is busy
-  const fallbackPresets: Record<string, Array<{ title: string; message: string; type: "info" | "success" | "warning"; categoryBadge: string }>> = {
-    coach: [
-      { title: "⚡ Peak Focus Mode", message: "You've logged solid focus. Review key ideas before checking the note!", type: "info", categoryBadge: "Study Boost" },
-      { title: "🔥 Momentum Unleashed", message: "Great consistency today. Push through the next 15 minutes to lock in long-term memory.", type: "success", categoryBadge: "Goal Sprint" },
-    ],
-    professor: [
-      { title: "🎓 Socratic Check", message: `Can you explain the core mechanism of "${noteTitle}" in simple terms without reading?`, type: "info", categoryBadge: "Concept Check" },
-      { title: "📖 Deep Synthesis", message: `Reviewing ${activeCourseName}: identify one counter-example to solidify your mental model.`, type: "info", categoryBadge: "Deep Theory" },
-    ],
-    mentor: [
-      { title: "🌱 Mindful Clarity", message: "Take one slow breath. Release eye tension. Allow the concepts to settle organically.", type: "info", categoryBadge: "Clarity Flow" },
-      { title: "🍃 Single-Task Focus", message: "One idea at a time. Quality of contemplation beats hurried skimming.", type: "success", categoryBadge: "Mindfulness" },
-    ],
-    hacker: [
-      { title: "💻 Edge Case Probe", message: `How would your current logic in "${noteTitle}" handle unexpected input or race conditions?`, type: "warning", categoryBadge: "Code Edge Cases" },
-      { title: "🚀 Clean Execution", message: "Refactor your mental diagram: reduce cognitive complexity and drill the syntax.", type: "info", categoryBadge: "Engineering" },
-    ],
-  };
-
-  const pool = fallbackPresets[persona] || fallbackPresets.coach;
-  const fallbackAlert = pool[Math.floor(Math.random() * pool.length)];
-
-  const ai = getGeminiClient();
-  if (!ai) {
-    return res.json({
-      success: true,
-      notification: fallbackAlert,
-      fallback: true,
-      model: "synthesizer",
-    });
-  }
-
-  const prompt = `You are NewLumino's AI Notification Engine.
-Generate an intelligent, contextual study alert for a student using NewLumino Liquid Glass Study Studio.
-
-Persona: ${selectedPersona}
-Alert Category: ${selectedCategory}
-Student Context:
-- Active Note: "${noteTitle}"
-- Course: "${activeCourseName}"
-- Today's Focus: ${focusMinutes} minutes (Goal: ${dailyGoalHours} hours)
-- Total Notes: ${notesCount} across ${coursesCount} courses
-
-Strict formatting requirements:
-1. "title": Catchy, short title with an emoji (max 28 chars, e.g. "⚡ Focus Drill")
-2. "message": Concise, punchy 1-2 sentence alert (max 110 chars)
-3. "type": exactly one of "info", "success", "warning"
-4. "categoryBadge": short 2-3 word label (e.g. "Spaced Repetition", "Mindful Break")
-5. "actionLabel": optional 1-2 word CTA (e.g. "Test Now", "Breathe", "Resume")`;
-
-  try {
-    const { parsed, model } = await executeGeminiGenerate<any>(ai, {
-      contents: prompt,
-      temperature: 0.6,
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          title: { type: Type.STRING },
-          message: { type: Type.STRING },
-          type: { type: Type.STRING },
-          categoryBadge: { type: Type.STRING },
-          actionLabel: { type: Type.STRING },
-        },
-        required: ["title", "message", "type", "categoryBadge"],
-      },
-    });
-
-    if (parsed && parsed.title && parsed.message) {
-      const validatedType: "info" | "success" | "warning" =
-        parsed.type === "success" || parsed.type === "warning" ? parsed.type : "info";
-
-      return res.json({
-        success: true,
-        notification: {
-          title: parsed.title,
-          message: parsed.message,
-          type: validatedType,
-          categoryBadge: parsed.categoryBadge || "AI Smart Alert",
-          actionLabel: parsed.actionLabel || undefined,
-        },
-        model,
-      });
-    }
-  } catch (_err) {
-    // Falls through to fallback notification below
-  }
-
-  return res.json({
-    success: true,
-    notification: fallbackAlert,
-    fallback: true,
-    model: "smart-synthesizer",
   });
 });
 

@@ -1,5 +1,4 @@
 export type WebsiteTheme = "default" | "fluid-glass";
-export type DashboardDesign = "newlumino" | "spatial-aurora-bento";
 export type ThemeBase = "original" | "dark" | "light";
 export type QualityLevel = "low" | "medium" | "high" | "ultra" | "custom";
 export type MotionLevel = "low" | "medium" | "high" | "ultra";
@@ -10,7 +9,6 @@ export type FluidGlassTextClarity = "default" | "smooth" | "medium" | "punchy";
 
 export type Customization = {
   websiteTheme: WebsiteTheme;
-  dashboardDesign: DashboardDesign;
   theme: ThemeBase;
   glassPreset: QualityLevel;
   glassBlur: number; // px 0..32
@@ -84,7 +82,6 @@ export const FONT_STACKS: Record<UiFont, string> = {
 
 export const DEFAULT_CUSTOMIZATION: Customization = {
   websiteTheme: "default",
-  dashboardDesign: "newlumino",
   theme: "original",
   glassPreset: "high",
   ...GLASS_PRESETS.high,

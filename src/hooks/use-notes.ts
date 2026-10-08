@@ -29,8 +29,9 @@ export type Filter =
   | { kind: "collection"; id: string };
 
 export function useNotes(userId?: string | null) {
-  const [state, setState] = useState<NotesState>(() => loadState());
+  const [state, setState] = useState<NotesState>(() => loadState(userId));
   const [hydrated, setHydrated] = useState(false);
+  const [hydratedUserId, setHydratedUserId] = useState<string | null | undefined>(undefined);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>({ kind: "all" });
   const [query, setQuery] = useState("");
@@ -40,18 +41,19 @@ export function useNotes(userId?: string | null) {
 
   // Initial load: local storage first
   useEffect(() => {
-    const loaded = loadState();
+    const loaded = loadState(userId);
     setState(loaded);
     setSelectedId(loaded.notes[0]?.id ?? null);
+    setHydratedUserId(userId ?? null);
     setHydrated(true);
-  }, []);
+  }, [userId]);
 
-  // Save to local cache on any change
+  // Save to the current user's local cache only after that scope has loaded.
   useEffect(() => {
-    if (hydrated) {
-      saveState(state);
+    if (hydrated && hydratedUserId === (userId ?? null)) {
+      saveState(state, userId);
     }
-  }, [state, hydrated]);
+  }, [state, hydrated, hydratedUserId, userId]);
 
   // Synchronize with remote Supabase backend whenever userId is present
   const refreshFromCloud = useCallback(async () => {
@@ -87,6 +89,7 @@ export function useNotes(userId?: string | null) {
       onCoursesChange: (payload) => {
         console.log("[useNotes Realtime] courses update:", payload.eventType, payload.new);
         if (payload.eventType === "INSERT" && payload.new) {
+          if (payload.new?.user_id && payload.new.user_id !== userId) return;
           const freshCourse = toCourse(payload.new as any);
           setState((prev) => {
             if (prev.courses.some((c) => c.id === freshCourse.id)) {
@@ -98,12 +101,15 @@ export function useNotes(userId?: string | null) {
             };
           });
         } else if (payload.eventType === "UPDATE" && payload.new) {
+          if (payload.new?.user_id && payload.new.user_id !== userId) return;
           const updated = toCourse(payload.new as any);
           setState((prev) => ({
             ...prev,
             courses: prev.courses.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
           }));
         } else if (payload.eventType === "DELETE" && payload.old) {
+          if (payload.old?.user_id && payload.old.user_id !== userId) return;
+          if (payload.old?.user_id && payload.old.user_id !== userId) return;
           const deletedId = (payload.old as any).id;
           setState((prev) => ({
             ...prev,
@@ -123,12 +129,14 @@ export function useNotes(userId?: string | null) {
       onNotesChange: (payload) => {
         console.log("[useNotes Realtime] notes update:", payload.eventType);
         if (payload.eventType === "INSERT" && payload.new) {
+          if (payload.new?.user_id && payload.new.user_id !== userId) return;
           const freshNote = toNote(payload.new as any);
           setState((prev) => {
             if (prev.notes.some((n) => n.id === freshNote.id)) return prev;
             return { ...prev, notes: [freshNote, ...prev.notes] };
           });
         } else if (payload.eventType === "UPDATE" && payload.new) {
+          if (payload.new?.user_id && payload.new.user_id !== userId) return;
           const updated = toNote(payload.new as any);
           setState((prev) => ({
             ...prev,

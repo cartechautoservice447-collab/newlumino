@@ -232,11 +232,12 @@ function normalizeNote(value: unknown): Note | null {
   };
 }
 
-export const loadState = (): NotesState => {
+export const loadState = (userId?: string | null): NotesState => {
   if (typeof window === "undefined") return { courses: [], notes: [], collections: [] };
+  const scopedKey = userId ? `${STORAGE_KEY}:user:${userId}` : `${STORAGE_KEY}:guest`;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return seedState();
+    const raw = window.localStorage.getItem(scopedKey);
+    if (!raw) return userId ? { courses: [], notes: [], collections: [] } : seedState();
     const parsed = JSON.parse(raw) as unknown;
     if (!isRecord(parsed)) return seedState();
 
@@ -258,10 +259,11 @@ export const loadState = (): NotesState => {
   }
 };
 
-export const saveState = (state: NotesState) => {
+export const saveState = (state: NotesState, userId?: string | null) => {
   if (typeof window === "undefined") return;
+  const scopedKey = userId ? `${STORAGE_KEY}:user:${userId}` : `${STORAGE_KEY}:guest`;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    window.localStorage.setItem(scopedKey, JSON.stringify(state));
   } catch {
     /* storage unavailable */
   }

@@ -161,14 +161,14 @@ export async function deleteRemoteCourse(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // 1. Delete notes in this course
-    await supabase.from("notes").delete().eq("course_id", courseId);
+    await supabase.from("notes").delete().eq("course_id", courseId).eq("user_id", userId ?? "");
 
     // 2. Delete folders in this course
-    await supabase.from("collections").delete().eq("course_id", courseId);
+    await supabase.from("collections").delete().eq("course_id", courseId).eq("user_id", userId ?? "");
 
     // 3. Delete lecture links if any
     try {
-      await supabase.from("lecture_links").delete().eq("course_id", courseId);
+      await supabase.from("lecture_links").delete().eq("course_id", courseId).eq("user_id", userId ?? "");
     } catch {
       // ignore
     }
@@ -291,7 +291,7 @@ export async function deleteRemoteCollection(
  * Falls back to locally cached state if offline or guest.
  */
 export async function fetchFullRemoteState(userId?: string | null): Promise<NotesState> {
-  const local = loadLocalState();
+  const local = loadLocalState(userId);
   if (!userId) {
     return local;
   }
@@ -330,7 +330,7 @@ export async function fetchFullRemoteState(userId?: string | null): Promise<Note
         collections: remoteCollections,
         notes: remoteNotes,
       };
-      saveLocalState(merged);
+      saveLocalState(merged, userId);
       return merged;
     }
 
@@ -384,25 +384,25 @@ export function subscribeToRealtimeSharedBackend(
       .channel(channelName)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "courses" },
+        { event: "*", schema: "public", table: "courses", filter: `user_id=eq.${userId}` },
         (payload) => {
-          console.log("[Shared Realtime] courses table change detected:", payload);
+          console.log("[Shared Realtime] courses update:", payload.eventType);
           callbacks.onCoursesChange(payload);
         },
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "notes" },
+        { event: "*", schema: "public", table: "notes", filter: `user_id=eq.${userId}` },
         (payload) => {
-          console.log("[Shared Realtime] notes table change detected:", payload);
+          console.log("[Shared Realtime] notes update:", payload.eventType);
           callbacks.onNotesChange(payload);
         },
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "collections" },
+        { event: "*", schema: "public", table: "collections", filter: `user_id=eq.${userId}` },
         (payload) => {
-          console.log("[Shared Realtime] collections table change detected:", payload);
+          console.log("[Shared Realtime] collections update:", payload.eventType);
           callbacks.onCollectionsChange(payload);
         },
       )

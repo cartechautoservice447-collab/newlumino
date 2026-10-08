@@ -13,7 +13,6 @@ import { SidebarPanel } from "@/components/notes/sidebar-panel";
 import { NoteList } from "@/components/notes/note-list";
 import { NoteEditor } from "@/components/notes/note-editor";
 import { CourseDashboard } from "@/components/courses/course-dashboard";
-import { SpatialAuroraDashboard } from "@/components/courses/spatial-aurora-dashboard";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { MobileSidebarDrawer } from "@/components/mobile/mobile-sidebar-drawer";
 import { MobileBottomDock } from "@/components/mobile/mobile-bottom-dock";
@@ -239,110 +238,74 @@ function AuthenticatedApp({
   if (view === "dashboard") {
     return (
       <ThemeStage className={cn("h-[100dvh] min-h-[100dvh] w-full overflow-hidden", isFluidGlass && !isMobile && "p-[10px]")}>
-        {settings.dashboardDesign === "spatial-aurora-bento" ? (
-          <SpatialAuroraDashboard
-            courses={n.courses}
-            notes={n.notes}
-            onOpenCourse={openCourse}
-            onOpenMenu={() => setSidebarOpen(true)}
-            onQuickNewNote={() => setMobileDraftOpen(true)}
-            onOpenNote={(noteId, courseId) => {
-              if (courseId) n.setActiveCourseId(courseId);
-              n.setSelectedId(noteId);
-              setView("workspace");
-            }}
-            onOpenAllNotes={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
-              n.setFilter({ kind: "all" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onOpenFavorites={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
-              n.setFilter({ kind: "favorites" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onStartFocus={() => {
-              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
-              setView("workspace");
-              enterFocus();
-              if (!pomodoro.isRunning) pomodoro.togglePlay();
-            }}
-            todayFocusSeconds={pomodoro.todayFocusSeconds}
-            dailyGoalHours={pomodoro.dailyGoalHours}
-            onNavigateDailyGoal={navigateToDailyGoal}
-          />
-        ) : (
-          <CourseDashboard
-            courses={n.courses}
-            notes={n.notes}
-            onOpenCourse={openCourse}
-            onAddCourse={async (name, description, color, category) => {
-              const id = await n.addCourse(name, description, color, category);
-              if (id) {
-                showNotification({
-                  message: "Course Created",
-                  description: `"${name}" is ready for notes.`,
-                  type: "success",
-                });
-              }
-            }}
-            onDeleteCourse={(id) => {
-              const course = n.courses.find(c => c.id === id);
-              void n.deleteCourse(id);
-              showNotification({
-                message: "Course Removed",
-                description: course ? `"${course.name}" and its notes were deleted.` : "Course has been removed.",
-                type: "info",
-              });
-            }}
-            onOpenSettings={() => setSettingsOpen(true)}
-            onOpenMenu={() => setSidebarOpen(true)}
-            onQuickNewNote={() => setMobileDraftOpen(true)}
-            onOpenNote={(noteId, courseId) => {
-              if (courseId) {
-                n.setActiveCourseId(courseId);
-              }
-              n.setSelectedId(noteId);
-              setView("workspace");
-            }}
-            onOpenAllNotes={() => {
-              if (!n.activeCourseId && n.courses[0]) {
-                n.setActiveCourseId(n.courses[0].id);
-              }
-              n.setFilter({ kind: "all" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onOpenFavorites={() => {
-              if (!n.activeCourseId && n.courses[0]) {
-                n.setActiveCourseId(n.courses[0].id);
-              }
-              n.setFilter({ kind: "favorites" });
-              n.setSelectedId(null);
-              setView("workspace");
-            }}
-            onStartFocus={() => {
-              if (!n.activeCourseId && n.courses[0]) {
-                n.setActiveCourseId(n.courses[0].id);
-              }
-              setView("workspace");
-              enterFocus();
-              if (!pomodoro.isRunning) {
-                pomodoro.togglePlay();
-              }
-            }}
-            todayFocusSeconds={pomodoro.todayFocusSeconds}
-            dailyGoalHours={pomodoro.dailyGoalHours}
-            onOpenCollectionExam={() => setCollectionExamOpen(true)}
-            realtimeStatus={n.realtimeStatus}
-            isSyncing={n.isSyncing}
-            onRefresh={() => void n.refreshFromCloud()}
-            onOpenAuth={onOpenAuth}
-          />
-        )}
 
+        <CourseDashboard
+          courses={n.courses}
+          notes={n.notes}
+          onOpenCourse={openCourse}
+          onAddCourse={async (name, description, color, category) => {
+            const id = await n.addCourse(name, description, color, category);
+            if (id) {
+              showNotification({
+                message: "Course Created",
+                description: `"${name}" is ready for notes.`,
+                type: "success",
+              });
+            }
+          }}
+          onDeleteCourse={(id) => {
+            const course = n.courses.find(c => c.id === id);
+            void n.deleteCourse(id);
+            showNotification({
+              message: "Course Removed",
+              description: course ? `"${course.name}" and its notes were deleted.` : "Course has been removed.",
+              type: "info",
+            });
+          }}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenMenu={() => setSidebarOpen(true)}
+          onQuickNewNote={() => setMobileDraftOpen(true)}
+          onOpenNote={(noteId, courseId) => {
+            if (courseId) {
+              n.setActiveCourseId(courseId);
+            }
+            n.setSelectedId(noteId);
+            setView("workspace");
+          }}
+          onOpenAllNotes={() => {
+            if (!n.activeCourseId && n.courses[0]) {
+              n.setActiveCourseId(n.courses[0].id);
+            }
+            n.setFilter({ kind: "all" });
+            n.setSelectedId(null);
+            setView("workspace");
+          }}
+          onOpenFavorites={() => {
+            if (!n.activeCourseId && n.courses[0]) {
+              n.setActiveCourseId(n.courses[0].id);
+            }
+            n.setFilter({ kind: "favorites" });
+            n.setSelectedId(null);
+            setView("workspace");
+          }}
+          onStartFocus={() => {
+            if (!n.activeCourseId && n.courses[0]) {
+              n.setActiveCourseId(n.courses[0].id);
+            }
+            setView("workspace");
+            enterFocus();
+            if (!pomodoro.isRunning) {
+              pomodoro.togglePlay();
+            }
+          }}
+          todayFocusSeconds={pomodoro.todayFocusSeconds}
+          dailyGoalHours={pomodoro.dailyGoalHours}
+          onOpenCollectionExam={() => setCollectionExamOpen(true)}
+          realtimeStatus={n.realtimeStatus}
+          isSyncing={n.isSyncing}
+          onRefresh={() => void n.refreshFromCloud()}
+          onOpenAuth={onOpenAuth}
+        />
         {/* Mobile Slide-in Drawer: Study Tools when swiped or hamburger clicked on Dashboard */}
         {isMobile && (
           <MobileSidebarDrawer
@@ -427,7 +390,11 @@ function AuthenticatedApp({
           activeCourseId={n.activeCourseId}
           onSaveNote={(title, body, colId) => {
             const id = n.createNote(title, body, colId);
-            if (colId) n.setActiveCourseId(colId);
+            if (colId) {
+              const collection = n.collections.find((c) => c.id === colId);
+              const targetCourseId = collection?.courseId || collection?.parentId || null;
+              if (targetCourseId) n.setActiveCourseId(targetCourseId);
+            }
             n.setSelectedId(id);
             setView("workspace");
             showNotification({
@@ -985,10 +952,6 @@ function AuthenticatedApp({
         isSyncing={n.isSyncing}
         onRefresh={() => void n.refreshFromCloud()}
         onOpenAuth={onOpenAuth}
-        noteTitle={n.selected?.title || n.visibleNotes[0]?.title}
-        activeCourseName={n.activeCourse?.name || n.courses[0]?.name}
-        focusMinutes={Math.floor(pomodoro.todayFocusSeconds / 60)}
-        dailyGoalHours={pomodoro.dailyGoalHours}
       />
 
       <MarkdownCheatsheet open={showCheatsheet} onOpenChange={setShowCheatsheet} />

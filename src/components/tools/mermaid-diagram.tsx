@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, useId } from "react";
-import mermaid from "mermaid";
 import {
   ZoomIn,
   ZoomOut,
@@ -18,6 +17,14 @@ import {
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 
+let mermaidModulePromise: Promise<typeof import("mermaid")> | null = null;
+let mermaidInitialized = false;
+
+function loadMermaid() {
+  mermaidModulePromise ??= import("mermaid");
+  return mermaidModulePromise;
+}
+
 interface Props {
   code: string;
   onCodeChange?: (newCode: string) => void;
@@ -25,24 +32,6 @@ interface Props {
   className?: string;
   title?: string;
 }
-
-mermaid.initialize({
-  startOnLoad: false,
-  theme: "dark",
-  themeVariables: {
-    darkMode: true,
-    background: "#020617",
-    primaryColor: "#0284c7",
-    primaryTextColor: "#f8fafc",
-    primaryBorderColor: "#38bdf8",
-    lineColor: "#38bdf8",
-    secondaryColor: "#1e293b",
-    tertiaryColor: "#0f172a",
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    fontSize: "13px",
-  },
-  securityLevel: "loose",
-});
 
 export function MermaidDiagram({
   code,
@@ -79,6 +68,27 @@ export function MermaidDiagram({
 
       try {
         setRenderError(null);
+        const { default: mermaid } = await loadMermaid();
+        if (!mermaidInitialized) {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: "dark",
+            themeVariables: {
+              darkMode: true,
+              background: "#020617",
+              primaryColor: "#0284c7",
+              primaryTextColor: "#f8fafc",
+              primaryBorderColor: "#38bdf8",
+              lineColor: "#38bdf8",
+              secondaryColor: "#1e293b",
+              tertiaryColor: "#0f172a",
+              fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              fontSize: "13px",
+            },
+            securityLevel: "strict",
+          });
+          mermaidInitialized = true;
+        }
         const renderId = `mermaid_svg_${uniqueId}_${Date.now()}`;
         const { svg } = await mermaid.render(renderId, localCode);
         if (isMounted) {

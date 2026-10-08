@@ -13,6 +13,7 @@ import {
   Star,
   Trash2,
   X,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { haptic } from "@/lib/haptics";
@@ -221,7 +222,7 @@ const MobileStudyToday = memo(function MobileStudyToday({
             className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/20 px-3.5 py-2.5 text-xs font-bold text-primary shadow-sm transition-transform active:scale-90 hover:bg-primary/30"
             aria-label="Start a focus session"
           >
-            <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+            <Zap className="h-3.5 w-3.5 text-amber-300" />
             <span>Start Focus</span>
           </button>
         </div>
@@ -245,12 +246,14 @@ const MobileQuickStats = memo(function MobileQuickStats({
   courseCount,
   noteCount,
   favoriteCount,
+  onOpenCourses,
   onOpenAllNotes,
   onOpenFavorites,
 }: {
   courseCount: number;
   noteCount: number;
   favoriteCount: number;
+  onOpenCourses: () => void;
   onOpenAllNotes: () => void;
   onOpenFavorites: () => void;
 }) {
@@ -258,7 +261,7 @@ const MobileQuickStats = memo(function MobileQuickStats({
     <div className="grid grid-cols-[1.25fr_1.25fr_0.85fr] gap-2">
       <button
         type="button"
-        onClick={onOpenAllNotes}
+        onClick={onOpenCourses}
         className="glass-panel min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
       >
         <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
@@ -342,7 +345,7 @@ const MobileCourseLibrary = memo(function MobileCourseLibrary({ courses, summari
     const query = search.trim().toLowerCase();
     return courses.filter((course) => (category === "all" || course.category === category) && (!query || `${course.name} ${course.description} ${course.category || ""}`.toLowerCase().includes(query)));
   }, [courses, search, category]);
-  return <section className="pb-4">
+  return <section id="mobile-course-library" className="scroll-mt-4 pb-4">
     <div className="mb-3 flex items-center justify-between"><div><h2 className="text-sm font-bold text-foreground">Your courses</h2><p className="mt-0.5 text-[11px] text-muted-foreground">Your study library</p></div><button type="button" onClick={() => setIsCreating(true)} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-primary/30 bg-primary px-3 text-[11px] font-bold text-primary-foreground transition-transform active:scale-95"><Plus className="h-3.5 w-3.5" /> Course</button></div>
     <label className="relative block"><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search courses…" className="glass-panel h-11 w-full rounded-xl pl-10 pr-3 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/45" /></label>
     <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1.5 scrollbar-none overscroll-x-contain">{categories.map((item) => <button key={item} type="button" onClick={() => setCategory(item)} className={cn("glass-panel min-h-8 shrink-0 rounded-full px-3 text-[10px] font-bold capitalize transition-colors", category === item ? "border-primary/40 text-primary" : "text-muted-foreground")}>{item}</button>)}</div>
@@ -376,5 +379,12 @@ export function MobileStudyDashboard(props: Props) {
   const resumeNote = recentNotes[0]; const resumeCourse = resumeNote?.courseId ? coursesById.get(resumeNote.courseId) : undefined;
   const meta = user?.user_metadata as { username?: string; full_name?: string } | null; const name = meta?.username || meta?.full_name?.split(" ")[0];
   const subtitle = resumeCourse ? `Continue your ${resumeCourse.name} study session` : resumeNote ? "Continue your latest study session" : "Choose a course and build today’s momentum";
-  return <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:hidden"><div className="mx-auto w-full max-w-xl space-y-6"><MobileDashboardHeader name={name} subtitle={subtitle} onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} /><MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} /><MobileStudyToday todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} /><MobileQuickStats courseCount={props.courses.length} noteCount={props.notes.length} favoriteCount={favoriteCount} onOpenAllNotes={onOpenAllNotes} onOpenFavorites={onOpenFavorites} /><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
+  return <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:hidden"><div className="mx-auto w-full max-w-xl space-y-6"><MobileDashboardHeader name={name} subtitle={subtitle} onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} /><MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} /><MobileStudyToday todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} /><MobileQuickStats
+  courseCount={props.courses.length}
+  noteCount={props.notes.length}
+  favoriteCount={favoriteCount}
+  onOpenCourses={() => document.getElementById("mobile-course-library")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+  onOpenAllNotes={onOpenAllNotes}
+  onOpenFavorites={onOpenFavorites}
+/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
 }

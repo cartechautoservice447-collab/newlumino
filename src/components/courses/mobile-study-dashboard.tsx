@@ -279,7 +279,7 @@ const MobileQuickStats = memo(function MobileQuickStats({
   onOpenFavorites: () => void;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-3 gap-3.5">
       <button
         type="button"
         onClick={onOpenCourses}
@@ -521,7 +521,7 @@ const MobileRecentActivity = memo(function MobileRecentActivity({
   if (!notes.length) return null;
 
   return (
-    <section className="space-y-3.5">
+    <section className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-bold text-foreground">Recent activity</h2>
@@ -532,7 +532,7 @@ const MobileRecentActivity = memo(function MobileRecentActivity({
         </span>
       </div>
 
-      <div className="w-full flex snap-x snap-mandatory gap-3.5 overflow-x-auto pb-2 pt-0.5 scrollbar-none overscroll-x-contain touch-pan-x">
+      <div className="w-full flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pt-0.5 scrollbar-none overscroll-x-contain touch-pan-x">
         {notes.map((note) => {
           const course = note.courseId ? coursesById.get(note.courseId) : undefined;
           const accent = course ? (ACCENT_STYLES[course.color] ?? ACCENT_STYLES.sky) : ACCENT_STYLES.sky;
@@ -545,7 +545,7 @@ const MobileRecentActivity = memo(function MobileRecentActivity({
                 haptic("light");
                 onOpenNote(note.id, note.courseId || undefined);
               }}
-              className="group relative flex min-h-[148px] w-[245px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4 text-left shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_24px_0_rgba(0,0,0,0.3)] backdrop-blur-2xl transition-all duration-200 active:scale-[0.98] min-[375px]:w-[265px]"
+              className="group relative flex min-h-[124px] w-[225px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-3.5 text-left shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_24px_0_rgba(0,0,0,0.3)] backdrop-blur-2xl transition-all duration-200 active:scale-[0.98] min-[375px]:w-[245px]"
               aria-label={"Open " + (note.title || "Untitled Note")}
             >
               <div>
@@ -860,11 +860,11 @@ export function MobileStudyDashboard(props: Props) {
   const meta = user?.user_metadata as { username?: string; full_name?: string } | null; const name = meta?.username || meta?.full_name?.split(" ")[0];
   const subtitle = resumeCourse ? `Continue your ${resumeCourse.name} study session` : resumeNote ? "Continue your latest study session" : "Choose a course and build today’s momentum";
   return (
-    <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-4 md:hidden">
+    <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-5 md:hidden">
       <div className="mx-auto w-full max-w-xl pb-2">
-        <section className="space-y-4" aria-labelledby="mobile-dashboard-today">
+        <section className="space-y-5" aria-labelledby="mobile-dashboard-today">
           <h2 id="mobile-dashboard-today" className="px-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Today</h2>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <MobileDashboardHeader
               name={name}
               subtitle={subtitle}
@@ -894,17 +894,12 @@ export function MobileStudyDashboard(props: Props) {
           </div>
         </section>
 
-        <section className="mt-9 space-y-4" aria-labelledby="mobile-dashboard-progress">
+        <section className="mt-11 space-y-5" aria-labelledby="mobile-dashboard-progress">
           <div className="px-0.5">
             <h2 id="mobile-dashboard-progress" className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Progress</h2>
             <p className="mt-1 text-xs text-muted-foreground/75">A calm view of your study rhythm and momentum.</p>
           </div>
-          <div className="space-y-4">
-            <MobileRecentActivity
-              notes={recentActivity}
-              coursesById={coursesById}
-              onOpenNote={onOpenNote}
-            />
+          <div className="space-y-5">
             <MobileStudyInsights
               averageSessionMinutes={studyAnalytics.averageSessionMinutes}
               bestWindow={studyAnalytics.bestWindow}
@@ -924,10 +919,15 @@ export function MobileStudyDashboard(props: Props) {
               currentStreak={studyAnalytics.currentStreak}
               bestStreak={studyAnalytics.bestStreak}
             />
+            <MobileRecentActivity
+              notes={recentActivity}
+              coursesById={coursesById}
+              onOpenNote={onOpenNote}
+            />
           </div>
         </section>
 
-        <section className="mt-9 space-y-4" aria-labelledby="mobile-dashboard-library">
+        <section className="mt-11 space-y-5" aria-labelledby="mobile-dashboard-library">
           <div className="px-0.5">
             <h2 id="mobile-dashboard-library" className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Library</h2>
             <p className="mt-1 text-xs text-muted-foreground/75">Your courses and study spaces.</p>

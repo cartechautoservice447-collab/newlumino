@@ -37,6 +37,7 @@ interface MobileSidebarDrawerProps {
   onNavigateDailyGoal?: () => void;
   onOpenExamSimulator?: () => void;
   onOpenNotePolisher?: () => void;
+  onOpenAiExplain?: () => void;
   onOpenCollectionExam?: () => void;
   pomodoroRunning?: boolean;
   pomodoroTimeFormatted?: string;
@@ -62,6 +63,7 @@ export function MobileSidebarDrawer({
   onNavigateDailyGoal,
   onOpenExamSimulator,
   onOpenNotePolisher,
+  onOpenAiExplain,
   onOpenCollectionExam,
   pomodoroRunning = false,
   pomodoroTimeFormatted = "25:00",
@@ -463,8 +465,7 @@ export function MobileSidebarDrawer({
           )}
 
           {/* AI Intelligence Suite: AI Adaptive Exam Simulator (#2) & AI Note Polisher (#5) */}
-          <div className="space-y-2 pt-1 border-t border-white/10">
-            <div className="flex items-center justify-between px-1">
+          <div className="space-y-2 pt-1 border-t border-white/10">\n            <div className="flex items-center justify-between px-1">
               <span className="text-[0.65rem] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="h-3 w-3" />
                 <span>AI Study Intelligence</span>
@@ -473,6 +474,37 @@ export function MobileSidebarDrawer({
                 Gemini 3.8
               </span>
             </div>
+
+            {/* AI Explain */}
+            {onOpenAiExplain && (
+              <button
+                type="button"
+                onClick={() => {
+                  haptic("medium");
+                  onOpenChange(false);
+                  onOpenAiExplain();
+                }}
+                className={cn(
+                  "glass-panel group w-full flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 ease-out cursor-pointer",
+                  "border-violet-500/25 bg-violet-500/10 hover:border-violet-500/50 hover:bg-violet-500/15",
+                  "active:scale-[0.96] active:translate-y-0.5 active:bg-violet-500/25 active:border-violet-400"
+                )}
+              >
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-violet-500/40 bg-violet-500/20 text-violet-300 transition-all duration-200 group-active:scale-90">
+                    <Brain className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-foreground truncate">AI Explain</h4>
+                      <span className="rounded-full bg-violet-500/25 px-1.5 py-0.2 text-[0.58rem] font-bold text-violet-300">Tutor</span>
+                    </div>
+                    <p className="text-[0.65rem] text-muted-foreground truncate">Concepts, examples &amp; clear explanations</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-3.5 w-3.5 text-violet-300/70 transition-transform group-active:translate-x-1 shrink-0" />
+              </button>
+            )}
 
             {/* AI Tool 2: Adaptive Exam Simulator & Diagnostic Drill */}
             {onOpenExamSimulator && (

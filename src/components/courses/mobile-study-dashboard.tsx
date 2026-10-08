@@ -879,17 +879,17 @@ export function MobileStudyDashboard(props: Props) {
               onOpenAllNotes={onOpenAllNotes}
               onOpenFavorites={onOpenFavorites}
             />
-            <MobileResumeStudy
-              note={resumeNote}
-              course={resumeCourse}
-              onOpenNote={onOpenNote}
-              onCreateNote={onCreateNote}
-            />
             <MobileStudyToday
               todayFocusSeconds={props.todayFocusSeconds}
               dailyGoalHours={props.dailyGoalHours}
               onStartFocus={onStartFocus}
               onOpenDailyGoal={onOpenDailyGoal}
+            />
+            <MobileResumeStudy
+              note={resumeNote}
+              course={resumeCourse}
+              onOpenNote={onOpenNote}
+              onCreateNote={onCreateNote}
             />
           </div>
         </section>

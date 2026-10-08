@@ -917,3 +917,42 @@ html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px c
     contain-intrinsic-size: 96px;
   }
 }
+
+
+/* Premium mobile dashboard analytics motion: compositor-only entrance and bar reveal. */
+@media (max-width: 767px) {
+  @keyframes mobile-premium-enter {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes mobile-pulse-bar {
+    from {
+      transform: scaleY(0.04);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .mobile-premium-enter {
+    animation: mobile-premium-enter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .mobile-pulse-bar {
+    animation: mobile-pulse-bar 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-premium-enter,
+  .mobile-pulse-bar {
+    animation: none !important;
+  }
+}

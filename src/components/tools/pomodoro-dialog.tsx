@@ -46,7 +46,6 @@ interface Props {
 }
 
 function MobilePomodoroExperience({
-  onClose,
   pomodoro,
   courses,
   activeCourse,
@@ -66,7 +65,6 @@ function MobilePomodoroExperience({
   onGeneratePlan,
   onApplyPlan,
 }: {
-  onClose: () => void;
   pomodoro: PomodoroState;
   courses: Course[];
   activeCourse?: Course | null;
@@ -824,7 +822,6 @@ export function PomodoroDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 min-h-0 border-0 bg-background text-foreground flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0 isolate">
         <MobilePomodoroExperience
-          onClose={() => onOpenChange(false)}
           pomodoro={pomodoro}
           courses={courses}
           activeCourse={activeCourse}

@@ -35,7 +35,8 @@ import {
   Workflow,
   Plus,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AiLearningLabFrame, LabInsightCard, LabToolButton } from "@/components/tools/ai-learning-lab-frame";
 import { cn } from "@/lib/utils";
 import type { Note } from "@/lib/notes";
 import { MarkdownPreview } from "@/components/notes/markdown-preview";
@@ -526,48 +527,45 @@ export function AiNotePolisherDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 border-0 bg-slate-950/98 text-foreground backdrop-blur-3xl flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0">
-        {/* Pinned Top Navigation Bar */}
-        <div className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-white/10 bg-white/[0.02] backdrop-blur-md shrink-0">
-          <div className="flex items-center gap-3 pr-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/20 via-primary/20 to-emerald-500/20 text-cyan-400 border border-cyan-500/30 shadow-[0_0_20px_-4px_rgba(6,182,212,0.4)] shrink-0">
-              <Wand2 className="h-5 w-5" />
-            </div>
-            <div>
-              <DialogTitle className="text-base sm:text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                <span>AI Note Polisher &amp; Knowledge Architect</span>
-                <span className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[0.62rem] font-semibold text-cyan-300 uppercase tracking-wider">
-                  Phase 1, 2 &amp; 3 Suite
-                </span>
-              </DialogTitle>
-              <p className="text-xs text-muted-foreground hidden sm:block mt-0.5">
-                Publication-grade academic restructuring, visual Mermaid architecture diagrams, and bidirectional diagnostic exam synergy.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 mr-10 sm:mr-12">
-            {/* Quick launch exam bridge button in header */}
-            {onLaunchExam && targetNote && (
-              <button
-                type="button"
-                onClick={handleLaunchExamFromNote}
-                className="hidden md:flex items-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/25 transition cursor-pointer shadow-sm"
-              >
-                <Target className="h-3.5 w-3.5" />
-                <span>Simulate Exam</span>
-              </button>
-            )}
-
-            <div className="hidden lg:flex items-center gap-1.5 text-xs text-muted-foreground font-mono bg-white/[0.03] border border-white/10 px-3 py-1.5 rounded-xl">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-              <span>Zero-Emoji Standard</span>
-            </div>
-          </div>
-        </div>
-
+      <DialogContent hideClose className="fixed inset-0 left-0 top-0 m-0 flex h-[100dvh] w-screen max-h-none max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden rounded-none border-0 bg-transparent p-0 text-foreground shadow-none">
         {/* Scrollable Workstation Body */}
-        <div className="flex-1 overflow-y-auto scroll-sleek p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <AiLearningLabFrame
+          title="AI Note Polisher"
+          subtitle="Transform notes into structured, readable, source-faithful study material."
+          status={targetNote ? "Source selected" : "Select a note"}
+          statusTone="cyan"
+          icon={Wand2}
+          onClose={() => onOpenChange(false)}
+          context={
+            <div className="space-y-3">
+              <div>
+                <div className="mb-1 text-[0.64rem] font-semibold text-muted-foreground">TARGET NOTE</div>
+                <div className="rounded-xl border border-white/[0.08] bg-black/15 px-3 py-2 text-xs font-semibold text-foreground">{targetNote?.title || "No note selected"}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-white/[0.08] bg-black/15 p-2.5"><span className="block text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground">Characters</span><span className="mt-1 block text-xs font-mono font-bold text-foreground">{targetNote?.body?.length || 0}</span></div>
+                <div className="rounded-xl border border-white/[0.08] bg-black/15 p-2.5"><span className="block text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground">Words</span><span className="mt-1 block text-xs font-mono font-bold text-cyan-300">{targetNote?.body?.trim() ? targetNote.body.trim().split(/\s+/).length : 0}</span></div>
+              </div>
+              <div className="rounded-xl border border-cyan-400/15 bg-cyan-400/[0.055] p-2.5"><div className="text-[0.64rem] font-bold uppercase tracking-wider text-cyan-300">Processing mode</div><p className="mt-1 text-[0.68rem] leading-5 text-muted-foreground">{selectedMode.replace("_", " ")}</p></div>
+            </div>
+          }
+          intelligence={
+            <div className="space-y-3">
+              <LabInsightCard title="Readability" value={readabilityScore === null ? "—" : readabilityScore + "/100"} description="Academic readability after transformation." />
+              <LabInsightCard title="Coverage" value={keyConceptsCovered.length ? String(keyConceptsCovered.length) : "—"} description="Key concepts explicitly covered." />
+              {wordCountStats ? <LabInsightCard title="Word delta" value={String(wordCountStats.after - wordCountStats.before)} description={wordCountStats.before + " → " + wordCountStats.after + " words"} /> : null}
+              <div className="rounded-2xl border border-primary/20 bg-primary/[0.07] p-4"><div className="flex items-center gap-2 text-xs font-bold text-primary"><Sparkles className="h-4 w-4" />Recommended next action</div><p className="mt-2 text-sm leading-6 text-foreground">{polishedResult ? "Review the architecture, then apply the polished note or generate its visual model." : "Choose an enhancement mode and synthesize the note."}</p></div>
+            </div>
+          }
+          footer={
+            <>
+              <LabToolButton label="Generate polish" icon={<Sparkles className="h-3.5 w-3.5" />} tone="cyan" onClick={() => handleTransform()} />
+              <LabToolButton label="Visual architecture" icon={<Network className="h-3.5 w-3.5" />} tone="cyan" onClick={() => handleGenerateDiagram()} />
+              {onLaunchExam && targetNote ? <LabToolButton label="Practice exam" icon={<Target className="h-3.5 w-3.5" />} tone="amber" onClick={() => handleLaunchExamFromNote()} /> : null}
+            </>
+          }
+        >
+          <div className="space-y-6 max-w-7xl mx-auto w-full">
           {/* Target Note Selector */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
@@ -1140,7 +1138,8 @@ export function AiNotePolisherDialog({
               )}
             </div>
           )}
-        </div>
+          </div>
+        </AiLearningLabFrame>
       </DialogContent>
     </Dialog>
   );

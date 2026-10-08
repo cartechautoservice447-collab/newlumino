@@ -853,3 +853,67 @@ html[data-ui-text-clarity="punchy"] .text-foreground { color: #fff !important; t
 html[data-ui-text-clarity="punchy"] .text-muted-foreground { color: oklch(0.94 0.01 250) !important; text-shadow: 0 0 0.28px currentColor; }
 html[data-ui-text-clarity="punchy"] .notes-pulse-glow { text-shadow: 0 0 0.3px currentColor; }
 
+
+
+/* Mobile glass performance layer: preserve glass tokens without paying backdrop sampling for micro-surfaces. */
+@media (max-width: 767px) {
+  .mobile-glass-lite {
+    background: linear-gradient(
+      155deg,
+      color-mix(in oklab, var(--glass-c1) calc(var(--glass-alpha) * 100%), transparent),
+      color-mix(in oklab, var(--glass-c2) calc(var(--glass-alpha) * 88%), transparent)
+    );
+    border: var(--glass-border-w) solid var(--glass-line);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 6%) inset,
+      0 calc(8px * var(--glass-depth)) calc(20px * var(--glass-depth))
+        calc(-10px * var(--glass-depth)) color-mix(in oklab, var(--shadow-tint) 55%, transparent);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  [data-liquid-glass="on"] .mobile-glass-lite {
+    background: linear-gradient(
+      155deg,
+      color-mix(in oklab, var(--glass-c1) calc(var(--liquid-transparency) * 100%), transparent),
+      color-mix(in oklab, var(--glass-c2) calc(var(--liquid-transparency) * 88%), transparent)
+    );
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.2),
+      inset 0 1px 0 0 color-mix(in oklab, oklch(1 0 0) calc(var(--liquid-gel) * 0.45%), transparent),
+      inset 0 -5px 12px -7px color-mix(in oklab, oklch(0 0 0) calc(var(--liquid-gel) * 0.5%), transparent);
+  }
+
+  [data-liquid-glass="on"] .mobile-glass-lite::before {
+    display: none;
+  }
+
+  [data-theme="fluid-glass"] .mobile-glass-lite {
+    background-color: var(--water-gel-bg) !important;
+    background-image:
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.14) 0%,
+        rgba(255, 255, 255, 0.02) 55%,
+        rgba(255, 255, 255, 0.09) 100%
+      ) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    border-top-color: rgba(255, 255, 255, 0.4) !important;
+    box-shadow:
+      inset 0 var(--fluid-shadow-inset-top, 1.8px) var(--fluid-shadow-inset-blur, 3.6px) 0 rgba(255, 255, 255, 0.52),
+      inset 0 var(--fluid-shadow-inset-bot, -3.6px) var(--fluid-shadow-inset-bot-blur, 7.3px) 0 rgba(0, 0, 0, 0.27),
+      0 var(--fluid-shadow-drop-y, 13.5px) var(--fluid-shadow-drop-blur, 45px) 0 rgba(0, 0, 0, 0.32) !important;
+  }
+
+  [data-theme="fluid-glass"] .mobile-glass-lite::before,
+  [data-theme="fluid-glass"] .mobile-glass-lite::after {
+    display: none;
+  }
+
+  .mobile-glass-content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 96px;
+  }
+}

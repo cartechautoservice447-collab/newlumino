@@ -365,7 +365,7 @@ function DeleteCourseConfirm({ course, onCancel, onConfirm }: { course: Course; 
   return <div role="alertdialog" aria-modal="true" aria-label={`Delete ${course.name}`} className="fixed inset-0 z-[91] flex items-end bg-black/60 p-3"><div className="w-full rounded-[1.5rem] border border-white/10 bg-[#171923] p-4 shadow-2xl"><h2 className="text-sm font-bold text-foreground">Delete {course.name}?</h2><p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">This removes the course and its notes. This action cannot be undone.</p><div className="mt-4 flex gap-2"><button type="button" onClick={onCancel} className="h-11 flex-1 rounded-xl border border-white/10 text-xs font-bold text-foreground">Keep course</button><button type="button" onClick={onConfirm} className="h-11 flex-1 rounded-xl bg-destructive text-xs font-bold text-destructive-foreground">Delete course</button></div></div></div>;
 }
 
-export const MobileStudyDashboard = memo(function MobileStudyDashboard(props: Props) {
+export function MobileStudyDashboard(props: Props) {
   const { user } = useAuth();
   const onOpenCourse = useStableEvent(props.onOpenCourse); const onOpenNote = useStableEvent(props.onOpenNote); const onCreateNote = useStableEvent(props.onQuickNewNote); const onOpenMenu = useStableEvent(props.onOpenMenu); const onOpenSettings = useStableEvent(props.onOpenSettings); const onStartFocus = useStableEvent(props.onStartFocus); const onOpenAllNotes = useStableEvent(props.onOpenAllNotes); const onOpenFavorites = useStableEvent(props.onOpenFavorites); const onDeleteCourse = useStableEvent(props.onDeleteCourse); const onAddCourse = useStableEvent(props.onAddCourse);
   const { coursesById, summaries, recentNotes, favoriteCount } = useMemo(() => {
@@ -386,5 +386,5 @@ export const MobileStudyDashboard = memo(function MobileStudyDashboard(props: Pr
   onOpenCourses={() => document.getElementById("mobile-course-library")?.scrollIntoView({ behavior: "smooth", block: "start" })}
   onOpenAllNotes={onOpenAllNotes}
   onOpenFavorites={onOpenFavorites}
-/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main;
-});
+/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></ma</div></main>;
+}

@@ -53,6 +53,7 @@ type Props = {
   onOpenCheatsheet: () => void;
   onOpenExamSimulator?: () => void;
   onOpenNotePolisher?: () => void;
+  onOpenAiExplain?: () => void;
   onOpenCollectionExam?: () => void;
   onNavigateDailyGoal?: () => void;
   pomodoroRunning?: boolean;
@@ -86,6 +87,7 @@ export function MobileMoreOptionsSheet({
   onOpenCheatsheet,
   onOpenExamSimulator,
   onOpenNotePolisher,
+  onOpenAiExplain,
   onOpenCollectionExam,
   onNavigateDailyGoal,
   pomodoroRunning = false,
@@ -497,7 +499,7 @@ export function MobileMoreOptionsSheet({
               </div>
 
               {/* AI Intelligence Quick Navigation Card */}
-              {(onOpenExamSimulator || onOpenNotePolisher) && (
+              {(onOpenExamSimulator || onOpenNotePolisher || onOpenAiExplain) && (
                 <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[0.65rem] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
@@ -524,6 +526,24 @@ export function MobileMoreOptionsSheet({
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-foreground truncate">Exam Simulator</p>
                           <p className="text-[0.6rem] text-muted-foreground truncate">Timed mock drill</p>
+                        </div>
+                      </button>
+                    )}
+
+                    {onOpenAiExplain && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          haptic("medium");
+                          handleClose();
+                          onOpenAiExplain();
+                        }}
+                        className="flex items-center gap-2 rounded-xl border border-violet-500/25 bg-violet-500/10 p-2.5 text-left hover:bg-violet-500/15 active:scale-95 transition cursor-pointer"
+                      >
+                        <Brain className="h-4 w-4 text-violet-300 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-foreground truncate">AI Explain</p>
+                          <p className="text-[0.6rem] text-muted-foreground truncate">Understand concepts</p>
                         </div>
                       </button>
                     )}
@@ -716,8 +736,7 @@ export function MobileMoreOptionsSheet({
                 <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-active:translate-x-1 shrink-0" />
               </button>
 
-              {/* AI Study Intelligence Section: Tool #2 & Tool #5 */}
-              {(onOpenExamSimulator || onOpenNotePolisher) && (
+              {/* AI Study Intelligence */}\n              {(onOpenExamSimulator || onOpenNotePolisher || onOpenAiExplain) && (
                 <div className="space-y-2 pt-1 border-t border-white/10">
                   <div className="flex items-center justify-between px-1">
                     <span className="text-[0.65rem] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">

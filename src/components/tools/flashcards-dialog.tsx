@@ -231,7 +231,6 @@ export function FlashcardsDialog({
 
     setResults((prev) => ({ ...prev, [cardId]: rating }));
     setIsFlipped(false);
-    setDragOffset(0);
 
     if (currentIndex + 1 < deck.length) {
       setCurrentIndex((idx) => idx + 1);
@@ -726,12 +725,8 @@ export function FlashcardsDialog({
               ref={swipeCardRef}
               data-swipe="neutral"
               className={cn(
-                "relative min-h-[270px] sm:min-h-[310px] w-full cursor-pointer select-none rounded-3xl border p-5 sm:p-6 shadow-2xl backdrop-blur-2xl transition-all flex flex-col justify-between",
-                dragOffset > 30
-                  ? "border-emerald-400/60 bg-emerald-950/20"
-                  : dragOffset < -30
-                  ? "border-rose-400/60 bg-rose-950/20"
-                  : isFlipped
+                "relative min-h-[270px] sm:min-h-[310px] w-full cursor-pointer select-none rounded-3xl border p-5 sm:p-6 shadow-2xl backdrop-blur-2xl transition-all flex flex-col justify-between touch-pan-y",
+                isFlipped
                   ? "border-purple-400/40 bg-white/[0.07]"
                   : "border-white/15 bg-white/[0.04] hover:border-white/25"
               )}

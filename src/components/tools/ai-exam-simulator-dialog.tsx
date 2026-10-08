@@ -29,6 +29,9 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AiLearningLabFrame, LabInsightCard, LabToolButton } from "@/components/tools/ai-learning-lab-frame";
+import { AiHistoryDialog, type AiHistoryAction } from "@/components/tools/ai-history-dialog";
+import { createAiHistory, type AiHistoryRecord } from "@/lib/ai-history";
+import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import type { Note } from "@/lib/notes";
 import { haptic } from "@/lib/haptics";
@@ -73,9 +76,11 @@ export function AiExamSimulatorDialog({
   onOpenNotePolisher,
   onOpenCollectionExam,
 }: Props) {
+  const { user } = useAuth();
   const { showNotification } = useNotifications();
 
   // Mode: single note vs multi-note comprehensive
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [scopeMode, setScopeMode] = useState<"single" | "multi">("single");
   const [activeTargetNoteId, setActiveTargetNoteId] = useState<string>(
     selectedNote?.id || (notes[0]?.id ?? "")
@@ -147,6 +152,34 @@ export function AiExamSimulatorDialog({
     );
   };
 
+  const handleHistoryAction = (action: AiHistoryAction, record: AiHistoryRecord) => {
+    const payload = record.payload || {};
+    const savedNoteId = typeof payload.activeTargetNoteId === "string" ? payload.activeTargetNoteId : "";
+    const savedNote = notes.find((note) => note.id === savedNoteId) || selectedNote || notes[0];
+    setActiveTargetNoteId(savedNoteId || savedNote?.id || "");
+    setSelectedNoteIds(Array.isArray(payload.selectedNoteIds) ? payload.selectedNoteIds as string[] : savedNote ? [savedNote.id] : []);
+    if (payload.scopeMode === "single" || payload.scopeMode === "multi") setScopeMode(payload.scopeMode);
+    if (payload.drillMode === "5m_sprint" || payload.drillMode === "10m_standard" || payload.drillMode === "15m_comprehensive") setDrillMode(payload.drillMode);
+    if (payload.difficulty === "balanced" || payload.difficulty === "challenging" || payload.difficulty === "code_heavy") setDifficulty(payload.difficulty);
+    setExamTitle(typeof payload.examTitle === "string" ? payload.examTitle : record.title);
+    setOverallDiagnosticSummary(typeof payload.overallDiagnosticSummary === "string" ? payload.overallDiagnosticSummary : "");
+    setKeyFocusAreas(Array.isArray(payload.keyFocusAreas) ? payload.keyFocusAreas as string[] : []);
+    setQuestions(Array.isArray(payload.questions) ? payload.questions as DiagnosticQuestion[] : []);
+    setUserAnswers(payload.userAnswers && typeof payload.userAnswers === "object" ? payload.userAnswers as Record<number, number> : {});
+    setCurrentIndex(typeof payload.currentIndex === "number" ? payload.currentIndex : 0);
+    setSelectedOption(typeof payload.selectedOption === "number" ? payload.selectedOption : null);
+    setRevealed(Boolean(payload.revealed));
+    setSecondsRemaining(typeof payload.secondsRemaining === "number" ? payload.secondsRemaining : 0);
+    setActiveSocraticIndex(null);
+    if (action === "open" || action === "review") { setStage("summary"); setHistoryOpen(false); return; }
+    setHistoryOpen(false);
+    if (action === "retake") { setStage("config"); setQuestions([]); setUserAnswers({}); setCurrentIndex(0); setSelectedOption(null); setRevealed(false); return; }
+    if (savedNote) {
+      if (action === "flashcards") onStartFlashcards?.(savedNote);
+      if (action === "polish") onOpenNotePolisher?.(savedNote);
+    }
+    if (action === "collection") onOpenCollectionExam?.();
+  };
   const handleSelectAllCourseNotes = () => {
     haptic("light");
     setSelectedNoteIds(notes.map((n) => n.id));
@@ -209,6 +242,7 @@ export function AiExamSimulatorDialog({
         const totalSec = (data.durationMinutes || 5) * 60;
         setSecondsRemaining(totalSec);
         setStage("taking");
+        void createAiHistory({ userId: user?.id, tool: "exam_simulator", title: data.examTitle || (scopeMode === "multi" ? (activeCourseName || "Course") + " • Cross-Topic Exam" : (targetNote?.title || "Study") + " • Diagnostic Exam"), subtitle: drillMode + " • " + difficulty, action: "generated", context: { activeTargetNoteId: includedNotes[0]?.id || null, selectedNoteIds: includedNotes.map((note) => note.id), courseName: activeCourseName || "Study Notes", scopeMode, drillMode, difficulty }, payload: { stage: "taking", examTitle: data.examTitle || "", overallDiagnosticSummary: data.overallDiagnosticSummary || "", keyFocusAreas: data.keyFocusAreas || [], questions: data.questions, userAnswers: {}, currentIndex: 0, selectedOption: null, revealed: false, secondsRemaining: totalSec, activeTargetNoteId: includedNotes[0]?.id || null, selectedNoteIds: includedNotes.map((note) => note.id), scopeMode, drillMode, difficulty } });
         haptic("success");
       } else {
         throw new Error("No questions returned");
@@ -258,6 +292,7 @@ export function AiExamSimulatorDialog({
     });
 
     const percent = Math.round((correct / (questions.length || 1)) * 100);
+    void createAiHistory({ userId: user?.id, tool: "exam_simulator", title: examTitle || "Diagnostic Exam", subtitle: "completed • " + percent + "%", action: "completed", context: { activeTargetNoteId: targetNote?.id || null, selectedNoteIds, courseName: activeCourseName || "Study Notes", scopeMode, drillMode, difficulty }, payload: { stage: "summary", examTitle, overallDiagnosticSummary, keyFocusAreas, questions, userAnswers, currentIndex, selectedOption, revealed, secondsRemaining: 0, activeTargetNoteId, selectedNoteIds, scopeMode, drillMode, difficulty, score: percent } });
     if (percent >= 75) {
       confetti({
         particleCount: 50,
@@ -1090,6 +1125,7 @@ export function AiExamSimulatorDialog({
         )}
           </div>
         </AiLearningLabFrame>
+    <AiHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} tool="exam_simulator" onAction={handleHistoryAction} />
       </DialogContent>
     </Dialog>
   );

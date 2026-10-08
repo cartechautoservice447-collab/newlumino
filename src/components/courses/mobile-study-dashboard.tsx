@@ -93,10 +93,10 @@ const MobileDashboardHeader = memo(function MobileDashboardHeader({
         <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
-        <button type="button" aria-label="Open study tools" onClick={onOpenMenu} className="glass-panel flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-transform active:scale-95">
+        <button type="button" aria-label="Open study tools" onClick={onOpenMenu} className="mobile-glass-lite flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-transform active:scale-95">
           <Menu className="h-[18px] w-[18px]" />
         </button>
-        <button type="button" aria-label="Open settings" onClick={onOpenSettings} className="glass-panel flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-transform active:scale-95">
+        <button type="button" aria-label="Open settings" onClick={onOpenSettings} className="mobile-glass-lite flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-transform active:scale-95">
           <Settings className="h-[17px] w-[17px]" />
         </button>
       </div>
@@ -135,7 +135,7 @@ const MobileResumeStudy = memo(function MobileResumeStudy({
         {note ? (
           <>
             <div className="mt-3 flex items-start gap-3">
-              <span className={cn("glass-panel flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", accent.border, accent.text)}><BookOpen className="h-5 w-5" /></span>
+              <span className={cn("mobile-glass-lite flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", accent.border, accent.text)}><BookOpen className="h-5 w-5" /></span>
               <div className="min-w-0">
                 <p className={cn("truncate text-[11px] font-semibold", accent.text)}>{course?.name || "Personal study"}</p>
                 <h2 className="mt-0.5 truncate text-[1.02rem] font-bold text-foreground">{note.title || "Untitled note"}</h2>
@@ -262,7 +262,7 @@ const MobileQuickStats = memo(function MobileQuickStats({
       <button
         type="button"
         onClick={onOpenCourses}
-        className="glass-panel min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
+        className="mobile-glass-lite min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
       >
         <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
           <FolderOpen className="h-3 w-3 text-primary" />
@@ -273,7 +273,7 @@ const MobileQuickStats = memo(function MobileQuickStats({
       <button
         type="button"
         onClick={onOpenAllNotes}
-        className="glass-panel min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
+        className="mobile-glass-lite min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
       >
         <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
           <BookOpen className="h-3 w-3 text-primary" />
@@ -284,7 +284,7 @@ const MobileQuickStats = memo(function MobileQuickStats({
       <button
         type="button"
         onClick={onOpenFavorites}
-        className="glass-panel min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
+        className="mobile-glass-lite min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
       >
         <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
           <Star className="h-3 w-3 text-amber-300" />
@@ -312,7 +312,7 @@ const MobileRecentActivity = memo(function MobileRecentActivity({
       {notes.map((note) => {
         const course = note.courseId ? coursesById.get(note.courseId) : undefined;
         const accent = course ? ACCENT_STYLES[course.color] : ACCENT_STYLES.sky;
-        return <button key={note.id} type="button" onClick={() => { haptic("light"); onOpenNote(note.id, note.courseId || undefined); }} className="glass-panel w-[205px] shrink-0 snap-start rounded-2xl p-3 text-left transition-transform active:scale-[0.98]">
+        return <button key={note.id} type="button" onClick={() => { haptic("light"); onOpenNote(note.id, note.courseId || undefined); }} className="mobile-glass-lite w-[205px] shrink-0 snap-start rounded-2xl p-3 text-left transition-transform active:scale-[0.98]">
           <span className={cn("inline-flex max-w-full items-center gap-1.5 truncate rounded-md border px-1.5 py-0.5 text-[10px] font-semibold", accent.border, accent.bg, accent.text)}><span className={cn("h-1.5 w-1.5 rounded-full", accent.dot)} />{course?.name || "General"}</span>
           <strong className="mt-2 block truncate text-xs text-foreground">{note.title || "Untitled note"}</strong>
           <span className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground"><Clock3 className="h-3 w-3" />{formatDate(note.updatedAt)}</span>
@@ -324,13 +324,13 @@ const MobileRecentActivity = memo(function MobileRecentActivity({
 
 const MobileCourseCard = memo(function MobileCourseCard({ course, summary, onOpenCourse, onAddNote, onDelete }: { course: Course; summary: CourseSummary; onOpenCourse: (id: string) => void; onAddNote: () => void; onDelete: (course: Course) => void }) {
   const accent = ACCENT_STYLES[course.color];
-  return <article className="glass-panel rounded-2xl p-3.5">
+  return <article className="glass-panel mobile-glass-content-auto rounded-2xl p-3.5">
     <div className="flex items-start gap-3">
       <button type="button" aria-label={`Open ${course.name}`} onClick={() => { haptic("light"); onOpenCourse(course.id); }} className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", accent.border, accent.bg, accent.text)}><FolderOpen className="h-5 w-5" /></button>
       <button type="button" onClick={() => { haptic("light"); onOpenCourse(course.id); }} className="min-w-0 flex-1 text-left"><h3 className="truncate text-sm font-bold text-foreground">{course.name}</h3><p className="mt-0.5 line-clamp-1 text-[11px] leading-relaxed text-muted-foreground">{course.description || "No description yet"}</p></button>
       <button type="button" aria-label={`Delete ${course.name}`} onClick={() => onDelete(course)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors active:scale-95"><Trash2 className="h-4 w-4" /></button>
     </div>
-    <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/[0.07] pt-2.5"><div className="min-w-0 text-[10px] text-muted-foreground"><span className="font-semibold text-foreground/80">{summary.noteCount}</span> {summary.noteCount === 1 ? "note" : "notes"}{summary.latestUpdatedAt ? ` · ${formatDate(summary.latestUpdatedAt)}` : ""}</div><div className="flex shrink-0 gap-1.5"><button type="button" onClick={onAddNote} className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-primary/25 bg-primary/10 px-2.5 text-[10px] font-bold text-primary transition-transform active:scale-95"><Plus className="h-3 w-3" /> Note</button><button type="button" onClick={() => onOpenCourse(course.id)} className="glass-panel inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[10px] font-bold text-foreground transition-transform active:scale-95">Open <ArrowRight className="h-3 w-3" /></button></div></div>
+    <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/[0.07] pt-2.5"><div className="min-w-0 text-[10px] text-muted-foreground"><span className="font-semibold text-foreground/80">{summary.noteCount}</span> {summary.noteCount === 1 ? "note" : "notes"}{summary.latestUpdatedAt ? ` · ${formatDate(summary.latestUpdatedAt)}` : ""}</div><div className="flex shrink-0 gap-1.5"><button type="button" onClick={onAddNote} className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-primary/25 bg-primary/10 px-2.5 text-[10px] font-bold text-primary transition-transform active:scale-95"><Plus className="h-3 w-3" /> Note</button><button type="button" onClick={() => onOpenCourse(course.id)} className="mobile-glass-lite inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[10px] font-bold text-foreground transition-transform active:scale-95">Open <ArrowRight className="h-3 w-3" /></button></div></div>
     {course.category && <span className={cn("mt-2.5 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em]", accent.border, accent.bg, accent.text)}><span className={cn("h-1 w-1 rounded-full", accent.dot)} />{course.category}</span>}
   </article>;
 });
@@ -347,8 +347,8 @@ const MobileCourseLibrary = memo(function MobileCourseLibrary({ courses, summari
   }, [courses, search, category]);
   return <section id="mobile-course-library" className="scroll-mt-4 pb-4">
     <div className="mb-3 flex items-center justify-between"><div><h2 className="text-sm font-bold text-foreground">Your courses</h2><p className="mt-0.5 text-[11px] text-muted-foreground">Your study library</p></div><button type="button" onClick={() => setIsCreating(true)} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-primary/30 bg-primary px-3 text-[11px] font-bold text-primary-foreground transition-transform active:scale-95"><Plus className="h-3.5 w-3.5" /> Course</button></div>
-    <label className="relative block"><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search courses…" className="glass-panel h-11 w-full rounded-xl pl-10 pr-3 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/45" /></label>
-    <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1.5 scrollbar-none overscroll-x-contain">{categories.map((item) => <button key={item} type="button" onClick={() => setCategory(item)} className={cn("glass-panel min-h-8 shrink-0 rounded-full px-3 text-[10px] font-bold capitalize transition-colors", category === item ? "border-primary/40 text-primary" : "text-muted-foreground")}>{item}</button>)}</div>
+    <label className="relative block"><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search courses…" className="mobile-glass-lite h-11 w-full rounded-xl pl-10 pr-3 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/45" /></label>
+    <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1.5 scrollbar-none overscroll-x-contain">{categories.map((item) => <button key={item} type="button" onClick={() => setCategory(item)} className={cn("mobile-glass-lite min-h-8 shrink-0 rounded-full px-3 text-[10px] font-bold capitalize transition-colors", category === item ? "border-primary/40 text-primary" : "text-muted-foreground")}>{item}</button>)}</div>
     <div className="mt-3 space-y-2.5">{filteredCourses.map((course) => <MobileCourseCard key={course.id} course={course} summary={summaries.get(course.id) || { noteCount: 0, latestUpdatedAt: course.updatedAt || course.createdAt }} onOpenCourse={onOpenCourse} onAddNote={() => onQuickNewNote(course.id)} onDelete={setDeletingCourse} />)}{!filteredCourses.length && <div className="rounded-2xl border border-dashed border-white/[0.12] px-4 py-8 text-center"><p className="text-xs font-semibold text-foreground">No courses found</p><p className="mt-1 text-[11px] text-muted-foreground">Try another search or create a course.</p></div>}</div>
     {isCreating && <CourseForm onClose={() => setIsCreating(false)} onCreate={onAddCourse} />}
     {deletingCourse && <DeleteCourseConfirm course={deletingCourse} onCancel={() => setDeletingCourse(null)} onConfirm={() => { onDeleteCourse(deletingCourse.id); setDeletingCourse(null); }} />}

@@ -1,16 +1,13 @@
 import { memo, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   ArrowRight,
-  BarChart3,
   BookOpen,
   CheckCircle2,
   ChevronRight,
   CircleUserRound,
-  Clock3,
   Eye,
   FolderOpen,
   Flame,
-  Lightbulb,
   Menu,
   Plus,
   Search,

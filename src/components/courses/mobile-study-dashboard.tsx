@@ -242,9 +242,21 @@ const MobileStudyToday = memo(function MobileStudyToday({
             style={{ width: progress + "%" }}
           />
         </div>
-        <div className="mt-2 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground/75">
+        <div className="mt-2 flex items-center justify-between gap-2 text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground/75">
           <span>Today</span>
           <span>{todayMinutes} / {goalMinutes} min</span>
+          <button
+            type="button"
+            onClick={() => {
+              haptic("light");
+              onOpenDailyGoal();
+            }}
+            className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-1 text-primary transition active:scale-95"
+            aria-label="Open daily goal"
+          >
+            <Target className="h-3 w-3" />
+            <span>Goal</span>
+          </button>
         </div>
       </div>
     </section>

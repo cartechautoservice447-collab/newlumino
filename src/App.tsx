@@ -724,7 +724,7 @@ function AuthenticatedApp({
           <div className="glass-panel animate-panel-in rounded-3xl p-1 shadow-2xl backdrop-blur-3xl border border-white/15">
             <MobileHeader
               title={listTitle}
-              subtitle={`${n.visibleNotes.length} notes in course`}
+              subtitle={n.activeCourseId ? `${n.visibleNotes.length} notes in course` : `${n.visibleNotes.length} notes in library`}
               showBack={false}
               onOpenSidebar={() => setSidebarOpen(true)}
               onOpenSettings={() => setSettingsOpen(true)}

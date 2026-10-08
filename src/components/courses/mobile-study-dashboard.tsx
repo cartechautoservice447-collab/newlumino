@@ -13,6 +13,7 @@ import {
   Settings,
   Sparkles,
   Star,
+  Target,
   Trash2,
   X,
   Zap,
@@ -37,6 +38,7 @@ type Props = {
   onOpenAllNotes: () => void;
   onOpenFavorites: () => void;
   onStartFocus: () => void;
+  onOpenDailyGoal: () => void;
   todayFocusSeconds: number;
   dailyGoalHours: number;
   sessionHistory?: PomodoroSessionRecord[];
@@ -168,10 +170,12 @@ const MobileStudyToday = memo(function MobileStudyToday({
   todayFocusSeconds,
   dailyGoalHours,
   onStartFocus,
+  onOpenDailyGoal,
 }: {
   todayFocusSeconds: number;
   dailyGoalHours: number;
   onStartFocus: () => void;
+  onOpenDailyGoal: () => void;
 }) {
   const todayMinutes = Math.floor(todayFocusSeconds / 60);
   const goalMinutes = Math.max(1, Math.round(dailyGoalHours * 60));
@@ -219,6 +223,18 @@ const MobileStudyToday = memo(function MobileStudyToday({
               </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              haptic("light");
+              onOpenDailyGoal();
+            }}
+            aria-label="Open daily goal"
+            className="mobile-glass-lite flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary transition-transform active:scale-90 touch-manipulation"
+          >
+            <Target className="h-4 w-4" />
+          </button>
 
           <button
             type="button"
@@ -672,7 +688,7 @@ function DeleteCourseConfirm({ course, onCancel, onConfirm }: { course: Course; 
 
 export function MobileStudyDashboard(props: Props) {
   const { user } = useAuth();
-  const onOpenCourse = useStableEvent(props.onOpenCourse); const onOpenNote = useStableEvent(props.onOpenNote); const onCreateNote = useStableEvent(props.onQuickNewNote); const onOpenMenu = useStableEvent(props.onOpenMenu); const onOpenSettings = useStableEvent(props.onOpenSettings); const onStartFocus = useStableEvent(props.onStartFocus); const onOpenAllNotes = useStableEvent(props.onOpenAllNotes); const onOpenFavorites = useStableEvent(props.onOpenFavorites); const onDeleteCourse = useStableEvent(props.onDeleteCourse); const onAddCourse = useStableEvent(props.onAddCourse);
+  const onOpenCourse = useStableEvent(props.onOpenCourse); const onOpenNote = useStableEvent(props.onOpenNote); const onCreateNote = useStableEvent(props.onQuickNewNote); const onOpenMenu = useStableEvent(props.onOpenMenu); const onOpenSettings = useStableEvent(props.onOpenSettings); const onStartFocus = useStableEvent(props.onStartFocus); const onOpenDailyGoal = useStableEvent(props.onOpenDailyGoal); const onOpenAllNotes = useStableEvent(props.onOpenAllNotes); const onOpenFavorites = useStableEvent(props.onOpenFavorites); const onDeleteCourse = useStableEvent(props.onDeleteCourse); const onAddCourse = useStableEvent(props.onAddCourse);
   const { coursesById, summaries, recentNotes, favoriteCount } = useMemo(() => {
     const courseMap = new Map(props.courses.map((course) => [course.id, course]));
     const nextSummaries = new Map<string, CourseSummary>();
@@ -775,7 +791,7 @@ export function MobileStudyDashboard(props: Props) {
   const resumeNote = recentNotes[0]; const resumeCourse = resumeNote?.courseId ? coursesById.get(resumeNote.courseId) : undefined;
   const meta = user?.user_metadata as { username?: string; full_name?: string } | null; const name = meta?.username || meta?.full_name?.split(" ")[0];
   const subtitle = resumeCourse ? `Continue your ${resumeCourse.name} study session` : resumeNote ? "Continue your latest study session" : "Choose a course and build today’s momentum";
-  return <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:hidden"><div className="mx-auto w-full max-w-xl space-y-6"><MobileDashboardHeader name={name} subtitle={subtitle} onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} /><MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} /><MobileStudyToday todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} /><MobileQuickStats
+  return <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:hidden"><div className="mx-auto w-full max-w-xl space-y-6"><MobileDashboardHeader name={name} subtitle={subtitle} onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} /><MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} /><MobileStudyToday todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} onOpenDailyGoal={onOpenDailyGoal} /><MobileQuickStats
   courseCount={props.courses.length}
   noteCount={props.notes.length}
   favoriteCount={favoriteCount}

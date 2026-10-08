@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, Plus, Check, Folder } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Collection } from "@/lib/notes";
@@ -22,6 +22,10 @@ export function MobileQuickDraftSheet({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [selectedCol, setSelectedCol] = useState<string | null>(activeCourseId);
+
+  useEffect(() => {
+    if (open) setSelectedCol(activeCourseId);
+  }, [open, activeCourseId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

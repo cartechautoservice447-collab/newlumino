@@ -73,7 +73,7 @@ export function AiExplainDialog({
   const [copied, setCopied] = useState(false);
 
   const targetNote = useMemo(
-    () => notes.find((note) => note.id === activeTargetId) || selectedNote || notes[0] || null,
+    () => (activeTargetId ? notes.find((note) => note.id === activeTargetId) || selectedNote || notes[0] || null : null),
     [activeTargetId, notes, selectedNote],
   );
 

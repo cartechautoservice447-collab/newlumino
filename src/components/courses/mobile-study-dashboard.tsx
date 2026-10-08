@@ -72,6 +72,56 @@ function greetingForHour(hour: number) {
   return "Good evening";
 }
 
+const DAY_MS = 86_400_000;
+
+function localDayKey(timestamp: number) {
+  const date = new Date(timestamp);
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function localDayStart(offset = 0) {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + offset);
+  return date;
+}
+
+function formatStudyMinutes(minutes: number) {
+  if (minutes < 60) return minutes + "m";
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? hours + "h " + remainder + "m" : hours + "h";
+}
+
+function formatPercentDelta(current: number, previous: number) {
+  if (previous <= 0) return current > 0 ? "New" : "—";
+  const delta = Math.round(((current - previous) / previous) * 100);
+  return (delta > 0 ? "+" : "") + delta + "%";
+}
+
+function studyWindowLabel(hour: number) {
+  if (hour >= 6 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 18) return "afternoon";
+  if (hour >= 18 && hour < 24) return "evening";
+  return "late night";
+}
+
+type MobileStudyAnalytics = {
+  weekly: Array<{ label: string; date: string; minutes: number; height: number; isToday: boolean }>;
+  weeklyTotal: number;
+  previousWeekTotal: number;
+  weeklyDelta: string;
+  currentStreak: number;
+  bestStreak: number;
+  averageSessionMinutes: number;
+  bestWindow: string;
+  topCourse: string;
+};
+
 /** Keeps memoized dashboard sections independent from callback identity changes in the app shell. */
 function useStableEvent<T extends (...args: any[]) => void>(handler: T) {
   const handlerRef = useRef(handler);

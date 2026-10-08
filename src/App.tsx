@@ -324,7 +324,8 @@ function AuthenticatedApp({
              onOpenAllNotes={mobileOpenAllNotes}
              onOpenFavorites={mobileOpenFavorites}
              onStartFocus={mobileStartFocus}
-todayFocusSeconds={pomodoro.todayFocusSeconds}
+             onOpenDailyGoal={navigateToDailyGoal}
+             todayFocusSeconds={pomodoro.todayFocusSeconds}
             dailyGoalHours={pomodoro.dailyGoalHours}
             realtimeStatus={n.realtimeStatus}
             isSyncing={n.isSyncing}

@@ -121,7 +121,7 @@ const GoalHero = memo(function GoalHero({
   const dashOffset = circumference - (progressPct / 100) * circumference;
 
   return (
-    <section className="glass-panel relative overflow-hidden rounded-[1.9rem] border border-primary/20 bg-gradient-to-br from-primary/[0.12] via-white/[0.025] to-cyan-400/[0.06] p-4 shadow-[0_18px_48px_-28px_rgba(0,0,0,0.9)]">
+    <section className="glass-panel relative overflow-hidden rounded-[1.9rem] border border-primary/20 p-4 shadow-[0_18px_48px_-28px_rgba(0,0,0,0.9)]">
       <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-primary/12 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-20 -left-16 h-40 w-40 rounded-full bg-cyan-400/10 blur-3xl" />
 
@@ -438,7 +438,7 @@ export const MobileDailyGoalInterface = memo(function MobileDailyGoalInterface({
   return (
     <main className="dashboard-vertical-scroll flex h-[100dvh] min-h-0 flex-col overflow-hidden md:hidden">
       <header
-        className="sticky top-0 z-30 shrink-0 border-b border-white/[0.08] bg-background/92 px-3 py-3 backdrop-blur-xl"
+        className="sticky top-0 z-30 shrink-0 border-b border-white/[0.08] bg-background px-3 py-3"
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
       >
         <div className="flex items-center justify-between gap-3">
@@ -500,10 +500,10 @@ export const MobileDailyGoalInterface = memo(function MobileDailyGoalInterface({
       </div>
 
       <footer
-        className="shrink-0 border-t border-white/[0.08] bg-background/95 px-3 py-2 backdrop-blur-xl"
+        className="shrink-0 border-t border-white/[0.08] bg-background px-3 py-2"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="mx-auto flex max-w-xl gap-2">
+        <div className="mx-auto flex max-w-xl gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-1.5">
           <button
             type="button"
             onClick={() => {

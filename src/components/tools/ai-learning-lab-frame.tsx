@@ -1,5 +1,5 @@
 import React from "react";
-import { Brain, BookOpen, X } from "lucide-react";
+import { Brain, BookOpen, History, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 
@@ -13,6 +13,7 @@ export type AiLearningLabFrameProps = {
   intelligence: React.ReactNode;
   footer?: React.ReactNode;
   onClose: () => void;
+  onOpenHistory?: () => void;
   children: React.ReactNode;
   className?: string;
 };
@@ -39,6 +40,7 @@ export function AiLearningLabFrame({
   intelligence,
   footer,
   onClose,
+  onOpenHistory,
   children,
   className,
 }: AiLearningLabFrameProps) {
@@ -55,6 +57,7 @@ export function AiLearningLabFrame({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {onOpenHistory ? <LabHistoryButton onClick={onOpenHistory} label={title + " history"} /> : null}
           {status ? <span className={cn("hidden rounded-full border px-2.5 py-1 text-[0.62rem] font-bold sm:inline", statusClasses[statusTone])}>{status}</span> : null}
           <button
             type="button"
@@ -100,6 +103,23 @@ export function AiLearningLabFrame({
         </footer>
       ) : null}
     </div>
+  );
+}
+
+export function LabHistoryButton({ onClick, label = "Open AI history" }: { onClick: () => void; label?: string }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={() => {
+        haptic("light");
+        onClick();
+      }}
+      className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      <History className="h-4 w-4" />
+    </button>
   );
 }
 

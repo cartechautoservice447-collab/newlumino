@@ -2416,7 +2416,7 @@ Required JSON:
 }`;
 
   try {
-    const { parsed, model } = await executeGeminiGenerate<ExplainResult>(ai, {
+    const { parsed, model } = await executeGeminiGenerate<any>(ai, {
       contents: prompt,
       temperature: 0.25,
       timeoutMs: 30000,

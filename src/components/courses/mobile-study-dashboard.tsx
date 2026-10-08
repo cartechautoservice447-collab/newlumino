@@ -584,7 +584,7 @@ const MobileCourseCard = memo(function MobileCourseCard({
             aria-label={"Delete " + course.name}
             onClick={(event) => {
               event.stopPropagation();
-              setTimeout(() => onDelete(course), 0);
+              onDelete(course);
             }}
             className="rounded-xl border border-white/10 bg-black/40 p-1.5 text-muted-foreground transition-all duration-200 hover:border-destructive/40 hover:bg-destructive/20 hover:text-destructive active:scale-90 cursor-pointer"
           >

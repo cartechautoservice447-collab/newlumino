@@ -27,7 +27,8 @@ import {
   Scale,
   Lightbulb,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AiLearningLabFrame, LabInsightCard, LabToolButton } from "@/components/tools/ai-learning-lab-frame";
 import { cn } from "@/lib/utils";
 import type { Note } from "@/lib/notes";
 import {
@@ -98,6 +99,9 @@ export function FlashcardsDialog({
   // Touch gesture tracking for mobile swipe
   const touchStartX = useRef<number | null>(null);
   const touchCurrentX = useRef<number | null>(null);
+  const swipeCardRef = useRef<HTMLDivElement | null>(null);
+  const swipeRafRef = useRef<number | null>(null);
+  const pendingSwipeOffsetRef = useRef(0);
 
   // Target note to study
   const targetNote = selectedNote || notes[0] || null;
@@ -251,17 +255,31 @@ export function FlashcardsDialog({
     }
   };
 
-  // Touch handlers for mobile swipe
+  // Touch handlers for mobile swipe: finger -> touchmove -> RAF -> direct compositor transform.
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchCurrentX.current = e.touches[0].clientX;
+    pendingSwipeOffsetRef.current = 0;
+    if (swipeRafRef.current !== null) cancelAnimationFrame(swipeRafRef.current);
+    swipeRafRef.current = null;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
     touchCurrentX.current = e.touches[0].clientX;
-    const diff = touchCurrentX.current - touchStartX.current;
-    setDragOffset(diff);
+    pendingSwipeOffsetRef.current = touchCurrentX.current - touchStartX.current;
+    if (swipeRafRef.current !== null) return;
+
+    swipeRafRef.current = requestAnimationFrame(() => {
+      swipeRafRef.current = null;
+      const offset = pendingSwipeOffsetRef.current;
+      const card = swipeCardRef.current;
+      if (!card) return;
+      const rotation = offset * 0.04;
+      card.style.transform = "translate3d(" + offset + "px, 0, 0) rotate(" + rotation + "deg)";
+      card.style.transition = "none";
+      card.dataset.swipe = offset > 30 ? "positive" : offset < -30 ? "negative" : "neutral";
+    });
   };
 
   const handleTouchEnd = () => {
@@ -277,8 +295,22 @@ export function FlashcardsDialog({
 
     touchStartX.current = null;
     touchCurrentX.current = null;
+    pendingSwipeOffsetRef.current = 0;
     setDragOffset(0);
+
+    if (swipeRafRef.current !== null) cancelAnimationFrame(swipeRafRef.current);
+    swipeRafRef.current = null;
+    const card = swipeCardRef.current;
+    if (card) {
+      card.dataset.swipe = "neutral";
+      card.style.transition = "transform 220ms cubic-bezier(0.16, 1, 0.3, 1)";
+      card.style.transform = "translate3d(0, 0, 0)";
+    }
   };
+
+  useEffect(() => () => {
+    if (swipeRafRef.current !== null) cancelAnimationFrame(swipeRafRef.current);
+  }, []);
 
   // Spaced repetition analytics
   const againCount = Object.values(results).filter((r) => r === "again").length;
@@ -325,37 +357,44 @@ export function FlashcardsDialog({
         onOpenChange(val);
       }}
     >
-      <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 border-0 bg-slate-950/98 text-foreground backdrop-blur-3xl flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0">
-        {/* Pinned Top Navigation Bar */}
-        <div className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-white/10 bg-white/[0.02] backdrop-blur-md shrink-0">
-          <div className="flex items-center gap-3 pr-10">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-500/20 text-purple-300 shadow-[0_0_15px_-2px_rgba(168,85,247,0.6)] shrink-0">
-              <Brain className="h-5 w-5" />
-            </span>
-            <div>
-              <DialogTitle className="text-base sm:text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                <span>Smart Flashcards &amp; Active Recall</span>
-                <span className="rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-[0.62rem] font-semibold text-purple-300 uppercase tracking-wider">
-                  FSRS Spaced Repetition
-                </span>
-              </DialogTitle>
-              <p className="text-xs text-muted-foreground hidden sm:block mt-0.5">
-                Multi-archetype recall drills grounded directly in your notes and course topics.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 mr-10 sm:mr-12">
-            {deck.length > 0 && !completed && (
-              <span className="font-mono text-xs font-bold text-muted-foreground bg-white/[0.06] border border-white/10 px-3 py-1 rounded-xl">
-                {currentIndex + 1} / {deck.length}
-              </span>
-            )}
-          </div>
-        </div>
-
+      <DialogContent hideClose className="fixed inset-0 left-0 top-0 m-0 flex h-[100dvh] w-screen max-h-none max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden rounded-none border-0 bg-transparent p-0 text-foreground shadow-none">
         {/* Scrollable Workstation Body */}
-        <div className="flex-1 overflow-y-auto scroll-sleek p-4 sm:p-6 lg:p-8 space-y-6 max-w-3xl mx-auto w-full flex flex-col justify-start">
+        <AiLearningLabFrame
+          title="AI Study Flashcards"
+          subtitle="Source-grounded active recall with adaptive spaced repetition."
+          status={completed ? "Review complete" : deck.length ? (currentIndex + 1) + " / " + deck.length : "Ready"}
+          statusTone="violet"
+          icon={Brain}
+          onClose={() => onOpenChange(false)}
+          context={
+            <div className="space-y-3">
+              <div>
+                <div className="mb-1 text-[0.64rem] font-semibold text-muted-foreground">SOURCE SCOPE</div>
+                <div className="rounded-xl border border-white/[0.08] bg-black/15 px-3 py-2 text-xs font-semibold text-foreground">{source === "current" ? (targetNote?.title || "Current note") : "All course notes"}</div>
+              </div>
+              <div className="rounded-xl border border-violet-400/15 bg-violet-400/[0.055] p-2.5">
+                <div className="text-[0.64rem] font-bold uppercase tracking-wider text-violet-300">Deck architecture</div>
+                <p className="mt-1 text-[0.68rem] leading-5 text-muted-foreground">{activeArchetype.replace("_", " ")} · {batchSize}-card batches · adaptive weak-topic targeting</p>
+              </div>
+            </div>
+          }
+          intelligence={
+            <div className="space-y-3">
+              <LabInsightCard title="Progress" value={deck.length ? (currentIndex + 1) + "/" + deck.length : "—"} description="Current position in the recall deck." />
+              <LabInsightCard title="Generated" value={aiGeneratedCount ? String(aiGeneratedCount) : "—"} description="AI cards synthesized in this session." />
+              <LabInsightCard title="Weak cards" value={weakCardsCount ? String(weakCardsCount) : "0"} description="Again + Hard responses in the current review." />
+              <div className="rounded-2xl border border-primary/20 bg-primary/[0.07] p-4"><div className="text-xs font-bold text-primary">Recommended next action</div><p className="mt-2 text-sm leading-6 text-foreground">{weakCardsCount ? "Review the weak cards, then run an adaptive AI batch." : "Keep rating cards honestly to build a useful retrieval profile."}</p></div>
+            </div>
+          }
+          footer={
+            <>
+              <LabToolButton label={"Generate " + batchSize + " cards"} icon={<Sparkles className="h-3.5 w-3.5" />} tone="violet" onClick={() => void handleGenerateAI()} />
+              {weakCardsCount ? <LabToolButton label="Review weak only" icon={<Target className="h-3.5 w-3.5" />} tone="amber" onClick={restartMissed} /> : null}
+              {completed ? <LabToolButton label="Restart deck" icon={<RotateCcw className="h-3.5 w-3.5" />} tone="primary" onClick={restartAll} /> : null}
+            </>
+          }
+        >
+          <div className="space-y-6 max-w-3xl mx-auto w-full">
           {/* Source Scope Bar */}
         <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-0.5 scroll-sleek">
           {selectedNote && (
@@ -686,10 +725,8 @@ export function FlashcardsDialog({
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               onClick={handleFlip}
-              style={{
-                transform: `translateX(${dragOffset}px) rotate(${dragOffset * 0.04}deg)`,
-                transition: dragOffset === 0 ? "transform 0.3s ease, border-color 0.2s" : "none",
-              }}
+              ref={swipeCardRef}
+              data-swipe="neutral"
               className={cn(
                 "relative min-h-[270px] sm:min-h-[310px] w-full cursor-pointer select-none rounded-3xl border p-5 sm:p-6 shadow-2xl backdrop-blur-2xl transition-all flex flex-col justify-between",
                 dragOffset > 30
@@ -702,17 +739,6 @@ export function FlashcardsDialog({
               )}
             >
               {/* Swipe Hints Indicators */}
-              {dragOffset > 20 && (
-                <div className="absolute top-4 right-4 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30">
-                  Good →
-                </div>
-              )}
-              {dragOffset < -20 && (
-                <div className="absolute top-4 left-4 rounded-full bg-rose-500/20 px-3 py-1 text-xs font-bold text-rose-400 border border-rose-500/30">
-                  ← Again
-                </div>
-              )}
-
               {/* Card Meta Top */}
               <div className="flex items-center justify-between text-[0.68rem] uppercase tracking-wider text-muted-foreground">
                 <div className="flex items-center gap-1.5 min-w-0">
@@ -820,7 +846,8 @@ export function FlashcardsDialog({
             </div>
           </div>
         )}
-        </div>
+          </div>
+        </AiLearningLabFrame>
       </DialogContent>
     </Dialog>
   );

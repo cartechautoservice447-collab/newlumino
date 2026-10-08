@@ -726,7 +726,7 @@ function AuthenticatedApp({
 
       {/* Daily Goal View */}
       {view === "daily-goal" && (
-        <div className="flex-1 min-h-0 bg-background/50 backdrop-blur-xl animate-panel-in relative z-20">
+        <div className="flex-1 min-h-0 bg-transparent animate-panel-in relative z-20">
           {isMobile ? (
             <MobileDailyGoalInterface
               pomodoro={pomodoro}

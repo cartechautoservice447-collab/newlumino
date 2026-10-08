@@ -436,9 +436,9 @@ export const MobileDailyGoalInterface = memo(function MobileDailyGoalInterface({
   }, [todaySessions]);
 
   return (
-    <main className="dashboard-vertical-scroll flex h-[100dvh] min-h-0 flex-col overflow-hidden md:hidden">
+    <main className="flex h-[100dvh] min-h-0 flex-col overflow-hidden md:hidden">
       <header
-        className="sticky top-0 z-30 shrink-0 border-b border-white/[0.08] bg-background px-3 py-3"
+        className="z-30 shrink-0 border-b border-white/[0.08] bg-background px-3 py-3"
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
       >
         <div className="flex items-center justify-between gap-3">
@@ -472,7 +472,7 @@ export const MobileDailyGoalInterface = memo(function MobileDailyGoalInterface({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y px-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y px-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 scroll-sleek">
         <div className="mx-auto w-full max-w-xl space-y-3.5">
           <GoalContext
             focusedMinutes={focusedMinutes}

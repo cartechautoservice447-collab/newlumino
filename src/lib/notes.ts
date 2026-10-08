@@ -239,7 +239,7 @@ export const loadState = (userId?: string | null): NotesState => {
     const raw = window.localStorage.getItem(scopedKey);
     if (!raw) return userId ? { courses: [], notes: [], collections: [] } : seedState();
     const parsed = JSON.parse(raw) as unknown;
-    if (!isRecord(parsed)) return seedState();
+    if (!isRecord(parsed)) return userId ? { courses: [], notes: [], collections: [] } : seedState();
 
     const courses = Array.isArray(parsed.courses)
       ? parsed.courses.map(normalizeCourse).filter((course): course is Course => Boolean(course))
@@ -255,7 +255,7 @@ export const loadState = (userId?: string | null): NotesState => {
 
     return { courses, collections, notes };
   } catch {
-    return seedState();
+    return userId ? { courses: [], notes: [], collections: [] } : seedState();
   }
 };
 

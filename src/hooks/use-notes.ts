@@ -87,7 +87,7 @@ export function useNotes(userId?: string | null) {
 
     const unsubscribe = subscribeToRealtimeSharedBackend(userId, {
       onCoursesChange: (payload) => {
-        console.log("[useNotes Realtime] courses update:", payload.eventType, payload.new);
+        console.log("[useNotes Realtime] courses update:", payload.eventType);
         if (payload.eventType === "INSERT" && payload.new) {
           if (payload.new?.user_id && payload.new.user_id !== userId) return;
           const freshCourse = toCourse(payload.new as any);
@@ -108,7 +108,6 @@ export function useNotes(userId?: string | null) {
             courses: prev.courses.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
           }));
         } else if (payload.eventType === "DELETE" && payload.old) {
-          if (payload.old?.user_id && payload.old.user_id !== userId) return;
           if (payload.old?.user_id && payload.old.user_id !== userId) return;
           const deletedId = (payload.old as any).id;
           setState((prev) => ({
@@ -143,6 +142,7 @@ export function useNotes(userId?: string | null) {
             notes: prev.notes.map((n) => (n.id === updated.id ? { ...n, ...updated } : n)),
           }));
         } else if (payload.eventType === "DELETE" && payload.old) {
+          if (payload.old?.user_id && payload.old.user_id !== userId) return;
           const deletedId = (payload.old as any).id;
           setState((prev) => ({
             ...prev,

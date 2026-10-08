@@ -99,15 +99,14 @@ export function toNote(row: SupabaseNoteRow): Note {
  * Fetches all courses from the shared Supabase backend table `courses`.
  */
 export async function fetchRemoteCourses(userId?: string | null): Promise<Course[]> {
+  if (!userId) return [];
   try {
     let q = supabase
       .from("courses")
       .select("id, name, description, color, created_at, updated_at")
       .order("created_at", { ascending: false });
 
-    if (userId) {
-      q = q.eq("user_id", userId);
-    }
+    q = q.eq("user_id", userId);
 
     const { data, error } = await q;
     if (error) {
@@ -159,9 +158,13 @@ export async function deleteRemoteCourse(
   courseId: string,
   userId?: string | null,
 ): Promise<{ success: boolean; error?: string }> {
+  if (!userId) {
+    return { success: false, error: "Authentication is required to delete a course" };
+  }
+
   try {
     // 1. Delete notes in this course
-    await supabase.from("notes").delete().eq("course_id", courseId).eq("user_id", userId ?? "");
+    await supabase.from("notes").delete().eq("course_id", courseId).eq("user_id", userId);
 
     // 2. Delete folders in this course
     await supabase.from("collections").delete().eq("course_id", courseId).eq("user_id", userId ?? "");
@@ -378,8 +381,10 @@ export function subscribeToRealtimeSharedBackend(
     onStatusChange?: (status: "SUBSCRIBED" | "TIMED_OUT" | "CLOSED" | "CHANNEL_ERROR") => void;
   },
 ): () => void {
+  if (!userId) return () => {};
+
   try {
-    const channelName = `shared-courses-sync-${userId || "global"}-${Date.now().toString(36)}`;
+    const channelName = `shared-courses-sync-${userId}-${Date.now().toString(36)}`;
     const channel = supabase
       .channel(channelName)
       .on(

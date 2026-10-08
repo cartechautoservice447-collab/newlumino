@@ -13,6 +13,7 @@ import {
   Settings,
   Sparkles,
   Star,
+  Target,
   Trash2,
   X,
   Zap,
@@ -80,14 +81,23 @@ function useStableEvent<T extends (...args: any[]) => void>(handler: T) {
 }
 
 const MobileDashboardHeader = memo(function MobileDashboardHeader({
+  name,
+  subtitle,
   onOpenMenu,
   onOpenSettings,
 }: {
+  name?: string;
+  subtitle: string;
   onOpenMenu: () => void;
   onOpenSettings: () => void;
 }) {
   return (
-    <header className="flex justify-end pt-[max(0.25rem,env(safe-area-inset-top))]">
+    <header className="flex items-start justify-between gap-3 pt-[max(0.5rem,env(safe-area-inset-top))]">
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary/80">{greetingForHour(new Date().getHours())}</p>
+        <h1 className="mt-1 truncate text-[1.35rem] font-bold tracking-tight text-foreground">{name ? `${name}, ready?` : "Ready to learn?"}</h1>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
+      </div>
       <div className="flex shrink-0 items-center gap-1.5">
         <button type="button" aria-label="Open study tools" onClick={onOpenMenu} className="mobile-glass-lite flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-transform active:scale-95">
           <Menu className="h-[18px] w-[18px]" />
@@ -99,6 +109,7 @@ const MobileDashboardHeader = memo(function MobileDashboardHeader({
     </header>
   );
 });
+
 const MobileResumeStudy = memo(function MobileResumeStudy({
   note,
   course,
@@ -155,59 +166,103 @@ const MobileResumeStudy = memo(function MobileResumeStudy({
   );
 });
 
-const MobileFocusHorizon = memo(function MobileFocusHorizon({
-  name,
+const MobileStudyToday = memo(function MobileStudyToday({
   todayFocusSeconds,
   dailyGoalHours,
   onStartFocus,
+  onOpenDailyGoal,
 }: {
-  name?: string;
   todayFocusSeconds: number;
   dailyGoalHours: number;
   onStartFocus: () => void;
+  onOpenDailyGoal: () => void;
 }) {
   const todayMinutes = Math.floor(todayFocusSeconds / 60);
   const goalMinutes = Math.max(1, Math.round(dailyGoalHours * 60));
   const progress = Math.min(100, Math.round((todayMinutes / goalMinutes) * 100));
 
   return (
-    <section className="relative overflow-hidden px-1 pb-1 pt-1">
-      <div className="pointer-events-none absolute left-1/2 top-16 h-40 w-40 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
-      <div className="relative flex flex-col items-center text-center">
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/80">
-          {greetingForHour(new Date().getHours())}
-        </p>
-        <h1 className="mt-1.5 max-w-[340px] text-[1.55rem] font-bold leading-tight tracking-tight text-foreground">
-          {name ? `${name}, ready for a focused session?` : "Ready for a focused session?"}
-        </h1>
+    <section className="glass-panel relative overflow-hidden rounded-[1.75rem] border border-primary/25 bg-gradient-to-br from-primary/10 via-white/[0.02] to-amber-500/10 p-4.5 shadow-lg">
+      <div className="relative z-10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="relative flex h-14 w-14 shrink-0 items-center justify-center">
+              <svg className="h-14 w-14 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
+                <path
+                  className="text-white/10"
+                  strokeWidth="3.2"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  className="text-primary transition-[stroke-dasharray] duration-500 ease-out"
+                  strokeDasharray={progress + ", 100"}
+                  strokeWidth="3.2"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+              </svg>
+              <span className="absolute font-mono text-[0.64rem] font-bold text-foreground">{progress}%</span>
+            </div>
 
-        <div className="relative mt-6 flex h-32 w-32 items-center justify-center">
-          <svg className="h-32 w-32 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
-            <path className="text-white/[0.08]" strokeWidth="2.4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-            <path className="text-primary transition-[stroke-dasharray] duration-500 ease-out" strokeDasharray={progress + ", 100"} strokeWidth="2.4" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-mono text-4xl font-black leading-none tracking-tight text-foreground">{todayMinutes}</span>
-            <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">focus min</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h2 className="truncate text-xs font-bold text-foreground">Today's Focus</h2>
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[0.56rem] font-bold text-amber-300">
+                  <Flame className="h-2.5 w-2.5" />
+                  <span>Streak</span>
+                </span>
+              </div>
+              <p className="mt-0.5 truncate text-[0.64rem] text-muted-foreground">
+                {todayMinutes}m of {goalMinutes}m daily goal
+              </p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              haptic("medium");
+              onStartFocus();
+            }}
+            className="shrink-0 flex min-h-10 w-[104px] items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/20 px-2.5 py-2.5 text-center text-[0.68rem] font-extrabold leading-tight text-primary shadow-sm transition-all active:scale-[0.97] hover:bg-primary/30 touch-manipulation"
+            aria-label="Start a focus session"
+          >
+            <Zap className="h-3.5 w-3.5 shrink-0 text-amber-300" />
+            <span className="whitespace-nowrap">Start Focus</span>
+          </button>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[10px] font-semibold text-muted-foreground">
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary via-cyan-300 to-emerald-300 transition-[width] duration-500 ease-out"
+            style={{ width: progress + "%" }}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-2 text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground/75">
           <span>Today</span>
-          <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
           <span>{todayMinutes} / {goalMinutes} min</span>
-          <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
-          <span className="inline-flex items-center gap-1 text-amber-300"><Flame className="h-3 w-3" />7 day streak</span>
+          <button
+            type="button"
+            onClick={() => {
+              haptic("light");
+              onOpenDailyGoal();
+            }}
+            className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-1 text-primary transition active:scale-95"
+            aria-label="Open daily goal"
+          >
+            <Target className="h-3 w-3" />
+            <span>Goal</span>
+          </button>
         </div>
-
-        <button type="button" onClick={() => { haptic("medium"); onStartFocus(); }} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary/35 bg-primary/15 px-6 py-2.5 text-xs font-extrabold text-primary shadow-[0_10px_35px_-12px_rgba(56,189,248,0.55)] backdrop-blur-xl transition-all active:scale-[0.97] hover:bg-primary/20 touch-manipulation" aria-label="Start a focus session">
-          <Zap className="h-3.5 w-3.5 text-amber-300" />
-          Start Focus
-        </button>
       </div>
     </section>
   );
 });
+
 const MobileQuickStats = memo(function MobileQuickStats({
   courseCount,
   noteCount,
@@ -807,12 +862,27 @@ export function MobileStudyDashboard(props: Props) {
   return (
     <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-5 md:hidden">
       <div className="mx-auto w-full max-w-xl pb-2">
-        <section className="space-y-7" aria-label="Today">
-          <MobileDashboardHeader onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} />
-          <MobileFocusHorizon name={name} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} />
-          <div className="space-y-6">
-            <MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} />
-            <MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} />
+        <section className="space-y-5" aria-labelledby="mobile-dashboard-today">
+          <h2 id="mobile-dashboard-today" className="px-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Today</h2>
+          <div className="space-y-5">
+            <MobileDashboardHeader
+              name={name}
+              subtitle={subtitle}
+              onOpenMenu={onOpenMenu}
+              onOpenSettings={onOpenSettings}
+            />
+            <MobileResumeStudy
+              note={resumeNote}
+              course={resumeCourse}
+              onOpenNote={onOpenNote}
+              onCreateNote={onCreateNote}
+            />
+            <MobileStudyToday
+              todayFocusSeconds={props.todayFocusSeconds}
+              dailyGoalHours={props.dailyGoalHours}
+              onStartFocus={onStartFocus}
+              onOpenDailyGoal={onOpenDailyGoal}
+            />
             <MobileQuickStats
               courseCount={props.courses.length}
               noteCount={props.notes.length}
@@ -824,12 +894,17 @@ export function MobileStudyDashboard(props: Props) {
           </div>
         </section>
 
-        <section className="mt-12 space-y-5" aria-labelledby="mobile-dashboard-progress">
+        <section className="mt-11 space-y-5" aria-labelledby="mobile-dashboard-progress">
           <div className="px-0.5">
-            <h2 id="mobile-dashboard-progress" className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Study intelligence</h2>
+            <h2 id="mobile-dashboard-progress" className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Progress</h2>
             <p className="mt-1 text-xs text-muted-foreground/75">A calm view of your study rhythm and momentum.</p>
           </div>
           <div className="space-y-5">
+            <MobileMomentumAndActivity
+              notes={props.notes}
+              todayFocusSeconds={props.todayFocusSeconds}
+              dailyGoalHours={props.dailyGoalHours}
+            />
             <MobileStudyInsights
               averageSessionMinutes={studyAnalytics.averageSessionMinutes}
               bestWindow={studyAnalytics.bestWindow}
@@ -844,11 +919,15 @@ export function MobileStudyDashboard(props: Props) {
               currentStreak={studyAnalytics.currentStreak}
               bestStreak={studyAnalytics.bestStreak}
             />
-            <MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} />
+            <MobileRecentActivity
+              notes={recentActivity}
+              coursesById={coursesById}
+              onOpenNote={onOpenNote}
+            />
           </div>
         </section>
 
-        <section className="mt-12 space-y-5" aria-labelledby="mobile-dashboard-library">
+        <section className="mt-11 space-y-5" aria-labelledby="mobile-dashboard-library">
           <div className="px-0.5">
             <h2 id="mobile-dashboard-library" className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Library</h2>
             <p className="mt-1 text-xs text-muted-foreground/75">Your courses and study spaces.</p>

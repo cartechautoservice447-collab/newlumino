@@ -43,6 +43,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AiLearningLabFrame, LabInsightCard, LabToolButton } from "@/components/tools/ai-learning-lab-frame";
+import { AiHistoryDialog, type AiHistoryAction } from "@/components/tools/ai-history-dialog";
+import { createAiHistory, type AiHistoryRecord } from "@/lib/ai-history";
+import { useAuth } from "@/context/auth-context";
 import { haptic } from "@/lib/haptics";
 import type { Note, Collection } from "@/lib/notes";
 import { MarkdownPreview } from "@/components/notes/markdown-preview";
@@ -179,6 +182,8 @@ export function AiCollectionExamDialog({
   onCreateNote,
   onOpenNotePolisher,
 }: Props) {
+  const { user } = useAuth();
+
   // Setup Options State (The 4 fill-the-blanks / customization options)
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>(
     initialCollectionId || collections[0]?.id || "all"
@@ -312,6 +317,7 @@ export function AiCollectionExamDialog({
       setSecondsRemaining(totalMinutes * 60);
       setTimerActive(true);
       setStep("stage_hub");
+      void createAiHistory({ userId: user?.id, tool: "progressive_exam", title: data.title || selectedCollectionObj.name, subtitle: "4-stage • " + difficulty + " • " + totalMinutes + " min", action: "generated", context: { collectionId: selectedCollectionId, collectionName: selectedCollectionObj.name, courseName: activeCourseName, totalMinutes, difficulty, focusDomain, customGoalText }, payload: { step: "stage_hub", examSuite: data, evaluation: null, selectedCollectionId, totalMinutes, difficulty, focusDomain, customGoalText, stage1Completed: false, stage2Completed: false, stage3Completed: false, stage4Completed: false, stage1Answers: {}, stage2Answers: {}, stage3Answers: {}, stage4Answers: {}, projectCode: data.stages.stage4Project.starterCodeOrScaffold || "", completedMilestones: [], projectNotes: "" } });
       haptic("heavy");
     } catch (err: any) {
       clearInterval(messageInterval);
@@ -417,6 +423,7 @@ export function AiCollectionExamDialog({
       const evalData: EvaluationResult = await res.json();
       setEvaluation(evalData);
       setStep("results");
+      void createAiHistory({ userId: user?.id, tool: "progressive_exam", title: evalData.masteryGrade ? (selectedCollectionObj.name + " • " + evalData.masteryGrade) : selectedCollectionObj.name, subtitle: "completed • " + evalData.masteryScore + "% mastery", action: "completed", context: { collectionId: selectedCollectionId, collectionName: selectedCollectionObj.name, courseName: activeCourseName, totalMinutes, difficulty, focusDomain, customGoalText }, payload: { step: "results", examSuite, evaluation: evalData, selectedCollectionId, totalMinutes, difficulty, focusDomain, customGoalText, stage1Completed, stage2Completed, stage3Completed, stage4Completed, stage1Answers, stage2Answers, stage3Answers, projectCode, completedMilestones, projectNotes } });
 
       if (evalData.masteryScore >= 75) {
         confetti({
@@ -432,6 +439,39 @@ export function AiCollectionExamDialog({
     }
   };
 
+  const handleHistoryAction = (action: AiHistoryAction, record: AiHistoryRecord) => {
+    const payload = record.payload || {};
+    if (typeof payload.selectedCollectionId === "string") setSelectedCollectionId(payload.selectedCollectionId);
+    if (typeof payload.totalMinutes === "number") setTotalMinutes(payload.totalMinutes);
+    if (payload.difficulty === "foundational" || payload.difficulty === "intermediate" || payload.difficulty === "advanced" || payload.difficulty === "competitive") setDifficulty(payload.difficulty);
+    if (payload.focusDomain === "fullstack" || payload.focusDomain === "algorithms" || payload.focusDomain === "system_design" || payload.focusDomain === "devops_cloud" || payload.focusDomain === "custom") setFocusDomain(payload.focusDomain);
+    if (typeof payload.customGoalText === "string") setCustomGoalText(payload.customGoalText);
+    setExamSuite(payload.examSuite && typeof payload.examSuite === "object" ? payload.examSuite as ProgressiveExamSuite : null);
+    setEvaluation(payload.evaluation && typeof payload.evaluation === "object" ? payload.evaluation as EvaluationResult : null);
+    setStage1Completed(Boolean(payload.stage1Completed));
+    setStage2Completed(Boolean(payload.stage2Completed));
+    setStage3Completed(Boolean(payload.stage3Completed));
+    setStage4Completed(Boolean(payload.stage4Completed));
+    setStage1Answers(payload.stage1Answers && typeof payload.stage1Answers === "object" ? payload.stage1Answers as Record<string, number | string> : {});
+    setStage2Answers(payload.stage2Answers && typeof payload.stage2Answers === "object" ? payload.stage2Answers as Record<string, number> : {});
+    setStage3Answers(payload.stage3Answers && typeof payload.stage3Answers === "object" ? payload.stage3Answers as Record<string, number> : {});
+    setProjectCode(typeof payload.projectCode === "string" ? payload.projectCode : "");
+    setCompletedMilestones(Array.isArray(payload.completedMilestones) ? payload.completedMilestones as string[] : []);
+    setProjectNotes(typeof payload.projectNotes === "string" ? payload.projectNotes : "");
+    setTimerActive(false);
+    if (action === "open" || action === "review") { setStep(payload.evaluation ? "results" : "stage_hub"); setHistoryOpen(false); return; }
+    setHistoryOpen(false);
+    if (action === "retake") { resetAll(); return; }
+    const savedEvaluation = payload.evaluation as EvaluationResult | undefined;
+    if (action === "export" && savedEvaluation && onCreateNote) {
+      onCreateNote((record.title || selectedCollectionObj.name) + " - AI Mastery Report (" + savedEvaluation.masteryGrade + ")", savedEvaluation.exportableStudyGuide, typeof payload.selectedCollectionId === "string" && payload.selectedCollectionId !== "all" ? payload.selectedCollectionId : null);
+      return;
+    }
+    if (action === "polish" && savedEvaluation && onOpenNotePolisher) {
+      const tempNote: Note = { id: "remediation-history-" + Date.now(), title: record.title + " • Remediation Guide", body: savedEvaluation.exportableStudyGuide, createdAt: Date.now(), updatedAt: Date.now(), courseId: null, collectionId: typeof payload.selectedCollectionId === "string" && payload.selectedCollectionId !== "all" ? payload.selectedCollectionId : null, favorite: false, revision: 1, sourceId: null };
+      onOpenNotePolisher(tempNote);
+    }
+  };
   const handleExportToNotes = () => {
     if (!evaluation || !onCreateNote) return;
     const title = `${selectedCollectionObj.name} - AI Mastery Report (${evaluation.masteryGrade})`;
@@ -481,6 +521,7 @@ export function AiCollectionExamDialog({
 
   return createPortal(
     <AiLearningLabFrame
+      onOpenHistory={() => setHistoryOpen(true)}
       title="AI 4-Stage Progressive Mastery Exam"
       subtitle="Sequential assessment from theory to real-world project execution."
       status={step === "stage4" || step === "stage_hub" ? formatTimer(secondsRemaining) : step === "results" ? "Assessment complete" : step.replace("_", " ")}
@@ -1824,7 +1865,8 @@ export function AiCollectionExamDialog({
           </div>
         )}
       </main>
-    </AiLearningLabFrame>,
+    </AiLearningLabFrame>
+    <AiHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} tool="progressive_exam" onAction={handleHistoryAction} />,
     document.body
   );
 }

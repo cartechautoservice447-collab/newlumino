@@ -983,11 +983,16 @@ todayFocusSeconds={pomodoro.todayFocusSeconds}
         onOpenChange={setMobileToolsOpen}
         collections={n.courseChildren}
         activeCourse={n.activeCourse}
-        filter={n.filter}
-        onFilterChange={n.setFilter}
-        counts={n.counts}
-        onAddCollection={(name, cat) => n.addCollection(name, cat, n.activeCourseId)}
-        onDeleteCollection={n.deleteCollection}
+        notes={n.notes}
+        courses={n.courses}
+        selectedNoteId={n.selectedId}
+        onOpenNote={mobileOpenNote}
+        onOpenFlashcardsForNote={(note) => {
+          setFlashcardTargetNote(note);
+          setFlashcardsDialogOpen(true);
+        }}
+        onOpenAllNotes={mobileOpenAllNotes}
+        onOpenFavorites={mobileOpenFavorites}
         onBackToCourses={backToCourses}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenNewCourse={() => setNewCourseModalOpen(true)}

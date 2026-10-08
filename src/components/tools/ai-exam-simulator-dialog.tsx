@@ -405,6 +405,7 @@ export function AiExamSimulatorDialog({
       <DialogContent hideClose className="fixed inset-0 left-0 top-0 m-0 flex h-[100dvh] w-screen max-h-none max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden rounded-none border-0 bg-transparent p-0 text-foreground shadow-none">
         {/* Scrollable Workstation Body */}
         <AiLearningLabFrame
+          onOpenHistory={() => setHistoryOpen(true)}
           title="AI Adaptive Exam Simulator"
           subtitle="Diagnostic active recall, timed reasoning, and targeted remediation."
           status={stage === "taking" ? formatTimer(secondsRemaining) : stage === "summary" ? "Diagnostic complete" : "Ready"}

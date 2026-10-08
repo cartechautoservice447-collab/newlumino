@@ -37,6 +37,9 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AiLearningLabFrame, LabInsightCard, LabToolButton } from "@/components/tools/ai-learning-lab-frame";
+import { AiHistoryDialog, type AiHistoryAction } from "@/components/tools/ai-history-dialog";
+import { createAiHistory, type AiHistoryRecord } from "@/lib/ai-history";
+import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import type { Note } from "@/lib/notes";
 import { MarkdownPreview } from "@/components/notes/markdown-preview";
@@ -180,8 +183,10 @@ export function AiNotePolisherDialog({
   onLaunchExam,
   initialMode,
 }: Props) {
+  const { user } = useAuth();
   const { showNotification } = useNotifications();
 
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [activeTargetId, setActiveTargetId] = useState<string>(
     selectedNote?.id || (notes[0]?.id ?? "")
   );
@@ -326,6 +331,7 @@ export function AiNotePolisherDialog({
         if (data.wordCountBefore !== undefined && data.wordCountAfter !== undefined) {
           setWordCountStats({ before: data.wordCountBefore, after: data.wordCountAfter });
         }
+        void createAiHistory({ userId: user?.id, tool: "note_polisher", title: targetNote.title || "Untitled note", subtitle: selectedMode + " • " + (targetNote.title || "Note"), action: "polish", context: { noteId: targetNote.id, noteTitle: targetNote.title, courseName: activeCourseName || null, mode: selectedMode, organizationDepth }, payload: { targetNoteId: targetNote.id, selectedMode, organizationDepth, polishedResult: data.polishedContent, changeLog: data.summaryOfChanges || [], readabilityScore: data.readabilityScore || 96, keyConceptsCovered: data.keyConceptsCovered || [], wordCountStats: data.wordCountBefore !== undefined && data.wordCountAfter !== undefined ? { before: data.wordCountBefore, after: data.wordCountAfter } : null, activeTab: "preview" } });
         setActiveTab("preview");
         haptic("success");
       } else {
@@ -374,8 +380,9 @@ export function AiNotePolisherDialog({
 
       if (data.mermaidCode) {
         setDiagramCode(data.mermaidCode);
-        setDiagramTitle(data.title || `${targetNote.title} Architecture Map`);
+        setDiagramTitle(data.title || (targetNote.title + " Architecture Map"));
         setActiveTab("visual_diagram");
+        void createAiHistory({ userId: user?.id, tool: "note_polisher", title: data.title || (targetNote.title + " Architecture Map"), subtitle: "diagram • " + (targetNote.title || "Note"), action: "diagram", context: { noteId: targetNote.id, noteTitle: targetNote.title, courseName: activeCourseName || null, mode: selectedMode, diagramType: typeToUse }, payload: { targetNoteId: targetNote.id, selectedMode, organizationDepth, polishedResult: polishedResult || null, diagramCode: data.mermaidCode, diagramTitle: data.title || (targetNote.title + " Architecture Map"), activeTab: "visual_diagram" } });
         haptic("success");
       }
     } catch (err) {
@@ -390,6 +397,32 @@ export function AiNotePolisherDialog({
     }
   };
 
+  const handleHistoryAction = (action: AiHistoryAction, record: AiHistoryRecord) => {
+    const payload = record.payload || {};
+    const savedNoteId = typeof payload.targetNoteId === "string" ? payload.targetNoteId : "";
+    const savedMode = typeof payload.selectedMode === "string" ? payload.selectedMode as PolishMode : "organizer";
+    const savedDepth = typeof payload.organizationDepth === "string" ? payload.organizationDepth as OrganizationDepth : "full";
+    const savedNote = notes.find((note) => note.id === savedNoteId) || targetNote;
+    setActiveTargetId(savedNoteId || savedNote?.id || "");
+    setSelectedMode(savedMode);
+    setOrganizationDepth(savedDepth);
+    setPolishedResult(typeof payload.polishedResult === "string" ? payload.polishedResult : null);
+    setChangeLog(Array.isArray(payload.changeLog) ? payload.changeLog as string[] : []);
+    setReadabilityScore(typeof payload.readabilityScore === "number" ? payload.readabilityScore : null);
+    setKeyConceptsCovered(Array.isArray(payload.keyConceptsCovered) ? payload.keyConceptsCovered as string[] : []);
+    setWordCountStats(payload.wordCountStats && typeof payload.wordCountStats === "object" ? payload.wordCountStats as { before: number; after: number } : null);
+    setDiagramCode(typeof payload.diagramCode === "string" ? payload.diagramCode : "");
+    setDiagramTitle(typeof payload.diagramTitle === "string" ? payload.diagramTitle : "");
+    setActiveTab(payload.activeTab === "visual_diagram" ? "visual_diagram" : "preview");
+    if (action === "open") { setHistoryOpen(false); return; }
+    setHistoryOpen(false);
+    if (action === "repolish") { setTimeout(() => { void handleTransform(); }, 0); return; }
+    if (action === "diagram") { setTimeout(() => { void handleGenerateDiagram(); }, 0); return; }
+    if (action === "save_note" && savedNote && typeof payload.polishedResult === "string" && onUpdateNote) {
+      onUpdateNote(savedNote.id, { body: payload.polishedResult });
+      showNotification({ message: "History result applied", description: "The saved AI polish was applied to the note.", type: "success" });
+    }
+  };
   const handleInsertDiagramIntoNote = (mermaidMarkdown: string) => {
     if (!targetNote) return;
     haptic("success");
@@ -1140,6 +1173,7 @@ export function AiNotePolisherDialog({
           )}
           </div>
         </AiLearningLabFrame>
+    <AiHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} tool="note_polisher" onAction={handleHistoryAction} />
       </DialogContent>
     </Dialog>
   );

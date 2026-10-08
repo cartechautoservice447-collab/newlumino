@@ -386,4 +386,4 @@ export const MobileStudyDashboard = memo(function MobileStudyDashboard(props: Pr
   onOpenCourses={() => document.getElementById("mobile-course-library")?.scrollIntoView({ behavior: "smooth", block: "start" })}
   onOpenAllNotes={onOpenAllNotes}
   onOpenFavorites={onOpenFavorites}
-/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;);
+/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main});

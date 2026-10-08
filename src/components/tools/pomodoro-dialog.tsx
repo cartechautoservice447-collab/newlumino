@@ -47,6 +47,7 @@ interface Props {
 
 function MobilePomodoroExperience({
   pomodoro,
+  onClose,
   courses,
   activeCourse,
   selectedNote,
@@ -66,6 +67,7 @@ function MobilePomodoroExperience({
   onApplyPlan,
 }: {
   pomodoro: PomodoroState;
+  onClose: () => void;
   courses: Course[];
   activeCourse?: Course | null;
   selectedNote?: Note | null;
@@ -124,12 +126,12 @@ function MobilePomodoroExperience({
   const contextTitle = selectedNote?.title || activeCourse?.name || "Independent study";
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background text-foreground md:hidden">
+    <div className="glass-panel relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-none bg-transparent text-foreground md:hidden">
       <DialogHeader className="sr-only">
         <DialogTitle>Pomodoro Focus &amp; AI Planner</DialogTitle>
       </DialogHeader>
 
-      <header className="shrink-0 border-b border-white/10 bg-background px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="relative z-20 shrink-0 border-b border-white/10 bg-transparent px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-3">
           <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border", toneClasses[modeTone])}>
             <Timer className="h-5 w-5" />
@@ -139,6 +141,17 @@ function MobilePomodoroExperience({
             <h1 className="truncate text-[0.98rem] font-extrabold tracking-tight">Pomodoro Focus</h1>
             <p className="truncate text-[0.68rem] text-muted-foreground">{contextTitle}</p>
           </div>
+          <button
+            type="button"
+            aria-label="Close Pomodoro"
+            onClick={() => {
+              haptic("light");
+              onClose();
+            }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-muted-foreground transition active:scale-95 touch-manipulation"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="mt-3 grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/[0.025] p-1">
@@ -168,7 +181,7 @@ function MobilePomodoroExperience({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 pb-24 scroll-sleek">
+      <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 pb-3 scroll-sleek">
         {tab === "focus" && (
           <main className="mx-auto w-full max-w-xl space-y-3">
             <section className="glass-panel relative overflow-hidden rounded-[1.65rem] p-4 shadow-xl">
@@ -562,8 +575,8 @@ function MobilePomodoroExperience({
         )}
       </div>
 
-      <footer className="shrink-0 border-t border-white/10 bg-background px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2">
-        <div className="mx-auto flex max-w-xl gap-2 overflow-x-auto rounded-2xl border border-white/[0.08] bg-white/[0.025] p-1.5 scroll-sleek">
+      <footer className="relative z-20 shrink-0 border-t border-white/10 bg-transparent px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2">
+        <div className="mx-auto grid max-w-xl grid-cols-3 gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-1.5">
           {tab === "focus" && (
             <>
               <button
@@ -572,7 +585,7 @@ function MobilePomodoroExperience({
                   haptic("light");
                   setTab("planner");
                 }}
-                className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-violet-400/20 bg-violet-400/[0.08] px-3 text-xs font-bold text-violet-200 transition active:scale-[0.98] touch-manipulation"
+                className="flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-violet-400/20 bg-violet-400/[0.08] px-2 text-xs font-bold text-violet-200 transition active:scale-[0.98] touch-manipulation"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 AI Plan
@@ -583,7 +596,7 @@ function MobilePomodoroExperience({
                   haptic("light");
                   resetTimer();
                 }}
-                className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 text-xs font-bold text-muted-foreground transition active:scale-[0.98] touch-manipulation"
+                className="flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.035] px-2 text-xs font-bold text-muted-foreground transition active:scale-[0.98] touch-manipulation"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 Reset
@@ -594,7 +607,7 @@ function MobilePomodoroExperience({
                   haptic("medium");
                   completeSession();
                 }}
-                className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.08] px-3 text-xs font-bold text-emerald-200 transition active:scale-[0.98] touch-manipulation"
+                className="flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.08] px-2 text-xs font-bold text-emerald-200 transition active:scale-[0.98] touch-manipulation"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Finish
@@ -820,9 +833,10 @@ export function PomodoroDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 min-h-0 border-0 bg-background text-foreground flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0 isolate">
+      <DialogContent className="fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 w-screen h-[100dvh] max-w-none max-h-none rounded-none sm:rounded-none m-0 min-h-0 border-0 bg-transparent text-foreground flex flex-col p-0 z-50 overflow-hidden shadow-none ring-0 isolate [&>button.absolute]:hidden md:[&>button.absolute]:block">
         <MobilePomodoroExperience
           pomodoro={pomodoro}
+          onClose={() => onOpenChange(false)}
           courses={courses}
           activeCourse={activeCourse}
           selectedNote={selectedNote}

@@ -32,6 +32,7 @@ import { DailyGoalView } from "@/components/tools/daily-goal-view";
 import { MarkdownCheatsheet } from "@/components/tools/markdown-cheatsheet";
 import { AiExamSimulatorDialog } from "@/components/tools/ai-exam-simulator-dialog";
 import { AiNotePolisherDialog } from "@/components/tools/ai-note-polisher-dialog";
+import { AiExplainDialog } from "@/components/tools/ai-explain-dialog";
 import { AiCollectionExamDialog } from "@/components/tools/ai-collection-exam-dialog";
 import { NotificationBanner } from "@/components/ui/notification-banner";
 import type { Note } from "@/lib/notes";
@@ -105,6 +106,7 @@ function AuthenticatedApp({
   const [autoAIGenerateCards, setAutoAIGenerateCards] = useState(false);
   const [examSimulatorOpen, setExamSimulatorOpen] = useState(false);
   const [notePolisherOpen, setNotePolisherOpen] = useState(false);
+  const [aiExplainOpen, setAiExplainOpen] = useState(false);
   const [collectionExamOpen, setCollectionExamOpen] = useState(false);
 
   // Listen for Pomodoro focus session completion
@@ -357,6 +359,7 @@ function AuthenticatedApp({
             onNavigateDailyGoal={navigateToDailyGoal}
             onOpenExamSimulator={() => setExamSimulatorOpen(true)}
             onOpenNotePolisher={() => setNotePolisherOpen(true)}
+            onOpenAiExplain={() => setAiExplainOpen(true)}
             onOpenCollectionExam={() => setCollectionExamOpen(true)}
             pomodoroRunning={pomodoro.isRunning}
             pomodoroTimeFormatted={pomodoroTimeFormatted}
@@ -452,6 +455,7 @@ function AuthenticatedApp({
             setFlashcardsDialogOpen(true);
           }}
           onOpenCheatsheet={() => setShowCheatsheet(true)}
+          onOpenAiExplain={() => setAiExplainOpen(true)}
           pomodoroRunning={pomodoro.isRunning}
           pomodoroTimeFormatted={pomodoroTimeFormatted}
           onToggleFocus={() => {
@@ -533,6 +537,13 @@ function AuthenticatedApp({
             setNotePolisherOpen(true);
           }}
           onOpenCollectionExam={() => setCollectionExamOpen(true)}
+        />
+
+        <AiExplainDialog
+          open={aiExplainOpen}
+          onOpenChange={setAiExplainOpen}
+          notes={n.notes}
+          selectedNote={n.selected || n.visibleNotes[0] || null}
         />
 
         <AiNotePolisherDialog
@@ -889,6 +900,7 @@ function AuthenticatedApp({
         onNavigateDailyGoal={navigateToDailyGoal}
         onOpenExamSimulator={() => setExamSimulatorOpen(true)}
         onOpenNotePolisher={() => setNotePolisherOpen(true)}
+        onOpenAiExplain={() => setAiExplainOpen(true)}
         onOpenCollectionExam={() => setCollectionExamOpen(true)}
         pomodoroRunning={pomodoro.isRunning}
         pomodoroTimeFormatted={pomodoroTimeFormatted}

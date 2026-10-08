@@ -442,6 +442,31 @@ function AuthenticatedApp({
             onOpenChange={setSidebarOpen}
             onOpenSettings={() => setSettingsOpen(true)}
             onOpenNewCourse={() => setNewCourseModalOpen(true)}
+            onOpenCourses={() => {
+              setSidebarOpen(false);
+              setView("dashboard");
+            }}
+            onOpenAllNotes={() => {
+              setSidebarOpen(false);
+              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              n.setFilter({ kind: "all" });
+              n.setSelectedId(null);
+              setView("workspace");
+            }}
+            onOpenFavorites={() => {
+              setSidebarOpen(false);
+              if (!n.activeCourseId && n.courses[0]) n.setActiveCourseId(n.courses[0].id);
+              n.setFilter({ kind: "favorites" });
+              n.setSelectedId(null);
+              setView("workspace");
+            }}
+            onOpenNote={(noteId, courseId) => {
+              setSidebarOpen(false);
+              if (courseId) n.setActiveCourseId(courseId);
+              n.setSelectedId(noteId);
+              setView("workspace");
+            }}
+            notes={n.notes}
             onOpenPomodoro={() => setPomodoroDialogOpen(true)}
             onOpenFlashcards={() => {
               setFlashcardTargetNote(n.selected || n.visibleNotes[0] || null);

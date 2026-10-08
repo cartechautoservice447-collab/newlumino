@@ -4,6 +4,7 @@ import {
   BookOpen,
   Clock3,
   FolderOpen,
+  Flame,
   Menu,
   Plus,
   Search,
@@ -17,6 +18,7 @@ import { useAuth } from "@/context/auth-context";
 import { haptic } from "@/lib/haptics";
 import { COURSE_ACCENTS, formatDate, type Course, type CourseAccent, type Note } from "@/lib/notes";
 import { cn } from "@/lib/utils";
+import { MobileMomentumAndActivity } from "./mobile-momentum-and-activity";
 
 type Props = {
   courses: Course[];
@@ -161,48 +163,133 @@ const MobileStudyToday = memo(function MobileStudyToday({
   todayFocusSeconds,
   dailyGoalHours,
   onStartFocus,
-  realtimeStatus = "connected",
-  isSyncing = false,
 }: {
   todayFocusSeconds: number;
   dailyGoalHours: number;
   onStartFocus: () => void;
-  realtimeStatus?: "connected" | "connecting" | "offline";
-  isSyncing?: boolean;
 }) {
-  const minutes = Math.floor(todayFocusSeconds / 60);
+  const todayMinutes = Math.floor(todayFocusSeconds / 60);
   const goalMinutes = Math.max(1, Math.round(dailyGoalHours * 60));
-  const progress = Math.min(100, Math.round((minutes / goalMinutes) * 100));
-  const remaining = Math.max(0, goalMinutes - minutes);
-  const radius = 17;
-  const circumference = 2 * Math.PI * radius;
-  const strokeOffset = circumference - (progress / 100) * circumference;
-  const message = progress >= 100 ? "Goal complete — review a weak concept while your focus is warm." : minutes > 0 ? remaining + " min left to reach today’s focus goal." : "A focused block is the fastest way to build momentum.";
-  const syncLabel = isSyncing ? "Syncing…" : realtimeStatus === "connected" ? "Cloud synced" : realtimeStatus === "connecting" ? "Connecting…" : "Local cached";
-  const syncTone = realtimeStatus === "connected" && !isSyncing ? "bg-emerald-300" : "bg-amber-300";
+  const progress = Math.min(100, Math.round((todayMinutes / goalMinutes) * 100));
 
   return (
-    <section className="glass-panel rounded-[1.4rem] p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Study today</p>
-          <div className="mt-1.5 flex items-baseline gap-1.5"><strong className="text-2xl font-bold tabular-nums text-foreground">{minutes}</strong><span className="text-xs text-muted-foreground">/ {goalMinutes} min</span></div>
+    <section className="glass-panel relative overflow-hidden rounded-[1.85rem] border border-primary/25 bg-gradient-to-br from-primary/10 via-white/[0.02] to-amber-500/10 p-4.5 shadow-lg">
+      <div className="relative z-10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
+              <svg className="h-16 w-16 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
+                <path
+                  className="text-white/10"
+                  strokeWidth="3.2"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  className="text-primary transition-[stroke-dasharray] duration-500 ease-out"
+                  strokeDasharray={progress + ", 100"}
+                  strokeWidth="3.2"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+              </svg>
+              <span className="absolute font-mono text-[0.68rem] font-bold text-foreground">
+                {progress}%
+              </span>
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-xs font-bold text-foreground truncate">Today's Focus</h2>
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[0.58rem] font-bold text-amber-300">
+                  <Flame className="h-2.5 w-2.5" />
+                  <span>Streak</span>
+                </span>
+              </div>
+              <p className="mt-0.5 truncate text-[0.65rem] text-muted-foreground">
+                {todayMinutes}m of {goalMinutes}m daily goal
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onStartFocus}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/20 px-3.5 py-2.5 text-xs font-bold text-primary shadow-sm transition-transform active:scale-90 hover:bg-primary/30"
+            aria-label="Start a focus session"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+            <span>Start Focus</span>
+          </button>
         </div>
-        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/[0.06] shadow-[0_0_18px_-8px_hsl(var(--primary)/0.8)]" aria-label={progress + "% of daily focus goal"}>
-          <svg className="-rotate-90" width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
-            <circle cx="19" cy="19" r={radius} fill="none" stroke="currentColor" className="text-white/[0.08]" strokeWidth="3" />
-            <circle cx="19" cy="19" r={radius} fill="none" stroke="currentColor" className="text-primary" strokeWidth="3" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeOffset} />
-          </svg>
-          <span className="absolute text-[10px] font-bold tabular-nums text-primary">{progress}%</span>
+
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary via-cyan-300 to-emerald-300 transition-[width] duration-500 ease-out"
+            style={{ width: progress + "%" }}
+          />
         </div>
-      </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.075]"><div className="h-full rounded-full bg-gradient-to-r from-primary via-cyan-300 to-emerald-300 transition-[width] duration-300" style={{ width: progress + "%" }} /></div>
-      <div className="mt-3 flex items-center justify-between gap-3"><p className="min-w-0 text-[11px] leading-relaxed text-muted-foreground">{message}</p><button type="button" onClick={onStartFocus} className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/10 px-3 text-[11px] font-bold text-primary transition-transform active:scale-95">Focus <ArrowRight className="h-3 w-3" /></button></div>
-      <div className="mt-3 flex items-center gap-1.5 border-t border-white/[0.06] pt-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/75">
-        <span className={`h-1.5 w-1.5 rounded-full ${syncTone}`} />
-        <span>{syncLabel}</span>
+        <div className="mt-2 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground/75">
+          <span>Today</span>
+          <span>{todayMinutes} / {goalMinutes} min</span>
+        </div>
       </div>
     </section>
+  );
+});
+
+const MobileQuickStats = memo(function MobileQuickStats({
+  courseCount,
+  noteCount,
+  favoriteCount,
+  onOpenAllNotes,
+  onOpenFavorites,
+}: {
+  courseCount: number;
+  noteCount: number;
+  favoriteCount: number;
+  onOpenAllNotes: () => void;
+  onOpenFavorites: () => void;
+}) {
+  return (
+    <div className="grid grid-cols-[1.25fr_1.25fr_0.85fr] gap-2">
+      <button
+        type="button"
+        onClick={onOpenAllNotes}
+        className="glass-panel min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
+      >
+        <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
+          <FolderOpen className="h-3 w-3 text-primary" />
+          Courses
+        </span>
+        <span className="mt-0.5 block text-[13px] font-extrabold tabular-nums text-foreground">{courseCount}</span>
+      </button>
+      <button
+        type="button"
+        onClick={onOpenAllNotes}
+        className="glass-panel min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
+      >
+        <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
+          <BookOpen className="h-3 w-3 text-primary" />
+          Notes
+        </span>
+        <span className="mt-0.5 block text-[13px] font-extrabold tabular-nums text-foreground">{noteCount}</span>
+      </button>
+      <button
+        type="button"
+        onClick={onOpenFavorites}
+        className="glass-panel min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
+      >
+        <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
+          <Star className="h-3 w-3 text-amber-300" />
+          Fav
+        </span>
+        <span className="mt-0.5 block text-[13px] font-extrabold tabular-nums text-foreground">{favoriteCount}</span>
+      </button>
+    </div>
   );
 });
 
@@ -289,5 +376,5 @@ export function MobileStudyDashboard(props: Props) {
   const resumeNote = recentNotes[0]; const resumeCourse = resumeNote?.courseId ? coursesById.get(resumeNote.courseId) : undefined;
   const meta = user?.user_metadata as { username?: string; full_name?: string } | null; const name = meta?.username || meta?.full_name?.split(" ")[0];
   const subtitle = resumeCourse ? `Continue your ${resumeCourse.name} study session` : resumeNote ? "Continue your latest study session" : "Choose a course and build today’s momentum";
-  return <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:hidden"><div className="mx-auto w-full max-w-xl space-y-6"><MobileDashboardHeader name={name} subtitle={subtitle} onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} /><MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} /><MobileStudyToday todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} realtimeStatus={props.realtimeStatus} isSyncing={props.isSyncing} /><div className="flex gap-2"><button type="button" onClick={onOpenAllNotes} className="glass-panel flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-xl text-[10px] font-bold text-muted-foreground"><BookOpen className="h-3.5 w-3.5" /> {props.courses.length} courses · {props.notes.length} notes</button><button type="button" onClick={onOpenFavorites} className="glass-panel flex min-h-9 items-center justify-center gap-1.5 rounded-xl px-3 text-[10px] font-bold text-muted-foreground"><Star className="h-3.5 w-3.5" /> {favoriteCount}</button></div><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
+  return <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:hidden"><div className="mx-auto w-full max-w-xl space-y-6"><MobileDashboardHeader name={name} subtitle={subtitle} onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} /><MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} /><MobileStudyToday todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} /><MobileQuickStats courseCount={props.courses.length} noteCount={props.notes.length} favoriteCount={favoriteCount} onOpenAllNotes={onOpenAllNotes} onOpenFavorites={onOpenFavorites} /><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
 }

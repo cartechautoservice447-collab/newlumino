@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { RotateCcw, X, Sparkles, RefreshCw, UserCheck, Cloud, Moon, Sun, Droplets, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1058,7 +1058,7 @@ function MobileSwipeableSettingsSheet({
   const rafRef = useRef<number | null>(null);
   const unmountTimerRef = useRef<number | null>(null);
 
-  const applySheetPosition = (y: number) => {
+  const applySheetPosition = useCallback((y: number) => {
     const sheet = sheetRef.current;
     const backdrop = backdropRef.current;
     if (!sheet) return;
@@ -1068,9 +1068,9 @@ function MobileSwipeableSettingsSheet({
 
     sheet.style.transform = `translate3d(0, ${clampedY}px, 0)`;
     if (backdrop) backdrop.style.opacity = String(progress * 0.75);
-  };
+  }, [sheetHeight]);
 
-  const setSheetTransition = (enabled: boolean) => {
+  const setSheetTransition = useCallback((enabled: boolean) => {
     const sheet = sheetRef.current;
     const backdrop = backdropRef.current;
     if (sheet) {
@@ -1083,9 +1083,9 @@ function MobileSwipeableSettingsSheet({
         ? "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)"
         : "none";
     }
-  };
+  }, []);
 
-  const scheduleDragPosition = (y: number) => {
+  const scheduleDragPosition = useCallback((y: number) => {
     pendingDragY.current = y;
     if (rafRef.current !== null) return;
 
@@ -1094,7 +1094,7 @@ function MobileSwipeableSettingsSheet({
       if (!draggingRef.current) return;
       applySheetPosition(pendingDragY.current);
     });
-  };
+  }, [applySheetPosition]);
 
   useEffect(() => {
     const updateHeight = () => {
@@ -1138,7 +1138,7 @@ function MobileSwipeableSettingsSheet({
         unmountTimerRef.current = null;
       }
     };
-  }, [open, sheetHeight]);
+  }, [open, sheetHeight, applySheetPosition, setSheetTransition]);
 
   const handleSheetTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length !== 1) return;

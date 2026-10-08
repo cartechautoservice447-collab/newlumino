@@ -30,7 +30,7 @@ import { useCustomization } from "@/context/customization-context";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
-import type { Collection, Course } from "@/lib/notes";
+import type { Collection, Course, Note } from "@/lib/notes";
 import type { Filter } from "@/hooks/use-notes";
 
 type Props = {
@@ -45,6 +45,14 @@ type Props = {
   onAddCollection?: (name: string, category?: string) => void;
   onDeleteCollection?: (id: string) => void;
   onBackToCourses?: () => void;
+  // Smart Study Queue
+  notes?: Note[];
+  courses?: Course[];
+  selectedNoteId?: string | null;
+  onOpenNote?: (noteId: string, courseId?: string) => void;
+  onOpenFlashcardsForNote?: (note: Note) => void;
+  onOpenAllNotes?: () => void;
+  onOpenFavorites?: () => void;
   // Tool options
   onOpenSettings: () => void;
   onOpenNewCourse: () => void;
@@ -66,8 +74,7 @@ type Props = {
 
 /**
  * Mobile Tool Icon Option Sheet:
- * Contains the Navigation Interface (Courses, Collections, All Notes, Starred, Folders)
- * as well as quick tool utilities.
+ * Contains the Smart Study Queue as well as quick tool utilities.
  */
 export function MobileMoreOptionsSheet({
   open,
@@ -80,6 +87,13 @@ export function MobileMoreOptionsSheet({
   onAddCollection,
   onDeleteCollection,
   onBackToCourses,
+  notes = [],
+  courses = [],
+  selectedNoteId = null,
+  onOpenNote,
+  onOpenFlashcardsForNote,
+  onOpenAllNotes,
+  onOpenFavorites,
   onOpenSettings,
   onOpenNewCourse,
   onOpenPomodoro,
@@ -100,7 +114,7 @@ export function MobileMoreOptionsSheet({
   const { settings, update } = useCustomization();
   const { user, signOut } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<"navigation" | "tools">("navigation");
+  const [activeTab, setActiveTab] = useState<"queue" | "tools">("queue");
   const [newColDraft, setNewColDraft] = useState("");
   const [addingCol, setAddingCol] = useState(false);
 
@@ -253,17 +267,17 @@ export function MobileMoreOptionsSheet({
                 type="button"
                 onClick={() => {
                   haptic("light");
-                  setActiveTab("navigation");
+                  setActiveTab("queue");
                 }}
                 className={cn(
                   "flex items-center justify-center gap-1.5 rounded-xl py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer active:scale-95 touch-manipulation",
-                  activeTab === "navigation"
+                  activeTab === "queue"
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <FolderOpen className="h-3.5 w-3.5" />
-                <span>Navigation</span>
+                <Target className="h-3.5 w-3.5" />
+                <span>Study Queue</span>
               </button>
 
               <button
@@ -300,274 +314,362 @@ export function MobileMoreOptionsSheet({
           ref={scrollRef}
           className="flex-1 overflow-y-auto scroll-sleek overscroll-contain p-3.5 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] space-y-3"
         >
-          {/* TAB 1: NAVIGATION INTERFACE (Applied inside the tool icon option) */}
-          {activeTab === "navigation" && (
+          {/* TAB 1: SMART STUDY QUEUE */}
+          {activeTab === "queue" && (
             <div className="space-y-3 animate-panel-in">
-              {/* Active Course Banner */}
-              {activeCourse && (
-                <div className="glass-panel flex items-center justify-between gap-2.5 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/20 text-primary">
-                      <FolderOpen className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-foreground truncate">
-                        {activeCourse.name}
-                      </h4>
-                      <p className="text-[0.65rem] text-muted-foreground truncate">
-                        {counts.all} notes in course
-                      </p>
+              {(() => {
+                const now = Date.now();
+                const day = 86_400_000;
+                const activeCourseId = activeCourse?.id ?? null;
+
+                const scopedNotes = activeCourseId
+                  ? notes.filter((note) => {
+                      if (note.courseId === activeCourseId) return true;
+                      return note.collectionId
+                        ? collections.some(
+                            (collection) =>
+                              collection.id === note.collectionId &&
+                              (collection.courseId === activeCourseId || collection.parentId === activeCourseId),
+                          )
+                        : false;
+                    })
+                  : notes;
+
+                const getCourseName = (note: Note) =>
+                  courses.find((course) => course.id === note.courseId)?.name ??
+                  activeCourse?.name ??
+                  "Study library";
+
+                const selectedNote = notes.find((note) => note.id === selectedNoteId) ?? null;
+
+                const reviewCandidate = [...scopedNotes]
+                  .filter((note) => note.id !== selectedNoteId && note.favorite && now - note.updatedAt > 2 * day)
+                  .sort((a, b) => a.updatedAt - b.updatedAt)[0] ?? null;
+
+                const unfinishedCandidate = [...scopedNotes]
+                  .filter((note) => note.id !== selectedNoteId && note.body.trim().length < 180)
+                  .sort((a, b) => a.body.trim().length - b.body.trim().length || b.updatedAt - a.updatedAt)[0] ?? null;
+
+                const staleCandidate = [...scopedNotes]
+                  .filter((note) => note.id !== selectedNoteId && now - note.updatedAt > 7 * day)
+                  .sort((a, b) => a.updatedAt - b.updatedAt)[0] ?? null;
+
+                const queueItems: Array<{
+                  id: string;
+                  kind: "continue" | "review" | "finish" | "refresh";
+                  title: string;
+                  subtitle: string;
+                  meta: string;
+                  note?: Note;
+                }> = [];
+
+                if (selectedNote) {
+                  queueItems.push({
+                    id: `continue-${selectedNote.id}`,
+                    kind: "continue",
+                    title: "Continue where you left off",
+                    subtitle: selectedNote.title || "Untitled note",
+                    meta: getCourseName(selectedNote),
+                    note: selectedNote,
+                  });
+                }
+
+                if (reviewCandidate) {
+                  queueItems.push({
+                    id: `review-${reviewCandidate.id}`,
+                    kind: "review",
+                    title: "Review a starred note",
+                    subtitle: reviewCandidate.title || "Starred note",
+                    meta: `Last updated ${Math.max(1, Math.floor((now - reviewCandidate.updatedAt) / day))}d ago`,
+                    note: reviewCandidate,
+                  });
+                }
+
+                if (unfinishedCandidate) {
+                  queueItems.push({
+                    id: `finish-${unfinishedCandidate.id}`,
+                    kind: "finish",
+                    title: "Finish an unfinished note",
+                    subtitle: unfinishedCandidate.title || "Untitled note",
+                    meta: `${unfinishedCandidate.body.trim().length} characters written`,
+                    note: unfinishedCandidate,
+                  });
+                }
+
+                if (staleCandidate && !queueItems.some((item) => item.note?.id === staleCandidate.id)) {
+                  queueItems.push({
+                    id: `refresh-${staleCandidate.id}`,
+                    kind: "refresh",
+                    title: "Refresh an older topic",
+                    subtitle: staleCandidate.title || "Older study note",
+                    meta: `Last touched ${Math.max(1, Math.floor((now - staleCandidate.updatedAt) / day))}d ago`,
+                    note: staleCandidate,
+                  });
+                }
+
+                if (queueItems.length < 3 && onToggleFocus && !focusMode) {
+                  queueItems.push({
+                    id: "focus-block",
+                    kind: "continue",
+                    title: "Start a focused study block",
+                    subtitle: activeCourse?.name ?? "Your study workspace",
+                    meta: `${todayMinutes}m logged today`,
+                  });
+                }
+
+                const visibleQueue = queueItems.slice(0, 4);
+                const queueCount = visibleQueue.length;
+                const goalLabel = goalPercent >= 100 ? "Daily target complete" : `${goalPercent}% of today's goal`;
+
+                const runQueueItem = (item: (typeof visibleQueue)[number]) => {
+                  haptic(item.kind === "review" ? "medium" : "light");
+                  handleClose();
+
+                  if (item.note && onOpenNote && (item.kind === "continue" || item.kind === "finish" || item.kind === "refresh")) {
+                    onOpenNote(item.note.id, item.note.courseId ?? undefined);
+                    return;
+                  }
+
+                  if (item.note && item.kind === "review" && onOpenFlashcardsForNote) {
+                    onOpenFlashcardsForNote(item.note);
+                    return;
+                  }
+
+                  if (item.id === "focus-block" && onToggleFocus) {
+                    onToggleFocus();
+                  }
+                };
+
+                return (
+                  <>
+                    {/* Queue hero */}
+                    <div className="rounded-3xl border border-primary/20 bg-primary/[0.08] p-3.5 shadow-[0_12px_40px_-24px_hsl(var(--primary)/0.55)]">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/15 text-primary">
+                              <Target className="h-4 w-4" />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-primary/80">
+                                Smart Study Queue
+                              </p>
+                              <h3 className="mt-0.5 text-sm font-black text-foreground truncate">
+                                {activeCourse?.name ?? "Your next best study actions"}
+                              </h3>
+                            </div>
+                          </div>
+                          <p className="mt-2 text-[0.68rem] leading-relaxed text-muted-foreground">
+                            {queueCount > 0
+                              ? `${queueCount} prioritized action${queueCount === 1 ? "" : "s"} selected from your current study state.`
+                              : "Nothing urgent. Use this space to pick your next study move."}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[0.58rem] font-bold text-primary">
+                          NEXT
+                        </span>
+                      </div>
+
+                      <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-2.5">
+                        <div className="flex items-center justify-between gap-2 text-[0.62rem]">
+                          <span className="font-semibold text-muted-foreground">Today's momentum</span>
+                          <span className="font-mono font-bold text-foreground">{todayMinutes}m / {dailyGoalHours * 60}m</span>
+                        </div>
+                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className="h-full rounded-full bg-primary transition-[width] duration-300"
+                            style={{ width: `${goalPercent}%` }}
+                          />
+                        </div>
+                        <div className="mt-1.5 flex items-center justify-between gap-2 text-[0.58rem]">
+                          <span className="text-muted-foreground">{goalLabel}</span>
+                          <span className="font-mono font-bold text-primary">{queueCount} queued</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  {onBackToCourses && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        haptic("light");
-                        handleClose();
-                        onBackToCourses();
-                      }}
-                      className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[0.68rem] font-semibold text-muted-foreground hover:text-foreground active:scale-90 transition-all cursor-pointer shrink-0"
-                    >
-                      <ArrowLeft className="h-3 w-3" />
-                      <span>All Courses</span>
-                    </button>
-                  )}
-                </div>
-              )}
+                    {/* Prioritized queue */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                          Up next
+                        </span>
+                        <span className="text-[0.58rem] text-muted-foreground/70">auto-prioritized</span>
+                      </div>
 
-              {/* Main Navigation Filters: All Notes & Starred */}
-              <div className="space-y-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("light");
-                    if (onFilterChange) onFilterChange({ kind: "all" });
-                    handleClose();
-                  }}
-                  className={cn(
-                    "w-full flex items-center justify-between gap-2.5 rounded-2xl border px-3.5 py-2.5 text-left transition-all duration-200 cursor-pointer active:scale-98",
-                    filter.kind === "all"
-                      ? "border-primary/50 bg-primary/20 text-foreground font-bold shadow-sm ring-1 ring-primary/40"
-                      : "border-white/5 bg-white/[0.03] text-muted-foreground hover:text-foreground hover:bg-white/[0.06]"
-                  )}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Layers className={cn("h-4 w-4", filter.kind === "all" && "text-primary")} />
-                    <span className="text-xs font-semibold">All Notes</span>
-                  </div>
-                  <span className="font-mono text-xs px-2 py-0.5 rounded-lg bg-white/10 font-bold">
-                    {counts.all}
-                  </span>
-                </button>
+                      {visibleQueue.length > 0 ? (
+                        visibleQueue.map((item, index) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => runQueueItem(item)}
+                            className={cn(
+                              "group w-full flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all duration-200 cursor-pointer active:scale-[0.98]",
+                              index === 0
+                                ? "border-primary/30 bg-primary/[0.08] hover:bg-primary/[0.12]"
+                                : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]",
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border",
+                                item.kind === "continue" && "border-primary/30 bg-primary/15 text-primary",
+                                item.kind === "review" && "border-amber-500/30 bg-amber-500/15 text-amber-300",
+                                item.kind === "finish" && "border-cyan-500/30 bg-cyan-500/15 text-cyan-300",
+                                item.kind === "refresh" && "border-violet-500/30 bg-violet-500/15 text-violet-300",
+                              )}
+                            >
+                              {item.kind === "review" ? (
+                                <Brain className="h-4 w-4" />
+                              ) : item.kind === "finish" ? (
+                                <Check className="h-4 w-4" />
+                              ) : item.kind === "refresh" ? (
+                                <Clock className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                            </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic("light");
-                    if (onFilterChange) onFilterChange({ kind: "favorites" });
-                    handleClose();
-                  }}
-                  className={cn(
-                    "w-full flex items-center justify-between gap-2.5 rounded-2xl border px-3.5 py-2.5 text-left transition-all duration-200 cursor-pointer active:scale-98",
-                    filter.kind === "favorites"
-                      ? "border-yellow-500/50 bg-yellow-500/20 text-foreground font-bold shadow-sm ring-1 ring-yellow-500/40"
-                      : "border-white/5 bg-white/[0.03] text-muted-foreground hover:text-foreground hover:bg-white/[0.06]"
-                  )}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                    <span className="text-xs font-semibold">Starred Notes</span>
-                  </div>
-                  <span className="font-mono text-xs px-2 py-0.5 rounded-lg bg-white/10 font-bold">
-                    {counts.favorites}
-                  </span>
-                </button>
-              </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-[0.72rem] font-bold text-foreground truncate">{item.title}</p>
+                                {index === 0 && (
+                                  <span className="shrink-0 rounded-full bg-primary/15 px-1.5 py-0.5 text-[0.53rem] font-bold text-primary">
+                                    NOW
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-0.5 text-[0.66rem] text-muted-foreground truncate">{item.subtitle}</p>
+                              <p className="mt-1 text-[0.57rem] text-muted-foreground/70 truncate">{item.meta}</p>
+                            </div>
 
-              {/* Collections & Folders Section */}
-              <div className="space-y-2 pt-1 border-t border-white/5">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[0.68rem] uppercase tracking-wider text-muted-foreground/80 font-bold flex items-center gap-1.5">
-                    <FolderClosed className="h-3.5 w-3.5 text-primary" />
-                    <span>Folders &amp; Modules</span>
-                  </span>
-
-                  {!addingCol ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        haptic("light");
-                        setAddingCol(true);
-                      }}
-                      className="flex items-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/[0.03] px-2 py-1 text-[0.68rem] text-muted-foreground hover:text-foreground active:scale-90 transition-all cursor-pointer font-medium"
-                    >
-                      <Plus className="h-3 w-3 text-primary" />
-                      <span>New Folder</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <input
-                        autoFocus
-                        value={newColDraft}
-                        onChange={(e) => setNewColDraft(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleCommitCollection();
-                          if (e.key === "Escape") setAddingCol(false);
-                        }}
-                        placeholder="Folder name..."
-                        className="rounded-lg border border-primary/40 bg-white/[0.08] px-2 py-0.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none w-32"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleCommitCollection}
-                        className="rounded-lg bg-primary p-1 text-primary-foreground hover:bg-primary/90 cursor-pointer"
-                      >
-                        <Check className="h-3 w-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAddingCol(false)}
-                        className="rounded-lg bg-white/10 p-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50 transition-transform group-active:translate-x-1" />
+                          </button>
+                        ))
+                      ) : (
+                        <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-4 text-center">
+                          <Sparkles className="mx-auto h-5 w-5 text-primary/70" />
+                          <p className="mt-2 text-xs font-bold text-foreground">Queue is clear</p>
+                          <p className="mt-1 text-[0.63rem] text-muted-foreground">
+                            Create or open a note to give the queue something useful to prioritize.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                {/* Collections List */}
-                <div className="space-y-1">
-                  {collections.length === 0 ? (
-                    <div className="p-3 text-center text-xs text-muted-foreground/60 italic rounded-2xl border border-white/5 bg-white/[0.02]">
-                      No custom folders created yet.
-                    </div>
-                  ) : (
-                    collections.map((col) => {
-                      const isActive = filter.kind === "collection" && filter.id === col.id;
-                      const count = counts.byCollection[col.id] || 0;
+                    {/* Fast library access */}
+                    <div className="space-y-2 border-t border-white/10 pt-2">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-muted-foreground">Library</span>
+                        <span className="text-[0.58rem] text-muted-foreground/70">{notes.length} notes</span>
+                      </div>
 
-                      return (
-                        <div
-                          key={col.id}
-                          className={cn(
-                            "group flex items-center justify-between gap-2 rounded-2xl border px-3 py-2 transition-all duration-200 select-none",
-                            isActive
-                              ? "border-primary/50 bg-primary/15 text-foreground font-medium shadow-sm"
-                              : "border-white/5 bg-white/[0.02] text-muted-foreground hover:border-white/10 hover:bg-white/[0.05]"
-                          )}
-                        >
+                      <div className="grid grid-cols-2 gap-2">
+                        {onOpenAllNotes && (
                           <button
                             type="button"
                             onClick={() => {
                               haptic("light");
-                              if (onFilterChange) onFilterChange({ kind: "collection", id: col.id });
                               handleClose();
+                              onOpenAllNotes();
                             }}
-                            className="flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer"
+                            className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-left transition-all active:scale-[0.98] hover:bg-white/[0.06] cursor-pointer"
                           >
-                            <FolderClosed className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
-                            <span className="text-xs font-semibold truncate">{col.name}</span>
+                            <span className="text-[0.68rem] font-semibold text-foreground">All Notes</span>
+                            <Layers className="h-3.5 w-3.5 text-primary" />
                           </button>
+                        )}
+                        {onOpenFavorites && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              haptic("light");
+                              handleClose();
+                              onOpenFavorites();
+                            }}
+                            className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-left transition-all active:scale-[0.98] hover:bg-white/[0.06] cursor-pointer"
+                          >
+                            <span className="text-[0.68rem] font-semibold text-foreground">Starred</span>
+                            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                          </button>
+                        )}
+                        {onBackToCourses && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              haptic("light");
+                              handleClose();
+                              onBackToCourses();
+                            }}
+                            className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-left transition-all active:scale-[0.98] hover:bg-white/[0.06] cursor-pointer"
+                          >
+                            <span className="text-[0.68rem] font-semibold text-foreground">Courses</span>
+                            <FolderOpen className="h-3.5 w-3.5 text-primary" />
+                          </button>
+                        )}
+                        {onNavigateDailyGoal && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              haptic("light");
+                              handleClose();
+                              onNavigateDailyGoal();
+                            }}
+                            className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-left transition-all active:scale-[0.98] hover:bg-white/[0.06] cursor-pointer"
+                          >
+                            <span className="text-[0.68rem] font-semibold text-foreground">Daily Goal</span>
+                            <Target className="h-3.5 w-3.5 text-amber-300" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="font-mono text-xs px-2 py-0.5 rounded-lg bg-white/10 font-bold">
-                              {count}
-                            </span>
-
-                            {onDeleteCollection && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  haptic("warning");
-                                  onDeleteCollection(col.id);
-                                }}
-                                title="Delete folder"
-                                className="p-1 rounded-lg text-muted-foreground/50 hover:text-rose-400 hover:bg-rose-500/10 active:scale-90 transition-all cursor-pointer"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* AI Intelligence Quick Navigation Card */}
-              {(onOpenExamSimulator || onOpenNotePolisher || onOpenAiExplain) && (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[0.65rem] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
-                      <Sparkles className="h-3 w-3" />
-                      <span>AI Study Intelligence</span>
-                    </span>
-                    <span className="text-[0.58rem] font-mono rounded bg-primary/20 px-1 py-0.2 text-primary font-bold">
-                      Gemini 3.8
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    {onOpenExamSimulator && (
+                    {/* Account / utility controls stay compact and out of the queue */}
+                    <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => {
                           haptic("medium");
                           handleClose();
-                          onOpenExamSimulator();
+                          onOpenNewCourse();
                         }}
-                        className="flex items-center gap-2 rounded-xl border border-amber-500/25 bg-amber-500/10 p-2.5 text-left hover:bg-amber-500/15 active:scale-95 transition cursor-pointer"
+                        className="glass-panel flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs font-bold text-foreground active:scale-95 transition-all hover:bg-white/[0.08] cursor-pointer"
                       >
-                        <Target className="h-4 w-4 text-amber-300 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">Exam Simulator</p>
-                          <p className="text-[0.6rem] text-muted-foreground truncate">Timed mock drill</p>
-                        </div>
+                        <FolderPlus className="h-3.5 w-3.5 text-primary" />
+                        <span>+ New Course</span>
                       </button>
-                    )}
 
-                    {onOpenAiExplain && (
                       <button
                         type="button"
                         onClick={() => {
                           haptic("medium");
                           handleClose();
-                          onOpenAiExplain();
+                          onOpenSettings();
                         }}
-                        className="flex items-center gap-2 rounded-xl border border-violet-500/25 bg-violet-500/10 p-2.5 text-left hover:bg-violet-500/15 active:scale-95 transition cursor-pointer"
+                        className="glass-panel flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs font-bold text-foreground active:scale-95 transition-all hover:bg-white/[0.08] cursor-pointer"
                       >
-                        <Brain className="h-4 w-4 text-violet-300 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">AI Explain</p>
-                          <p className="text-[0.6rem] text-muted-foreground truncate">Understand concepts</p>
-                        </div>
+                        <Sliders className="h-3.5 w-3.5 text-purple-400" />
+                        <span>Settings</span>
                       </button>
-                    )}
+                    </div>
 
-                    {onOpenNotePolisher && (
+                    {user && (
                       <button
                         type="button"
                         onClick={() => {
-                          haptic("medium");
+                          haptic("warning");
                           handleClose();
-                          onOpenNotePolisher();
+                          void signOut();
                         }}
-                        className="flex items-center gap-2 rounded-xl border border-cyan-500/25 bg-cyan-500/10 p-2.5 text-left hover:bg-cyan-500/15 active:scale-95 transition cursor-pointer"
+                        className="w-full flex items-center justify-center gap-1.5 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-2.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer"
                       >
-                        <Wand2 className="h-4 w-4 text-cyan-300 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">Note Polisher</p>
-                          <p className="text-[0.6rem] text-muted-foreground truncate">Format &amp; debug</p>
-                        </div>
+                        <LogOut className="h-3.5 w-3.5" />
+                        <span>Log Out ({user.email?.split("@")[0] || "Account"})</span>
                       </button>
                     )}
-                  </div>
-                </div>
-              )}
+                  </>
+                );
+              })()}
             </div>
           )}
 

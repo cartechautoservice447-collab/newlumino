@@ -182,12 +182,12 @@ const MobileStudyToday = memo(function MobileStudyToday({
   const progress = Math.min(100, Math.round((todayMinutes / goalMinutes) * 100));
 
   return (
-    <section className="glass-panel relative overflow-hidden rounded-[1.85rem] border border-primary/25 bg-gradient-to-br from-primary/10 via-white/[0.02] to-amber-500/10 p-4.5 shadow-lg">
+    <section className="glass-panel relative overflow-hidden rounded-[1.75rem] border border-primary/25 bg-gradient-to-br from-primary/10 via-white/[0.02] to-amber-500/10 p-4.5 shadow-lg">
       <div className="relative z-10">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
-              <svg className="h-16 w-16 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
+            <div className="relative flex h-14 w-14 shrink-0 items-center justify-center">
+              <svg className="h-14 w-14 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
                 <path
                   className="text-white/10"
                   strokeWidth="3.2"
@@ -202,23 +202,21 @@ const MobileStudyToday = memo(function MobileStudyToday({
                   strokeLinecap="round"
                   stroke="currentColor"
                   fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 -31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
               </svg>
-              <span className="absolute font-mono text-[0.68rem] font-bold text-foreground">
-                {progress}%
-              </span>
+              <span className="absolute font-mono text-[0.64rem] font-bold text-foreground">{progress}%</span>
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h2 className="text-xs font-bold text-foreground truncate">Today's Focus</h2>
-                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[0.58rem] font-bold text-amber-300">
+                <h2 className="truncate text-xs font-bold text-foreground">Today's Focus</h2>
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[0.56rem] font-bold text-amber-300">
                   <Flame className="h-2.5 w-2.5" />
                   <span>Streak</span>
                 </span>
               </div>
-              <p className="mt-0.5 truncate text-[0.65rem] text-muted-foreground">
+              <p className="mt-0.5 truncate text-[0.64rem] text-muted-foreground">
                 {todayMinutes}m of {goalMinutes}m daily goal
               </p>
             </div>
@@ -235,30 +233,20 @@ const MobileStudyToday = memo(function MobileStudyToday({
           >
             <Target className="h-4 w-4" />
           </button>
-
-          <button
-            type="button"
-            onClick={onStartFocus}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/20 px-3.5 py-2.5 text-xs font-bold text-primary shadow-sm transition-transform active:scale-90 hover:bg-primary/30"
-            aria-label="Start a focus session"
-          >
-            <Zap className="h-3.5 w-3.5 text-amber-300" />
-            <span>Start Focus</span>
-          </button>
         </div>
 
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.06]">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-primary via-cyan-300 to-emerald-300 transition-[width] duration-500 ease-out"
-            style={{ width: progress + "%" }}
-          />
-        </div>
-        <div className="mt-2 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground/75">
-          <span>Today</span>
-          <span>{todayMinutes} / {goalMinutes} min</span>
-        </div>
-      </div>
-    </section>
+        <button
+          type="button"
+          onClick={onStartFocus}
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/20 px-4 py-2.5 text-xs font-bold text-primary shadow-sm transition-transform active:scale-[0.98] hover:bg-primary/30"
+          aria-label="Start a focus session"
+        >
+          <Zap className="h-3.5 w-3.5 text-amber-300" />
+          <span>Start Focus</span>
+          <span className="rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-semibold text-primary">25m block</span>
+        </button>
+
+
   );
 });
 
@@ -278,11 +266,11 @@ const MobileQuickStats = memo(function MobileQuickStats({
   onOpenFavorites: () => void;
 }) {
   return (
-    <div className="grid grid-cols-[1.25fr_1.25fr_0.85fr] gap-2">
+    <div className="grid grid-cols-3 gap-2.5">
       <button
         type="button"
         onClick={onOpenCourses}
-        className="mobile-glass-lite min-h-11 rounded-xl border border-white/10 px-2.5 py-2 text-left transition-transform active:scale-[0.98]"
+        className="mobile-glass-lite min-h-12 rounded-xl border border-white/10 px-2.5 py-2.5 text-left transition-transform active:scale-[0.98]"
       >
         <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
           <FolderOpen className="h-3 w-3 text-primary" />
@@ -514,7 +502,7 @@ const MobileRecentActivity = memo(function MobileRecentActivity({
   if (!notes.length) return null;
   return <section>
     <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-bold text-foreground">Recent activity</h2><span className="text-[11px] text-muted-foreground">Pick up quickly</span></div>
-    <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-none overscroll-x-contain">
+    <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 pr-1 scrollbar-none overscroll-x-contain">
       {notes.map((note) => {
         const course = note.courseId ? coursesById.get(note.courseId) : undefined;
         const accent = course ? ACCENT_STYLES[course.color] : ACCENT_STYLES.sky;
@@ -791,12 +779,90 @@ export function MobileStudyDashboard(props: Props) {
   const resumeNote = recentNotes[0]; const resumeCourse = resumeNote?.courseId ? coursesById.get(resumeNote.courseId) : undefined;
   const meta = user?.user_metadata as { username?: string; full_name?: string } | null; const name = meta?.username || meta?.full_name?.split(" ")[0];
   const subtitle = resumeCourse ? `Continue your ${resumeCourse.name} study session` : resumeNote ? "Continue your latest study session" : "Choose a course and build today’s momentum";
-  return <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:hidden"><div className="mx-auto w-full max-w-xl space-y-6"><MobileDashboardHeader name={name} subtitle={subtitle} onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} /><MobileResumeStudy note={resumeNote} course={resumeCourse} onOpenNote={onOpenNote} onCreateNote={onCreateNote} /><MobileStudyToday todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} onStartFocus={onStartFocus} onOpenDailyGoal={onOpenDailyGoal} /><MobileQuickStats
-  courseCount={props.courses.length}
-  noteCount={props.notes.length}
-  favoriteCount={favoriteCount}
-  onOpenCourses={() => document.getElementById("mobile-course-library")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-  onOpenAllNotes={onOpenAllNotes}
-  onOpenFavorites={onOpenFavorites}
-/><MobileMomentumAndActivity notes={props.notes} todayFocusSeconds={props.todayFocusSeconds} dailyGoalHours={props.dailyGoalHours} /><MobileWeeklyStudyPulse weekly={studyAnalytics.weekly} weeklyTotal={studyAnalytics.weeklyTotal} previousWeekTotal={studyAnalytics.previousWeekTotal} weeklyDelta={studyAnalytics.weeklyDelta} currentStreak={studyAnalytics.currentStreak} bestStreak={studyAnalytics.bestStreak} /><MobileStudyInsights averageSessionMinutes={studyAnalytics.averageSessionMinutes} bestWindow={studyAnalytics.bestWindow} topCourse={studyAnalytics.topCourse} weeklyDelta={studyAnalytics.weeklyDelta} /><MobileRecentActivity notes={recentActivity} coursesById={coursesById} onOpenNote={onOpenNote} /><MobileCourseLibrary courses={props.courses} summaries={summaries} onOpenCourse={onOpenCourse} onQuickNewNote={onCreateNote} onDeleteCourse={onDeleteCourse} onAddCourse={onAddCourse} /></div></main>;
+  return (
+    <main className="dashboard-vertical-scroll h-[100dvh] overflow-y-auto overscroll-y-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-4 md:hidden">
+      <div className="mx-auto w-full max-w-xl pb-2">
+        <section className="space-y-4" aria-labelledby="mobile-dashboard-today">
+          <h2 id="mobile-dashboard-today" className="px-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Today</h2>
+          <div className="space-y-4">
+            <MobileDashboardHeader
+              name={name}
+              subtitle={subtitle}
+              onOpenMenu={onOpenMenu}
+              onOpenSettings={onOpenSettings}
+            />
+            <MobileResumeStudy
+              note={resumeNote}
+              course={resumeCourse}
+              onOpenNote={onOpenNote}
+              onCreateNote={onCreateNote}
+            />
+            <MobileStudyToday
+              todayFocusSeconds={props.todayFocusSeconds}
+              dailyGoalHours={props.dailyGoalHours}
+              onStartFocus={onStartFocus}
+              onOpenDailyGoal={onOpenDailyGoal}
+            />
+            <MobileQuickStats
+              courseCount={props.courses.length}
+              noteCount={props.notes.length}
+              favoriteCount={favoriteCount}
+              onOpenCourses={() => document.getElementById("mobile-course-library")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              onOpenAllNotes={onOpenAllNotes}
+              onOpenFavorites={onOpenFavorites}
+            />
+          </div>
+        </section>
+
+        <section className="mt-9 space-y-4" aria-labelledby="mobile-dashboard-progress">
+          <div className="px-0.5">
+            <h2 id="mobile-dashboard-progress" className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Progress</h2>
+            <p className="mt-1 text-xs text-muted-foreground/75">A calm view of your study rhythm and momentum.</p>
+          </div>
+          <div className="space-y-4">
+            <MobileMomentumAndActivity
+              notes={props.notes}
+              todayFocusSeconds={props.todayFocusSeconds}
+              dailyGoalHours={props.dailyGoalHours}
+            />
+            <MobileWeeklyStudyPulse
+              weekly={studyAnalytics.weekly}
+              weeklyTotal={studyAnalytics.weeklyTotal}
+              previousWeekTotal={studyAnalytics.previousWeekTotal}
+              weeklyDelta={studyAnalytics.weeklyDelta}
+              currentStreak={studyAnalytics.currentStreak}
+              bestStreak={studyAnalytics.bestStreak}
+            />
+            <MobileStudyInsights
+              averageSessionMinutes={studyAnalytics.averageSessionMinutes}
+              bestWindow={studyAnalytics.bestWindow}
+              topCourse={studyAnalytics.topCourse}
+              weeklyDelta={studyAnalytics.weeklyDelta}
+            />
+            <MobileRecentActivity
+              notes={recentActivity}
+              coursesById={coursesById}
+              onOpenNote={onOpenNote}
+            />
+          </div>
+        </section>
+
+        <section className="mt-9 space-y-4" aria-labelledby="mobile-dashboard-library">
+          <div className="px-0.5">
+            <h2 id="mobile-dashboard-library" className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">Library</h2>
+            <p className="mt-1 text-xs text-muted-foreground/75">Your courses and study spaces.</p>
+          </div>
+          <MobileCourseLibrary
+            courses={props.courses}
+            summaries={summaries}
+            onOpenCourse={onOpenCourse}
+            onQuickNewNote={onCreateNote}
+            onDeleteCourse={onDeleteCourse}
+            onAddCourse={onAddCourse}
+          />
+        </section>
+      </div>
+    </main>
+  );
+;
 }

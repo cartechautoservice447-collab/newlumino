@@ -1075,10 +1075,6 @@ export function SettingsDialog({
   isSyncing,
   onRefresh,
   onOpenAuth,
-  noteTitle,
-  activeCourseName,
-  focusMinutes,
-  dailyGoalHours,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1086,10 +1082,6 @@ export function SettingsDialog({
   isSyncing?: boolean;
   onRefresh?: () => void;
   onOpenAuth?: () => void;
-  noteTitle?: string;
-  activeCourseName?: string;
-  focusMinutes?: number;
-  dailyGoalHours?: number;
 }) {
   const isMobile = useIsMobile();
 
@@ -1103,10 +1095,6 @@ export function SettingsDialog({
           onRefresh={onRefresh}
           onOpenAuth={onOpenAuth}
           onClose={() => onOpenChange(false)}
-          noteTitle={noteTitle}
-          activeCourseName={activeCourseName}
-          focusMinutes={focusMinutes}
-          dailyGoalHours={dailyGoalHours}
         />
       </MobileSwipeableSettingsSheet>
     );
@@ -1134,10 +1122,6 @@ export function SettingsDialog({
           onRefresh={onRefresh}
           onOpenAuth={onOpenAuth}
           onClose={() => onOpenChange(false)}
-          noteTitle={noteTitle}
-          activeCourseName={activeCourseName}
-          focusMinutes={focusMinutes}
-          dailyGoalHours={dailyGoalHours}
         />
       </DialogContent>
     </Dialog>
